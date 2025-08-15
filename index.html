@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PKD Project Management Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #242424;
+            --bg-hover: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --border-color: #333333;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Password Screen - Visible by default */
+        #passwordScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .password-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .password-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2rem;
+        }
+
+        .password-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .password-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .password-input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            letter-spacing: 0.1em;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .password-input.error {
+            border-color: var(--accent-red);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .password-error {
+            color: var(--accent-red);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            height: 20px;
+        }
+
+        .password-error.show {
+            opacity: 1;
+        }
+
+        .password-submit {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .password-submit:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Main Dashboard - Hidden by default */
+        #dashboardWrapper {
+            display: none;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .last-updated {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-right: 1rem;
+        }
+
+        .btn-primary {
+            padding: 0.5rem 1rem;
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-export {
+            background: var(--accent-green);
+        }
+
+        .btn-export:hover {
+            background: #059669;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Filter Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        .filter-btn[data-unit] svg {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .filter-btn[data-unit].active svg {
+            opacity: 1;
+        }
+
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            animation: fadeIn 0.8s ease-out 0.4s both;
+        }
+
+        .project-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 12px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .project-card:hover::after {
+            opacity: 0.1;
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .project-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            cursor: pointer;
+        }
+
+        .project-title:hover {
+            color: var(--accent-blue);
+        }
+
+        .project-id {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .status-active { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
+        .status-in-progress { background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid #3b82f6; }
+        .status-qa { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
+        .status-on-hold { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+        .status-planning { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; border: 1px solid #8b5cf6; }
+        .status-complete { background: rgba(107, 114, 128, 0.2); color: #6b7280; border: 1px solid #6b7280; }
+
+        .project-details {
+            margin-bottom: 1rem;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .detail-label {
+            margin-right: 0.5rem;
+            opacity: 0.7;
+        }
+
+        .project-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .business-units {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .unit-tag {
+            padding: 0.25rem 0.5rem;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--accent-blue);
+        }
+
+        .edit-btn, .complete-btn, .delete-btn {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid;
+        }
+
+        .edit-btn {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--accent-purple);
+            color: var(--accent-purple);
+        }
+
+        .edit-btn:hover {
+            background: var(--accent-purple);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .complete-btn {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .complete-btn:hover {
+            background: var(--accent-green);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .delete-btn:hover {
+            background: var(--accent-red);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, -40%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-section-title {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-section-content {
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn-cancel {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .btn-save {
+            padding: 0.75rem 1.5rem;
+            background: var(--accent-green);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Business Unit List Items */
+        .business-unit-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .business-unit-item:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .business-unit-name {
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .delete-unit-btn {
+            padding: 0.25rem 0.5rem;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--accent-red);
+            border-radius: 4px;
+            color: var(--accent-red);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .delete-unit-btn:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        /* Stats Summary */
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease-out 0.3s both;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Notification System */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .notification {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            min-width: 300px;
+            max-width: 400px;
+            box-shadow: var(--shadow);
+            animation: slideInRight 0.3s ease;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.success {
+            border-color: var(--accent-green);
+        }
+
+        .notification.error {
+            border-color: var(--accent-red);
+        }
+
+        .notification.info {
+            border-color: var(--accent-blue);
+        }
+
+        .notification-icon {
+            font-size: 1.25rem;
+        }
+
+        .notification.success .notification-icon {
+            color: var(--accent-green);
+        }
+
+        .notification.error .notification-icon {
+            color: var(--accent-red);
+        }
+
+        .notification.info .notification-icon {
+            color: var(--accent-blue);
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-message {
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .notification.hiding {
+            animation: slideOutRight 0.3s ease;
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Confirmation Dialog */
+        .confirm-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2500;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .confirm-dialog-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.3s ease;
+        }
+
+        .confirm-dialog-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .confirm-dialog-message {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .confirm-dialog-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .confirm-btn-cancel, .confirm-btn-confirm {
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .confirm-btn-cancel {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .confirm-btn-cancel:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .confirm-btn-confirm {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .confirm-btn-confirm:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .last-updated {
+                display: none;
+            }
+
+            .notification-container {
+                right: 10px;
+                left: 10px;
+            }
+
+            .notification {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Confirmation Dialog -->
+    <div class="confirm-dialog" id="confirmDialog">
+        <div class="confirm-dialog-content">
+            <h3 class="confirm-dialog-title" id="confirmTitle">Confirm Action</h3>
+            <p class="confirm-dialog-message" id="confirmMessage"></p>
+            <div class="confirm-dialog-actions">
+                <button class="confirm-btn-cancel" id="confirmCancelBtn">Cancel</button>
+                <button class="confirm-btn-confirm" id="confirmConfirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Screen (Visible by default) -->
+    <div id="passwordScreen">
+        <div class="password-container">
+            <div class="password-logo">PKD Dashboard</div>
+            <h2 class="password-title">Secure Access</h2>
+            <p class="password-subtitle">Please enter your password to continue</p>
+            <div class="password-input-group">
+                <input type="password" class="password-input" id="passwordInput" placeholder="Enter password">
+                <div class="password-error" id="passwordError">Incorrect password. Please try again.</div>
+            </div>
+            <button class="password-submit" id="passwordSubmitBtn">Access Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Main Dashboard (Hidden by default) -->
+    <div id="dashboardWrapper">
+        <div class="bg-animation"></div>
+
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">PKD Dashboard</h1>
+                <div class="header-actions">
+                    <div class="last-updated" id="lastUpdatedText">Last Updated: Loading...</div>
+                    <button class="btn-primary" id="newProjectBtn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                        New Project
+                    </button>
+                    <button class="btn-primary" id="manageUnitsBtn" style="background: var(--accent-orange);">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
+                        </svg>
+                        Manage Units
+                    </button>
+                    <button class="btn-primary btn-export" id="exportBtn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 10a.5.5 0 0 0 .5-.5V3.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V9.5a.5.5 0 0 0 .5.5z"/>
+                            <path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                            <path d="M2 13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8a.5.5 0 0 0-1 0v5.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V8a.5.5 0 0 0-1 0v5.5z"/>
+                        </svg>
+                        Export PKD
+                    </button>
+                    <button class="btn-primary" id="uploadBtn" style="background: var(--accent-purple);">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 6a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 .708-.708L7.5 12.293V6.5A.5.5 0 0 1 8 6z"/>
+                            <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/>
+                        </svg>
+                        Upload PKD
+                    </button>
+                    <input type="file" id="fileInput" style="display: none;" accept=".txt,.docx">
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Stats Summary -->
+            <div class="stats-summary" id="statsSummary"></div>
+
+            <!-- Filter Controls -->
+            <div class="controls">
+                <div class="search-box">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search projects..." id="searchInput">
+                </div>
+                <button class="filter-btn active" data-filter="all">All Projects</button>
+                <div class="toggle-container">
+                    <label class="toggle-label">Show Completed</label>
+                    <div class="toggle-switch" id="showCompletedToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects Grid -->
+            <div class="projects-grid" id="projectsGrid"></div>
+        </div>
+
+        <!-- Project Details Modal -->
+        <div class="modal" id="projectModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modalTitle">Project Details</h2>
+                    <button class="close-btn" id="closeModalBtn">&times;</button>
+                </div>
+                <div id="modalBody"></div>
+            </div>
+        </div>
+
+        <!-- Create/Edit Project Modal -->
+        <div class="modal" id="editModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="editModalTitle">Create New Project</h2>
+                    <button class="close-btn" id="closeEditModalBtn">&times;</button>
+                </div>
+                <div id="editModalBody">
+                    <div class="form-group">
+                        <label class="form-label">Project ID</label>
+                        <input type="text" class="form-input" id="projectIdInput" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Project Title</label>
+                        <input type="text" class="form-input" id="projectTitleInput" placeholder="Enter project title">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="projectStatusInput">
+                            <option value="planning">Planning</option>
+                            <option value="active">Active</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="qa">In QA</option>
+                            <option value="stable">Stable</option>
+                            <option value="on-hold">On Hold</option>
+                            <option value="training">Training</option>
+                            <option value="complete">Complete</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Business Units</label>
+                        <div class="checkbox-group" id="businessUnitsCheckboxes">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Key Details</label>
+                        <textarea class="form-textarea" id="projectDetailsInput" placeholder="Enter key details about the project"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Next Steps</label>
+                        <textarea class="form-textarea" id="projectNextStepsInput" placeholder="Enter next steps for the project"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-cancel" id="cancelEditBtn">Cancel</button>
+                        <button class="btn-save" id="saveProjectBtn">Save Project</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Units Management Modal -->
+        <div class="modal" id="businessUnitsModal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2 class="modal-title">Manage Business Units</h2>
+                    <button class="close-btn" id="closeUnitsModalBtn">&times;</button>
+                </div>
+                <div id="businessUnitsModalBody">
+                    <div class="form-group">
+                        <label class="form-label">Add New Business Unit</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" class="form-input" id="newBusinessUnitInput" placeholder="Enter business unit name" style="flex: 1;">
+                            <button class="btn-save" id="addUnitBtn" style="margin: 0; padding: 0.75rem 1.5rem;">Add</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Existing Business Units</label>
+                        <div id="businessUnitsList" style="display: flex; flex-direction: column; gap: 0;">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // IIFE to encapsulate all code and prevent global scope pollution
+        (function() {
+            'use strict';
+
+            // Global State Management
+            const PKDApp = {
+                // Data with initial projects from the uploaded document
+                projects: [],
+                businessUnits: ['ABL', 'Healthcare', 'Liquid Inventory'],
+                currentEditingProject: null,
+                lastUpdated: 'August 13, 2025',
+                confirmCallback: null, // For confirmation dialog
+                showCompleted: false, // Toggle state for showing completed projects
+                
+                // Password hash
+                PASSWORD_HASH: -1167182811, // Hash of 'jarvis'
+                
+                // Utility functions
+                hashCode: function(str) {
+                    let hash = 0;
+                    for (let i = 0; i < str.length; i++) {
+                        const char = str.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash;
+                    }
+                    return hash;
+                },
+                
+                getStatusInfo: function(status) {
+                    const statusMap = {
+                        'active': { text: 'Active', class: 'status-active' },
+                        'in-progress': { text: 'In Progress', class: 'status-in-progress' },
+                        'qa': { text: 'In QA', class: 'status-qa' },
+                        'on-hold': { text: 'On Hold', class: 'status-on-hold' },
+                        'planning': { text: 'Planning', class: 'status-planning' },
+                        'stable': { text: 'Stable', class: 'status-active' },
+                        'training': { text: 'Training', class: 'status-in-progress' },
+                        'rollout': { text: 'Rollout', class: 'status-in-progress' },
+                        'validation': { text: 'Validation', class: 'status-qa' },
+                        'infrastructure': { text: 'Infrastructure', class: 'status-planning' },
+                        'development': { text: 'Development', class: 'status-in-progress' },
+                        'pending': { text: 'Pending', class: 'status-planning' },
+                        'complete': { text: 'Complete', class: 'status-complete' }
+                    };
+                    return statusMap[status] || { text: status, class: 'status-active' };
+                },
+                
+                // Initialize projects from the uploaded document
+                initializeProjects: function() {
+                    this.projects = [];
+                    
+                    // Start with empty projects array
+                    // Business units can be managed through the UI
+                    this.businessUnits = ['ABL', 'Healthcare', 'Liquid Inventory'];
+                }
+            };
+
+            // Notification System
+            function showNotification(message, type = 'info') {
+                const container = document.getElementById('notificationContainer');
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                
+                const icons = {
+                    success: '✓',
+                    error: '✕',
+                    info: 'ℹ'
+                };
+                
+                notification.innerHTML = `
+                    <span class="notification-icon">${icons[type]}</span>
+                    <div class="notification-content">
+                        <div class="notification-message">${message}</div>
+                    </div>
+                `;
+                
+                container.appendChild(notification);
+                
+                // Auto-hide after 4 seconds
+                setTimeout(() => {
+                    notification.classList.add('hiding');
+                    setTimeout(() => {
+                        container.removeChild(notification);
+                    }, 300);
+                }, 4000);
+            }
+
+            // Confirmation Dialog System
+            function showConfirmDialog(title, message, callback) {
+                const dialog = document.getElementById('confirmDialog');
+                document.getElementById('confirmTitle').textContent = title;
+                document.getElementById('confirmMessage').textContent = message;
+                PKDApp.confirmCallback = callback;
+                dialog.style.display = 'block';
+            }
+
+            function hideConfirmDialog() {
+                document.getElementById('confirmDialog').style.display = 'none';
+                PKDApp.confirmCallback = null;
+            }
+
+            // All dashboard functions
+            function checkPassword() {
+                const passwordInput = document.getElementById('passwordInput');
+                const passwordError = document.getElementById('passwordError');
+                const enteredPassword = passwordInput.value;
+
+                if (PKDApp.hashCode(enteredPassword) === PKDApp.PASSWORD_HASH) {
+                    document.getElementById('passwordScreen').style.display = 'none';
+                    document.getElementById('dashboardWrapper').style.display = 'block';
+                    initializeDashboard();
+                } else {
+                    passwordInput.classList.add('error');
+                    passwordError.classList.add('show');
+                    setTimeout(() => {
+                        passwordInput.classList.remove('error');
+                    }, 500);
+                }
+            }
+
+            function initializeDashboard() {
+                PKDApp.initializeProjects();
+                updateLastUpdated();
+                updateStats();
+                renderProjects();
+                updateFilterButtons();
+            }
+
+            function updateLastUpdated() {
+                document.getElementById('lastUpdatedText').textContent = `Last Updated: ${PKDApp.lastUpdated}`;
+            }
+
+            function updateStats() {
+                const stats = {
+                    total: PKDApp.projects.filter(p => p.status !== 'complete').length,
+                    active: PKDApp.projects.filter(p => ['active', 'in-progress', 'development'].includes(p.status)).length,
+                    testing: PKDApp.projects.filter(p => ['qa', 'validation'].includes(p.status)).length,
+                    onHold: PKDApp.projects.filter(p => p.status === 'on-hold').length,
+                    complete: PKDApp.projects.filter(p => p.status === 'complete').length
+                };
+                
+                const summaryDiv = document.getElementById('statsSummary');
+                summaryDiv.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.total}</div>
+                        <div class="stat-label">Active Projects</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.active}</div>
+                        <div class="stat-label">In Progress</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.testing}</div>
+                        <div class="stat-label">In Testing</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.complete}</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                `;
+            }
+
+            function updateFilterButtons() {
+                const controlsDiv = document.querySelector('.controls');
+                
+                // Remove existing unit filter buttons
+                controlsDiv.querySelectorAll('.filter-btn[data-unit]').forEach(btn => btn.remove());
+                
+                // Add new unit filter buttons
+                PKDApp.businessUnits.forEach(unit => {
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-btn';
+                    btn.setAttribute('data-unit', unit);
+                    btn.innerHTML = `
+                        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" style="margin-right: 4px;">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        ${unit}
+                    `;
+                    btn.addEventListener('click', () => {
+                        document.querySelector('.filter-btn[data-filter="all"]').classList.remove('active');
+                        btn.classList.toggle('active');
+                        
+                        const activeUnitButtons = document.querySelectorAll('.filter-btn[data-unit].active');
+                        if (activeUnitButtons.length === 0) {
+                            document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+                        }
+                        
+                        const activeUnits = Array.from(document.querySelectorAll('.filter-btn[data-unit].active')).map(b => b.dataset.unit);
+                        const search = document.getElementById('searchInput').value;
+                        renderProjects(activeUnits, search);
+                    });
+                    controlsDiv.appendChild(btn);
+                });
+                
+                // Set up All Projects button
+                document.querySelector('.filter-btn[data-filter="all"]').addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderProjects([], document.getElementById('searchInput').value);
+                });
+            }
+
+            function renderProjects(activeUnits = [], search = '') {
+                const grid = document.getElementById('projectsGrid');
+                grid.innerHTML = '';
+
+                const filteredProjects = PKDApp.projects.filter(project => {
+                    // Filter out completed projects if toggle is off
+                    if (!PKDApp.showCompleted && project.status === 'complete') {
+                        return false;
+                    }
+                    
+                    const matchesUnits = activeUnits.length === 0 || 
+                        project.businessUnits.some(unit => activeUnits.includes(unit));
+
+                    const matchesSearch = search === '' || 
+                        project.title.toLowerCase().includes(search.toLowerCase()) ||
+                        project.businessUnits.some(unit => unit.toLowerCase().includes(search.toLowerCase()));
+
+                    return matchesUnits && matchesSearch;
+                });
+
+                filteredProjects.forEach((project, index) => {
+                    const statusInfo = PKDApp.getStatusInfo(project.status);
+                    const card = document.createElement('div');
+                    card.className = 'project-card';
+                    card.style.animationDelay = `${index * 0.05}s`;
+
+                    // Create card structure using DOM elements
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'project-header';
+                    
+                    const titleContainer = document.createElement('div');
+                    
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'project-title';
+                    titleDiv.textContent = project.title;
+                    titleDiv.addEventListener('click', () => openModal(project.id));
+                    
+                    const idDiv = document.createElement('div');
+                    idDiv.className = 'project-id';
+                    idDiv.textContent = `ID: ${project.id}`;
+                    
+                    titleContainer.appendChild(titleDiv);
+                    titleContainer.appendChild(idDiv);
+                    
+                    const statusBadge = document.createElement('span');
+                    statusBadge.className = `status-badge ${statusInfo.class}`;
+                    statusBadge.textContent = statusInfo.text;
+                    
+                    headerDiv.appendChild(titleContainer);
+                    headerDiv.appendChild(statusBadge);
+                    
+                    const detailsDiv = document.createElement('div');
+                    detailsDiv.className = 'project-details';
+                    detailsDiv.innerHTML = `
+                        <div class="detail-row">
+                            <span class="detail-label">Key Details:</span>
+                            <span>${project.keyDetails.substring(0, 80)}...</span>
+                        </div>
+                    `;
+                    
+                    const footerDiv = document.createElement('div');
+                    footerDiv.className = 'project-footer';
+                    
+                    const unitsDiv = document.createElement('div');
+                    unitsDiv.className = 'business-units';
+                    unitsDiv.innerHTML = project.businessUnits.map(unit => `<span class="unit-tag">${unit}</span>`).join('');
+                    
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'project-actions';
+                    
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'edit-btn';
+                    editBtn.textContent = 'Edit';
+                    editBtn.addEventListener('click', () => openEditModal(project.id));
+                    
+                    actionsDiv.appendChild(editBtn);
+                    
+                    // Only show Complete button if not already complete
+                    if (project.status !== 'complete') {
+                        const completeBtn = document.createElement('button');
+                        completeBtn.className = 'complete-btn';
+                        completeBtn.textContent = 'Complete';
+                        completeBtn.addEventListener('click', () => markProjectComplete(project.id));
+                        actionsDiv.appendChild(completeBtn);
+                    }
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-btn';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.addEventListener('click', () => deleteProject(project.id));
+                    
+                    actionsDiv.appendChild(deleteBtn);
+                    
+                    footerDiv.appendChild(unitsDiv);
+                    footerDiv.appendChild(actionsDiv);
+                    
+                    card.appendChild(headerDiv);
+                    card.appendChild(detailsDiv);
+                    card.appendChild(footerDiv);
+                    
+                    grid.appendChild(card);
+                });
+            }
+
+            function openModal(projectId) {
+                const project = PKDApp.projects.find(p => p.id === projectId);
+                if (!project) return;
+
+                const modal = document.getElementById('projectModal');
+                const modalTitle = document.getElementById('modalTitle');
+                const modalBody = document.getElementById('modalBody');
+                const statusInfo = PKDApp.getStatusInfo(project.status);
+
+                modalTitle.textContent = project.title;
+                modalBody.innerHTML = `
+                    <div class="modal-section">
+                        <div class="modal-section-title">Status</div>
+                        <div class="modal-section-content">
+                            <span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>
+                        </div>
+                    </div>
+                    <div class="modal-section">
+                        <div class="modal-section-title">Business Units</div>
+                        <div class="modal-section-content">
+                            <div class="business-units">
+                                ${project.businessUnits.map(unit => `<span class="unit-tag">${unit}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-section">
+                        <div class="modal-section-title">Key Details</div>
+                        <div class="modal-section-content">${project.keyDetails}</div>
+                    </div>
+                    <div class="modal-section">
+                        <div class="modal-section-title">Next Steps</div>
+                        <div class="modal-section-content">${project.nextSteps}</div>
+                    </div>
+                `;
+
+                modal.style.display = 'block';
+            }
+
+            function closeModal() {
+                document.getElementById('projectModal').style.display = 'none';
+            }
+
+            function openCreateModal() {
+                PKDApp.currentEditingProject = null;
+                const modal = document.getElementById('editModal');
+                const modalTitle = document.getElementById('editModalTitle');
+                
+                modalTitle.textContent = 'Create New Project';
+                
+                const maxId = Math.max(...PKDApp.projects.map(p => p.id), 0);
+                document.getElementById('projectIdInput').value = maxId + 1;
+                document.getElementById('projectTitleInput').value = '';
+                document.getElementById('projectStatusInput').value = 'planning';
+                document.getElementById('projectDetailsInput').value = '';
+                document.getElementById('projectNextStepsInput').value = '';
+                
+                updateBusinessUnitCheckboxes();
+                
+                modal.style.display = 'block';
+            }
+
+            function openEditModal(projectId) {
+                const project = PKDApp.projects.find(p => p.id === projectId);
+                if (!project) return;
+
+                PKDApp.currentEditingProject = projectId;
+                const modal = document.getElementById('editModal');
+                const modalTitle = document.getElementById('editModalTitle');
+                
+                modalTitle.textContent = 'Edit Project';
+                
+                document.getElementById('projectIdInput').value = project.id;
+                document.getElementById('projectTitleInput').value = project.title;
+                document.getElementById('projectStatusInput').value = project.status;
+                document.getElementById('projectDetailsInput').value = project.keyDetails;
+                document.getElementById('projectNextStepsInput').value = project.nextSteps;
+                
+                updateBusinessUnitCheckboxes();
+                document.querySelectorAll('#businessUnitsCheckboxes input[type="checkbox"]').forEach(cb => {
+                    cb.checked = project.businessUnits.includes(cb.value);
+                });
+                
+                modal.style.display = 'block';
+            }
+
+            function closeEditModal() {
+                document.getElementById('editModal').style.display = 'none';
+                PKDApp.currentEditingProject = null;
+            }
+
+            function saveProject() {
+                const id = parseInt(document.getElementById('projectIdInput').value);
+                const title = document.getElementById('projectTitleInput').value.trim();
+                const status = document.getElementById('projectStatusInput').value;
+                const keyDetails = document.getElementById('projectDetailsInput').value.trim();
+                const nextSteps = document.getElementById('projectNextStepsInput').value.trim();
+                
+                const businessUnits = [];
+                document.querySelectorAll('#businessUnitsCheckboxes input[type="checkbox"]:checked').forEach(cb => {
+                    businessUnits.push(cb.value);
+                });
+                
+                if (!title) {
+                    showNotification('Please enter a project title', 'error');
+                    return;
+                }
+                
+                if (businessUnits.length === 0) {
+                    showNotification('Please select at least one business unit', 'error');
+                    return;
+                }
+                
+                const projectData = {
+                    id,
+                    title,
+                    status,
+                    businessUnits,
+                    keyDetails,
+                    nextSteps
+                };
+                
+                if (PKDApp.currentEditingProject) {
+                    const index = PKDApp.projects.findIndex(p => p.id === PKDApp.currentEditingProject);
+                    if (index !== -1) {
+                        PKDApp.projects[index] = projectData;
+                        showNotification('Project updated successfully', 'success');
+                    }
+                } else {
+                    PKDApp.projects.push(projectData);
+                    showNotification('Project created successfully', 'success');
+                }
+                
+                updateStats();
+                
+                const activeUnits = Array.from(document.querySelectorAll('.filter-btn[data-unit].active')).map(btn => btn.dataset.unit);
+                const search = document.getElementById('searchInput').value;
+                renderProjects(activeUnits, search);
+                closeEditModal();
+            }
+
+            function updateBusinessUnitCheckboxes() {
+                const checkboxGroup = document.getElementById('businessUnitsCheckboxes');
+                checkboxGroup.innerHTML = '';
+                
+                PKDApp.businessUnits.forEach(unit => {
+                    const label = document.createElement('label');
+                    label.className = 'checkbox-label';
+                    label.innerHTML = `
+                        <input type="checkbox" value="${unit}"> ${unit}
+                    `;
+                    checkboxGroup.appendChild(label);
+                });
+            }
+
+            function openBusinessUnitsModal() {
+                const modal = document.getElementById('businessUnitsModal');
+                updateBusinessUnitsList();
+                modal.style.display = 'block';
+                document.getElementById('newBusinessUnitInput').focus();
+            }
+
+            function closeBusinessUnitsModal() {
+                const modal = document.getElementById('businessUnitsModal');
+                modal.style.display = 'none';
+                document.getElementById('newBusinessUnitInput').value = '';
+            }
+
+            function updateBusinessUnitsList() {
+                const listDiv = document.getElementById('businessUnitsList');
+                listDiv.innerHTML = '';
+                
+                PKDApp.businessUnits.forEach((unit) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'business-unit-item';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'business-unit-name';
+                    nameSpan.textContent = unit;
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-unit-btn';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.addEventListener('click', () => deleteBusinessUnit(unit));
+                    
+                    itemDiv.appendChild(nameSpan);
+                    itemDiv.appendChild(deleteBtn);
+                    listDiv.appendChild(itemDiv);
+                });
+            }
+
+            function addBusinessUnit() {
+                const input = document.getElementById('newBusinessUnitInput');
+                const unitName = input.value.trim();
+                
+                if (!unitName) {
+                    showNotification('Please enter a business unit name', 'error');
+                    return;
+                }
+                
+                if (PKDApp.businessUnits.includes(unitName)) {
+                    showNotification('This business unit already exists', 'error');
+                    return;
+                }
+                
+                PKDApp.businessUnits.push(unitName);
+                PKDApp.businessUnits.sort();
+                
+                input.value = '';
+                updateBusinessUnitsList();
+                updateFilterButtons();
+                input.focus();
+                
+                showNotification(`Business unit "${unitName}" added successfully`, 'success');
+            }
+
+            function deleteBusinessUnit(unit) {
+                showConfirmDialog(
+                    'Delete Business Unit',
+                    `Are you sure you want to delete "${unit}"? This will remove it from all projects.`,
+                    () => {
+                        // Remove from businessUnits array
+                        PKDApp.businessUnits = PKDApp.businessUnits.filter(u => u !== unit);
+                        
+                        // Remove from all projects
+                        PKDApp.projects.forEach(project => {
+                            project.businessUnits = project.businessUnits.filter(u => u !== unit);
+                        });
+                        
+                        // Update UI
+                        updateBusinessUnitsList();
+                        updateFilterButtons();
+                        updateStats();
+                        
+                        // Re-render projects with current filters
+                        const activeUnits = Array.from(document.querySelectorAll('.filter-btn[data-unit].active'))
+                            .map(btn => btn.dataset.unit)
+                            .filter(u => u !== unit); // Remove deleted unit from active filters
+                        const search = document.getElementById('searchInput').value;
+                        renderProjects(activeUnits, search);
+                        
+                        showNotification(`Business unit "${unit}" deleted successfully`, 'success');
+                        hideConfirmDialog();
+                    }
+                );
+            }
+
+            function deleteProject(projectId) {
+                const project = PKDApp.projects.find(p => p.id === projectId);
+                if (!project) return;
+                
+                showConfirmDialog(
+                    'Delete Project',
+                    `Are you sure you want to permanently delete "${project.title}"? This action cannot be undone.`,
+                    () => {
+                        // Remove the project from the array
+                        PKDApp.projects = PKDApp.projects.filter(p => p.id !== projectId);
+                        
+                        // Update UI
+                        updateStats();
+                        const activeUnits = Array.from(document.querySelectorAll('.filter-btn[data-unit].active'))
+                            .map(btn => btn.dataset.unit);
+                        const search = document.getElementById('searchInput').value;
+                        renderProjects(activeUnits, search);
+                        
+                        showNotification(`Project "${project.title}" deleted successfully`, 'success');
+                        hideConfirmDialog();
+                    }
+                );
+            }
+
+            function markProjectComplete(projectId) {
+                const project = PKDApp.projects.find(p => p.id === projectId);
+                if (!project) return;
+                
+                showConfirmDialog(
+                    'Mark as Complete',
+                    `Are you sure you want to mark "${project.title}" as complete?`,
+                    () => {
+                        // Update project status to complete
+                        project.status = 'complete';
+                        
+                        // Update UI
+                        updateStats();
+                        const activeUnits = Array.from(document.querySelectorAll('.filter-btn[data-unit].active'))
+                            .map(btn => btn.dataset.unit);
+                        const search = document.getElementById('searchInput').value;
+                        renderProjects(activeUnits, search);
+                        
+                        showNotification(`Project "${project.title}" marked as complete`, 'success');
+                        hideConfirmDialog();
+                    }
+                );
+            }
+
+            function exportPKD() {
+                const today = new Date();
+                const dateStr = today.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+
+                let content = `**Project Knowledge Document**\n\n`;
+                content += `*Last Updated: ${dateStr}*\n\n`;
+                content += `**Quick Reference List**\n\n`;
+                
+                PKDApp.projects.forEach((project, index) => {
+                    content += `${index + 1}.  ${project.title}\n\n`;
+                });
+                
+                content += `**Active Projects**\n\n`;
+                
+                PKDApp.projects.forEach(project => {
+                    const statusMap = {
+                        'active': 'Active Development',
+                        'in-progress': 'In Progress',
+                        'qa': 'In QA',
+                        'on-hold': 'On Hold',
+                        'planning': 'Planning Phase',
+                        'stable': 'Stable',
+                        'training': 'In Training',
+                        'rollout': 'Rollout Phase',
+                        'validation': 'Validation Phase',
+                        'infrastructure': 'Infrastructure Setup',
+                        'development': 'Active Development',
+                        'pending': 'Pending Discussion',
+                        'complete': 'Complete'
+                    };
+                    
+                    content += `**${project.id}. ${project.title}**\n\n`;
+                    content += `-   **Status**: ${statusMap[project.status] || project.status}\n\n`;
+                    content += `-   **Business Unit**: ${project.businessUnits.join(', ')}\n\n`;
+                    content += `-   **Key Details**: ${project.keyDetails}\n\n`;
+                    content += `-   **Next Steps**: ${project.nextSteps}\n\n`;
+                });
+                
+                content += `**Weekly Review Checklist**\n\n`;
+                content += `-   \\[ \\] Update project statuses\n\n`;
+                content += `-   \\[ \\] Review blockers and dependencies\n\n`;
+                content += `-   \\[ \\] Check upcoming deadlines\n\n`;
+                content += `-   \\[ \\] Update team member progress\n\n`;
+                content += `-   \\[ \\] Document completed milestones\n\n`;
+                content += `-   \\[ \\] Plan next week's priorities\n\n`;
+                
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `Project Knowledge Document ${today.getFullYear()}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getDate().toString().padStart(2, '0')}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                // Update last updated date
+                PKDApp.lastUpdated = dateStr;
+                updateLastUpdated();
+            }
+
+            function handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const content = e.target.result;
+                        const parsedData = parsePKDContent(content);
+                        
+                        if (parsedData.projects.length > 0) {
+                            PKDApp.projects = parsedData.projects;
+                            
+                            // Update business units from parsed data
+                            if (parsedData.businessUnits.length > 0) {
+                                PKDApp.businessUnits = parsedData.businessUnits;
+                            }
+                            
+                            updateStats();
+                            updateFilterButtons();
+                            
+                            const activeUnits = Array.from(document.querySelectorAll('.filter-btn[data-unit].active')).map(btn => btn.dataset.unit);
+                            const search = document.getElementById('searchInput').value;
+                            renderProjects(activeUnits, search);
+                            
+                            showNotification(`Successfully loaded ${PKDApp.projects.length} projects from PKD file`, 'success');
+                        } else {
+                            showNotification('No projects found in the uploaded file. Please check the file format.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error parsing PKD:', error);
+                        showNotification('Error parsing the PKD file. Please ensure it follows the correct format.', 'error');
+                    }
+                };
+                reader.readAsText(file);
+                
+                // Reset the file input
+                event.target.value = '';
+            }
+
+            function parsePKDContent(content) {
+                const parsedProjects = [];
+                const businessUnitsSet = new Set();
+                const lines = content.split('\n');
+                
+                let activeProjectsIndex = lines.findIndex(line => line.includes('**Active Projects**'));
+                if (activeProjectsIndex === -1) return { projects: parsedProjects, businessUnits: [] };
+                
+                let currentProject = null;
+                const statusMap = {
+                    'Active Development': 'active',
+                    'In Progress': 'in-progress',
+                    'In QA': 'qa',
+                    'In QA/Redesign': 'qa',
+                    'UI Tuning': 'in-progress',
+                    'On Hold': 'on-hold',
+                    'On Pause': 'on-hold',
+                    'Planning Phase': 'planning',
+                    'Stable': 'stable',
+                    'In Training': 'training',
+                    'Beginning Training': 'training',
+                    'Rollout Phase': 'rollout',
+                    'Validation Phase': 'validation',
+                    'Infrastructure Setup': 'infrastructure',
+                    'Active': 'active',
+                    'Pending Discussion': 'pending'
+                };
+                
+                for (let i = activeProjectsIndex + 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    
+                    const projectMatch = line.match(/^\*\*(\d+)\.\s+(.+)\*\*$/);
+                    if (projectMatch) {
+                        if (currentProject) {
+                            parsedProjects.push(currentProject);
+                        }
+                        currentProject = {
+                            id: parseInt(projectMatch[1]),
+                            title: projectMatch[2],
+                            status: '',
+                            businessUnits: [],
+                            keyDetails: '',
+                            nextSteps: ''
+                        };
+                        continue;
+                    }
+                    
+                    if (line.startsWith('-   **Status**:')) {
+                        const statusText = line.replace('-   **Status**:', '').trim();
+                        currentProject.status = statusMap[statusText] || 'active';
+                    }
+                    
+                    if (line.startsWith('-   **Business Unit**:')) {
+                        const unitsText = line.replace('-   **Business Unit**:', '').trim();
+                        currentProject.businessUnits = unitsText.split(',').map(u => u.trim());
+                        currentProject.businessUnits.forEach(unit => businessUnitsSet.add(unit));
+                    }
+                    
+                    if (line.startsWith('-   **Key Details**:')) {
+                        currentProject.keyDetails = line.replace('-   **Key Details**:', '').trim();
+                    }
+                    
+                    if (line.startsWith('-   **Next Steps**:')) {
+                        currentProject.nextSteps = line.replace('-   **Next Steps**:', '').trim();
+                    }
+                    
+                    if (line.includes('**Weekly Review Checklist**') || line.includes('**Key Dates') || line.includes('**Priority Actions**')) {
+                        if (currentProject) {
+                            parsedProjects.push(currentProject);
+                        }
+                        break;
+                    }
+                }
+                
+                if (currentProject && !parsedProjects.find(p => p.id === currentProject.id)) {
+                    parsedProjects.push(currentProject);
+                }
+                
+                return { 
+                    projects: parsedProjects, 
+                    businessUnits: Array.from(businessUnitsSet).sort() 
+                };
+            }
+
+            // Set up all event listeners
+            document.addEventListener('DOMContentLoaded', function() {
+                // Password screen
+                const passwordInput = document.getElementById('passwordInput');
+                const passwordSubmitBtn = document.getElementById('passwordSubmitBtn');
+                
+                passwordSubmitBtn.addEventListener('click', checkPassword);
+                
+                passwordInput.addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') {
+                        checkPassword();
+                    }
+                    const passwordError = document.getElementById('passwordError');
+                    passwordInput.classList.remove('error');
+                    passwordError.classList.remove('show');
+                });
+                
+                passwordInput.focus();
+                
+                // Main dashboard buttons
+                document.getElementById('newProjectBtn').addEventListener('click', openCreateModal);
+                document.getElementById('manageUnitsBtn').addEventListener('click', openBusinessUnitsModal);
+                document.getElementById('exportBtn').addEventListener('click', exportPKD);
+                document.getElementById('uploadBtn').addEventListener('click', () => {
+                    document.getElementById('fileInput').click();
+                });
+                document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+                
+                // Show completed toggle
+                const toggleSwitch = document.getElementById('showCompletedToggle');
+                toggleSwitch.addEventListener('click', () => {
+                    PKDApp.showCompleted = !PKDApp.showCompleted;
+                    toggleSwitch.classList.toggle('active');
+                    
+                    const activeUnits = Array.from(document.querySelectorAll('.filter-btn[data-unit].active'))
+                        .map(btn => btn.dataset.unit);
+                    const search = document.getElementById('searchInput').value;
+                    renderProjects(activeUnits, search);
+                    
+                    const status = PKDApp.showCompleted ? 'Showing' : 'Hiding';
+                    showNotification(`${status} completed projects`, 'info');
+                });
+                
+                // Search input
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    const activeUnits = Array.from(document.querySelectorAll('.filter-btn[data-unit].active')).map(btn => btn.dataset.unit);
+                    renderProjects(activeUnits, e.target.value);
+                });
+                
+                // Modal close buttons
+                document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+                document.getElementById('closeEditModalBtn').addEventListener('click', closeEditModal);
+                document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
+                document.getElementById('saveProjectBtn').addEventListener('click', saveProject);
+                document.getElementById('closeUnitsModalBtn').addEventListener('click', closeBusinessUnitsModal);
+                document.getElementById('addUnitBtn').addEventListener('click', addBusinessUnit);
+                
+                // Business unit input enter key
+                const newUnitInput = document.getElementById('newBusinessUnitInput');
+                if (newUnitInput) {
+                    newUnitInput.addEventListener('keypress', function(event) {
+                        if (event.key === 'Enter') {
+                            addBusinessUnit();
+                        }
+                    });
+                }
+                
+                // Confirmation dialog buttons
+                document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+                    hideConfirmDialog();
+                });
+                
+                document.getElementById('confirmConfirmBtn').addEventListener('click', () => {
+                    if (PKDApp.confirmCallback) {
+                        PKDApp.confirmCallback();
+                    }
+                });
+                
+                // Click outside modal to close
+                window.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('modal')) {
+                        if (e.target.id === 'projectModal') {
+                            closeModal();
+                        } else if (e.target.id === 'editModal') {
+                            closeEditModal();
+                        } else if (e.target.id === 'businessUnitsModal') {
+                            closeBusinessUnitsModal();
+                        }
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
