@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PKD Project Management Dashboard</title>
+    <title>Project Management Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -467,7 +467,7 @@
             gap: 0.5rem;
         }
 
-        .business-units {
+        .project-categories {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
@@ -755,8 +755,8 @@
             box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
         }
 
-        /* Business Unit List Items */
-        .business-unit-item {
+        /* Project Category List Items */
+        .project-category-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -768,11 +768,11 @@
             margin-bottom: 0.5rem;
         }
 
-        .business-unit-item:hover {
+        .project-category-item:hover {
             border-color: var(--accent-blue);
         }
 
-        .business-unit-name {
+        .project-category-name {
             color: var(--text-primary);
             font-size: 0.875rem;
         }
@@ -1076,7 +1076,7 @@
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                             <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/>
                         </svg>
-                        Manage Units
+                        Manage Categories
                     </button>
                     <button class="btn-primary btn-export" id="exportBtn">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -1164,8 +1164,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Business Units</label>
-                        <div class="checkbox-group" id="businessUnitsCheckboxes">
+                        <label class="form-label">Project Categories</label>
+                        <div class="checkbox-group" id="projectCategoriesCheckboxes">
                             <!-- Dynamically populated -->
                         </div>
                     </div>
@@ -1185,24 +1185,24 @@
             </div>
         </div>
 
-        <!-- Business Units Management Modal -->
-        <div class="modal" id="businessUnitsModal">
+        <!-- Project Categories Management Modal -->
+        <div class="modal" id="projectCategoriesModal">
             <div class="modal-content" style="max-width: 500px;">
                 <div class="modal-header">
-                    <h2 class="modal-title">Manage Business Units</h2>
+                    <h2 class="modal-title">Manage Categories</h2>
                     <button class="close-btn" id="closeUnitsModalBtn">&times;</button>
                 </div>
-                <div id="businessUnitsModalBody">
+                <div id="projectCategoriesModalBody">
                     <div class="form-group">
-                        <label class="form-label">Add New Business Unit</label>
+                        <label class="form-label">Add New Category</label>
                         <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" class="form-input" id="newBusinessUnitInput" placeholder="Enter business unit name" style="flex: 1;">
+                            <input type="text" class="form-input" id="newprojectCategoryInput" placeholder="Enter category name" style="flex: 1;">
                             <button class="btn-save" id="addUnitBtn" style="margin: 0; padding: 0.75rem 1.5rem;">Add</button>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Existing Business Units</label>
-                        <div id="businessUnitsList" style="display: flex; flex-direction: column; gap: 0;">
+                        <label class="form-label">Existing Categories</label>
+                        <div id="projectCategoriesList" style="display: flex; flex-direction: column; gap: 0;">
                             <!-- Dynamically populated -->
                         </div>
                     </div>
@@ -1220,7 +1220,7 @@
             const PKDApp = {
                 // Data with initial projects from the uploaded document
                 projects: [],
-                businessUnits: ['ABL', 'Healthcare', 'Liquid Inventory'],
+                projectCategories: [],
                 currentEditingProject: null,
                 lastUpdated: 'TBD',
                 confirmCallback: null, // For confirmation dialog
@@ -1264,8 +1264,8 @@
                     this.projects = [];
                     
                     // Start with empty projects array
-                    // Business units can be managed through the UI
-                    this.businessUnits = ['ABL', 'Healthcare', 'Liquid Inventory'];
+                    // Project Categories can be managed through the UI
+                    this.projectCategories = [];
                 }
             };
 
@@ -1381,7 +1381,7 @@
                 controlsDiv.querySelectorAll('.filter-btn[data-unit]').forEach(btn => btn.remove());
                 
                 // Add new unit filter buttons
-                PKDApp.businessUnits.forEach(unit => {
+                PKDApp.projectCategories.forEach(unit => {
                     const btn = document.createElement('button');
                     btn.className = 'filter-btn';
                     btn.setAttribute('data-unit', unit);
@@ -1426,11 +1426,11 @@
                     }
                     
                     const matchesUnits = activeUnits.length === 0 || 
-                        project.businessUnits.some(unit => activeUnits.includes(unit));
+                        project.projectCategories.some(unit => activeUnits.includes(unit));
 
                     const matchesSearch = search === '' || 
                         project.title.toLowerCase().includes(search.toLowerCase()) ||
-                        project.businessUnits.some(unit => unit.toLowerCase().includes(search.toLowerCase()));
+                        project.projectCategories.some(unit => unit.toLowerCase().includes(search.toLowerCase()));
 
                     return matchesUnits && matchesSearch;
                 });
@@ -1479,8 +1479,8 @@
                     footerDiv.className = 'project-footer';
                     
                     const unitsDiv = document.createElement('div');
-                    unitsDiv.className = 'business-units';
-                    unitsDiv.innerHTML = project.businessUnits.map(unit => `<span class="unit-tag">${unit}</span>`).join('');
+                    unitsDiv.className = 'project-categories';
+                    unitsDiv.innerHTML = project.projectCategories.map(unit => `<span class="unit-tag">${unit}</span>`).join('');
                     
                     const actionsDiv = document.createElement('div');
                     actionsDiv.className = 'project-actions';
@@ -1537,10 +1537,10 @@
                         </div>
                     </div>
                     <div class="modal-section">
-                        <div class="modal-section-title">Business Units</div>
+                        <div class="modal-section-title">Project Categories</div>
                         <div class="modal-section-content">
-                            <div class="business-units">
-                                ${project.businessUnits.map(unit => `<span class="unit-tag">${unit}</span>`).join('')}
+                            <div class="project-categories">
+                                ${project.projectCategories.map(unit => `<span class="unit-tag">${unit}</span>`).join('')}
                             </div>
                         </div>
                     </div>
@@ -1575,7 +1575,7 @@
                 document.getElementById('projectDetailsInput').value = '';
                 document.getElementById('projectNextStepsInput').value = '';
                 
-                updateBusinessUnitCheckboxes();
+                updateprojectCategoryCheckboxes();
                 
                 modal.style.display = 'block';
             }
@@ -1596,9 +1596,9 @@
                 document.getElementById('projectDetailsInput').value = project.keyDetails;
                 document.getElementById('projectNextStepsInput').value = project.nextSteps;
                 
-                updateBusinessUnitCheckboxes();
-                document.querySelectorAll('#businessUnitsCheckboxes input[type="checkbox"]').forEach(cb => {
-                    cb.checked = project.businessUnits.includes(cb.value);
+                updateprojectCategoryCheckboxes();
+                document.querySelectorAll('#projectCategoriesCheckboxes input[type="checkbox"]').forEach(cb => {
+                    cb.checked = project.projectCategories.includes(cb.value);
                 });
                 
                 modal.style.display = 'block';
@@ -1616,9 +1616,9 @@
                 const keyDetails = document.getElementById('projectDetailsInput').value.trim();
                 const nextSteps = document.getElementById('projectNextStepsInput').value.trim();
                 
-                const businessUnits = [];
-                document.querySelectorAll('#businessUnitsCheckboxes input[type="checkbox"]:checked').forEach(cb => {
-                    businessUnits.push(cb.value);
+                const projectCategories = [];
+                document.querySelectorAll('#projectCategoriesCheckboxes input[type="checkbox"]:checked').forEach(cb => {
+                    projectCategories.push(cb.value);
                 });
                 
                 if (!title) {
@@ -1626,8 +1626,8 @@
                     return;
                 }
                 
-                if (businessUnits.length === 0) {
-                    showNotification('Please select at least one business unit', 'error');
+                if (projectCategories.length === 0) {
+                    showNotification('Please select at least one Project Category', 'error');
                     return;
                 }
                 
@@ -1635,7 +1635,7 @@
                     id,
                     title,
                     status,
-                    businessUnits,
+                    projectCategories,
                     keyDetails,
                     nextSteps
                 };
@@ -1659,11 +1659,11 @@
                 closeEditModal();
             }
 
-            function updateBusinessUnitCheckboxes() {
-                const checkboxGroup = document.getElementById('businessUnitsCheckboxes');
+            function updateprojectCategoryCheckboxes() {
+                const checkboxGroup = document.getElementById('projectCategoriesCheckboxes');
                 checkboxGroup.innerHTML = '';
                 
-                PKDApp.businessUnits.forEach(unit => {
+                PKDApp.projectCategories.forEach(unit => {
                     const label = document.createElement('label');
                     label.className = 'checkbox-label';
                     label.innerHTML = `
@@ -1673,35 +1673,35 @@
                 });
             }
 
-            function openBusinessUnitsModal() {
-                const modal = document.getElementById('businessUnitsModal');
-                updateBusinessUnitsList();
+            function openprojectCategoriesModal() {
+                const modal = document.getElementById('projectCategoriesModal');
+                updateprojectCategoriesList();
                 modal.style.display = 'block';
-                document.getElementById('newBusinessUnitInput').focus();
+                document.getElementById('newprojectCategoryInput').focus();
             }
 
-            function closeBusinessUnitsModal() {
-                const modal = document.getElementById('businessUnitsModal');
+            function closeprojectCategoriesModal() {
+                const modal = document.getElementById('projectCategoriesModal');
                 modal.style.display = 'none';
-                document.getElementById('newBusinessUnitInput').value = '';
+                document.getElementById('newprojectCategoryInput').value = '';
             }
 
-            function updateBusinessUnitsList() {
-                const listDiv = document.getElementById('businessUnitsList');
+            function updateprojectCategoriesList() {
+                const listDiv = document.getElementById('projectCategoriesList');
                 listDiv.innerHTML = '';
                 
-                PKDApp.businessUnits.forEach((unit) => {
+                PKDApp.projectCategories.forEach((unit) => {
                     const itemDiv = document.createElement('div');
-                    itemDiv.className = 'business-unit-item';
+                    itemDiv.className = 'project-category-item';
                     
                     const nameSpan = document.createElement('span');
-                    nameSpan.className = 'business-unit-name';
+                    nameSpan.className = 'project-category-name';
                     nameSpan.textContent = unit;
                     
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'delete-unit-btn';
                     deleteBtn.textContent = 'Delete';
-                    deleteBtn.addEventListener('click', () => deleteBusinessUnit(unit));
+                    deleteBtn.addEventListener('click', () => deleteprojectCategory(unit));
                     
                     itemDiv.appendChild(nameSpan);
                     itemDiv.appendChild(deleteBtn);
@@ -1709,46 +1709,46 @@
                 });
             }
 
-            function addBusinessUnit() {
-                const input = document.getElementById('newBusinessUnitInput');
+            function addprojectCategory() {
+                const input = document.getElementById('newprojectCategoryInput');
                 const unitName = input.value.trim();
                 
                 if (!unitName) {
-                    showNotification('Please enter a business unit name', 'error');
+                    showNotification('Please enter a Project Category name', 'error');
                     return;
                 }
                 
-                if (PKDApp.businessUnits.includes(unitName)) {
-                    showNotification('This business unit already exists', 'error');
+                if (PKDApp.projectCategories.includes(unitName)) {
+                    showNotification('This Project Category already exists', 'error');
                     return;
                 }
                 
-                PKDApp.businessUnits.push(unitName);
-                PKDApp.businessUnits.sort();
+                PKDApp.projectCategories.push(unitName);
+                PKDApp.projectCategories.sort();
                 
                 input.value = '';
-                updateBusinessUnitsList();
+                updateprojectCategoriesList();
                 updateFilterButtons();
                 input.focus();
                 
-                showNotification(`Business unit "${unitName}" added successfully`, 'success');
+                showNotification(`Project Category "${unitName}" added successfully`, 'success');
             }
 
-            function deleteBusinessUnit(unit) {
+            function deleteprojectCategory(unit) {
                 showConfirmDialog(
-                    'Delete Business Unit',
+                    'Delete Project Category',
                     `Are you sure you want to delete "${unit}"? This will remove it from all projects.`,
                     () => {
-                        // Remove from businessUnits array
-                        PKDApp.businessUnits = PKDApp.businessUnits.filter(u => u !== unit);
+                        // Remove from projectCategories array
+                        PKDApp.projectCategories = PKDApp.projectCategories.filter(u => u !== unit);
                         
                         // Remove from all projects
                         PKDApp.projects.forEach(project => {
-                            project.businessUnits = project.businessUnits.filter(u => u !== unit);
+                            project.projectCategories = project.projectCategories.filter(u => u !== unit);
                         });
                         
                         // Update UI
-                        updateBusinessUnitsList();
+                        updateprojectCategoriesList();
                         updateFilterButtons();
                         updateStats();
                         
@@ -1759,7 +1759,7 @@
                         const search = document.getElementById('searchInput').value;
                         renderProjects(activeUnits, search);
                         
-                        showNotification(`Business unit "${unit}" deleted successfully`, 'success');
+                        showNotification(`Project Category "${unit}" deleted successfully`, 'success');
                         hideConfirmDialog();
                     }
                 );
@@ -1851,7 +1851,7 @@
                     
                     content += `**${project.id}. ${project.title}**\n\n`;
                     content += `-   **Status**: ${statusMap[project.status] || project.status}\n\n`;
-                    content += `-   **Business Unit**: ${project.businessUnits.join(', ')}\n\n`;
+                    content += `-   **Project Category**: ${project.projectCategories.join(', ')}\n\n`;
                     content += `-   **Key Details**: ${project.keyDetails}\n\n`;
                     content += `-   **Next Steps**: ${project.nextSteps}\n\n`;
                 });
@@ -1900,9 +1900,9 @@
                         if (parsedData.projects.length > 0) {
                             PKDApp.projects = parsedData.projects;
                             
-                            // Update business units from parsed data
-                            if (parsedData.businessUnits.length > 0) {
-                                PKDApp.businessUnits = parsedData.businessUnits;
+                            // Update Project Categories from parsed data
+                            if (parsedData.projectCategories.length > 0) {
+                                PKDApp.projectCategories = parsedData.projectCategories;
                             }
                             
                             updateStats();
@@ -1930,7 +1930,7 @@
 
             function parsePKDContent(content) {
                 const parsedProjects = [];
-                const businessUnitsSet = new Set();
+                const projectCategoriesSet = new Set();
                 const lines = content.split('\n');
                 
                 // Extract date from line that contains "*Last Updated:*"
@@ -1948,7 +1948,7 @@
                 }
                 
                 let activeProjectsIndex = lines.findIndex(line => line.includes('**Active Projects**'));
-                if (activeProjectsIndex === -1) return { projects: parsedProjects, businessUnits: [], lastUpdated: extractedDate };
+                if (activeProjectsIndex === -1) return { projects: parsedProjects, projectCategories: [], lastUpdated: extractedDate };
                 
                 let currentProject = null;
                 const statusMap = {
@@ -1983,7 +1983,7 @@
                             id: parseInt(projectMatch[1]),
                             title: projectMatch[2],
                             status: '',
-                            businessUnits: [],
+                            projectCategories: [],
                             keyDetails: '',
                             nextSteps: ''
                         };
@@ -1995,10 +1995,10 @@
                         currentProject.status = statusMap[statusText] || 'active';
                     }
                     
-                    if (line.startsWith('-   **Business Unit**:')) {
-                        const unitsText = line.replace('-   **Business Unit**:', '').trim();
-                        currentProject.businessUnits = unitsText.split(',').map(u => u.trim());
-                        currentProject.businessUnits.forEach(unit => businessUnitsSet.add(unit));
+                    if (line.startsWith('-   **Project Category**:')) {
+                        const unitsText = line.replace('-   **Project Category**:', '').trim();
+                        currentProject.projectCategories = unitsText.split(',').map(u => u.trim());
+                        currentProject.projectCategories.forEach(unit => projectCategoriesSet.add(unit));
                     }
                     
                     if (line.startsWith('-   **Key Details**:')) {
@@ -2023,7 +2023,7 @@
                 
                 return { 
                     projects: parsedProjects, 
-                    businessUnits: Array.from(businessUnitsSet).sort(),
+                    projectCategories: Array.from(projectCategoriesSet).sort(),
                     lastUpdated: extractedDate
                 };
             }
@@ -2049,7 +2049,7 @@
                 
                 // Main dashboard buttons
                 document.getElementById('newProjectBtn').addEventListener('click', openCreateModal);
-                document.getElementById('manageUnitsBtn').addEventListener('click', openBusinessUnitsModal);
+                document.getElementById('manageUnitsBtn').addEventListener('click', openprojectCategoriesModal);
                 document.getElementById('exportBtn').addEventListener('click', exportPKD);
                 document.getElementById('uploadBtn').addEventListener('click', () => {
                     document.getElementById('fileInput').click();
@@ -2082,15 +2082,15 @@
                 document.getElementById('closeEditModalBtn').addEventListener('click', closeEditModal);
                 document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
                 document.getElementById('saveProjectBtn').addEventListener('click', saveProject);
-                document.getElementById('closeUnitsModalBtn').addEventListener('click', closeBusinessUnitsModal);
-                document.getElementById('addUnitBtn').addEventListener('click', addBusinessUnit);
+                document.getElementById('closeUnitsModalBtn').addEventListener('click', closeprojectCategoriesModal);
+                document.getElementById('addUnitBtn').addEventListener('click', addprojectCategory);
                 
-                // Business unit input enter key
-                const newUnitInput = document.getElementById('newBusinessUnitInput');
+                // Project Category input enter key
+                const newUnitInput = document.getElementById('newprojectCategoryInput');
                 if (newUnitInput) {
                     newUnitInput.addEventListener('keypress', function(event) {
                         if (event.key === 'Enter') {
-                            addBusinessUnit();
+                            addprojectCategory();
                         }
                     });
                 }
@@ -2113,8 +2113,8 @@
                             closeModal();
                         } else if (e.target.id === 'editModal') {
                             closeEditModal();
-                        } else if (e.target.id === 'businessUnitsModal') {
-                            closeBusinessUnitsModal();
+                        } else if (e.target.id === 'projectCategoriesModal') {
+                            closeprojectCategoriesModal();
                         }
                     }
                 });
