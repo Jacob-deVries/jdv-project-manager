@@ -1898,6 +1898,12 @@
                                 PKDApp.businessUnits = parsedData.businessUnits;
                             }
 
+                            const dateStr = today.toLocaleDateString('en-US', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                            });
                             updateLastUpdated();
                             updateStats();
                             updateFilterButtons();
