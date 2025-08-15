@@ -1065,7 +1065,7 @@
             <div class="header-content">
                 <h1 class="logo">PKD Dashboard</h1>
                 <div class="header-actions">
-                    <div class="last-updated" id="lastUpdatedText">Last Updated: Loading...</div>
+                    <div class="last-updated" id="lastUpdatedText">Last Updated: TBD</div>
                     <button class="btn-primary" id="newProjectBtn">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                             <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
@@ -1890,6 +1890,13 @@
                         const content = e.target.result;
                         const parsedData = parsePKDContent(content);
                         
+                        // Update the last updated date from the file FIRST
+                        if (parsedData.lastUpdated && parsedData.lastUpdated !== 'TBD') {
+                            PKDApp.lastUpdated = parsedData.lastUpdated;
+                            updateLastUpdated();
+                            console.log('Updated date to:', PKDApp.lastUpdated);
+                        }
+                        
                         if (parsedData.projects.length > 0) {
                             PKDApp.projects = parsedData.projects;
                             
@@ -1897,15 +1904,7 @@
                             if (parsedData.businessUnits.length > 0) {
                                 PKDApp.businessUnits = parsedData.businessUnits;
                             }
-
-                            const today = new Date();
-                            const dateStr = today.toLocaleDateString('en-US', { 
-                                weekday: 'long', 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
-                            });
-                            updateLastUpdated();
+                            
                             updateStats();
                             updateFilterButtons();
                             
@@ -1913,8 +1912,9 @@
                             const search = document.getElementById('searchInput').value;
                             renderProjects(activeUnits, search);
                             
-                            showNotification(`Successfully loaded ${PKDApp.projects.length} projects from PKD file`, 'success');
+                            showNotification(`Successfully loaded ${PKDApp.projects.length} projects from PKD file (Updated: ${PKDApp.lastUpdated})`, 'success');
                         } else {
+                            // Even if no projects, update the date if it was found
                             showNotification('No projects found in the uploaded file. Please check the file format.', 'error');
                         }
                     } catch (error) {
@@ -1933,8 +1933,22 @@
                 const businessUnitsSet = new Set();
                 const lines = content.split('\n');
                 
+                // Extract date from line that contains "*Last Updated:*"
+                let extractedDate = 'TBD';
+                for (let i = 0; i < Math.min(lines.length, 10); i++) {
+                    const line = lines[i].trim();
+                    if (line.includes('Last Updated:')) {
+                        const dateMatch = line.match(/\*Last Updated:\s*(.+?)\*/);
+                        if (dateMatch && dateMatch[1]) {
+                            extractedDate = dateMatch[1].trim();
+                            console.log('Extracted date from PKD file:', extractedDate);
+                            break;
+                        }
+                    }
+                }
+                
                 let activeProjectsIndex = lines.findIndex(line => line.includes('**Active Projects**'));
-                if (activeProjectsIndex === -1) return { projects: parsedProjects, businessUnits: [] };
+                if (activeProjectsIndex === -1) return { projects: parsedProjects, businessUnits: [], lastUpdated: extractedDate };
                 
                 let currentProject = null;
                 const statusMap = {
@@ -1953,7 +1967,8 @@
                     'Validation Phase': 'validation',
                     'Infrastructure Setup': 'infrastructure',
                     'Active': 'active',
-                    'Pending Discussion': 'pending'
+                    'Pending Discussion': 'pending',
+                    'Complete': 'complete'
                 };
                 
                 for (let i = activeProjectsIndex + 1; i < lines.length; i++) {
@@ -2008,7 +2023,8 @@
                 
                 return { 
                     projects: parsedProjects, 
-                    businessUnits: Array.from(businessUnitsSet).sort() 
+                    businessUnits: Array.from(businessUnitsSet).sort(),
+                    lastUpdated: extractedDate
                 };
             }
 
