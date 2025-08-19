@@ -694,8 +694,9 @@
             APP.categories.forEach(cat => {
                 const item = document.createElement('div');
                 item.className = 'dropdown-item';
+                const isChecked = APP.selectedCategories.includes(cat) ? 'checked' : '';
                 item.innerHTML = `
-                    <input type="checkbox" id="cat-${cat}" onchange="toggleCategory('${cat}')">
+                    <input type="checkbox" id="cat-${cat}" onchange="toggleCategory('${cat}')" ${isChecked}>
                     <label for="cat-${cat}">${cat}</label>
                 `;
                 categoryMenu.appendChild(item);
@@ -707,8 +708,9 @@
             APP.statuses.forEach(status => {
                 const item = document.createElement('div');
                 item.className = 'dropdown-item';
+                const isChecked = APP.selectedStatuses.includes(status) ? 'checked' : '';
                 item.innerHTML = `
-                    <input type="checkbox" id="status-${status}" onchange="toggleStatus('${status}')">
+                    <input type="checkbox" id="status-${status}" onchange="toggleStatus('${status}')" ${isChecked}>
                     <label for="status-${status}">${status}</label>
                 `;
                 statusMenu.appendChild(item);
@@ -1259,9 +1261,10 @@
                             <button class="btn-save" onclick="addCategory()">Add</button>
                         </div>
                         <div id="categoriesList">
-                            ${APP.categories.map(cat => `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
-                                    <span>${cat}</span>
+                            ${APP.categories.map((cat, idx) => `
+                                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
+                                    <input type="text" id="cat-edit-${idx}" value="${cat}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                                    <button onclick="updateCategory(${idx})" style="padding: 0.25rem 0.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Update</button>
                                     <button onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--accent-red); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Delete</button>
                                 </div>
                             `).join('')}
@@ -1275,9 +1278,10 @@
                             <button class="btn-save" onclick="addStatus()">Add</button>
                         </div>
                         <div id="statusesList">
-                            ${APP.statuses.map(status => `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
-                                    <span>${status}</span>
+                            ${APP.statuses.map((status, idx) => `
+                                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
+                                    <input type="text" id="status-edit-${idx}" value="${status}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                                    <button onclick="updateStatus(${idx})" style="padding: 0.25rem 0.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Update</button>
                                     <button onclick="deleteStatus('${status}')" style="padding: 0.25rem 0.5rem; background: var(--accent-red); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Delete</button>
                                 </div>
                             `).join('')}
@@ -1368,6 +1372,99 @@
                 setTimeout(() => openManageModal(), 100);
                 showNotification('Status deleted successfully', 'success');
             });
+        }
+
+        // Update category name
+        function updateCategory(index) {
+            const input = document.getElementById(`cat-edit-${index}`);
+            if (!input) return;
+            
+            const oldCategory = APP.categories[index];
+            const newCategory = input.value.trim();
+            
+            if (!newCategory) {
+                showNotification('Category name cannot be empty', 'error');
+                return;
+            }
+            
+            if (newCategory === oldCategory) {
+                return; // No change
+            }
+            
+            if (APP.categories.includes(newCategory)) {
+                showNotification('This category name already exists', 'error');
+                return;
+            }
+            
+            // Update category in the categories array
+            APP.categories[index] = newCategory;
+            
+            // Update category in all projects that have it
+            APP.projects.forEach(project => {
+                if (project.categories && project.categories.includes(oldCategory)) {
+                    const catIndex = project.categories.indexOf(oldCategory);
+                    project.categories[catIndex] = newCategory;
+                }
+            });
+            
+            // Update selected categories filter if it was selected
+            if (APP.selectedCategories.includes(oldCategory)) {
+                const selectedIndex = APP.selectedCategories.indexOf(oldCategory);
+                APP.selectedCategories[selectedIndex] = newCategory;
+            }
+            
+            saveToLocalStorage();
+            updateFilterDropdowns();
+            renderProjects();
+            closeManageModal();
+            setTimeout(() => openManageModal(), 100);
+            showNotification(`Category updated from "${oldCategory}" to "${newCategory}"`, 'success');
+        }
+
+        // Update status name
+        function updateStatus(index) {
+            const input = document.getElementById(`status-edit-${index}`);
+            if (!input) return;
+            
+            const oldStatus = APP.statuses[index];
+            const newStatus = input.value.trim().toLowerCase().replace(/\s+/g, '-');
+            
+            if (!newStatus) {
+                showNotification('Status name cannot be empty', 'error');
+                return;
+            }
+            
+            if (newStatus === oldStatus) {
+                return; // No change
+            }
+            
+            if (APP.statuses.includes(newStatus)) {
+                showNotification('This status name already exists', 'error');
+                return;
+            }
+            
+            // Update status in the statuses array
+            APP.statuses[index] = newStatus;
+            
+            // Update status in all projects that have it
+            APP.projects.forEach(project => {
+                if (project.status === oldStatus) {
+                    project.status = newStatus;
+                }
+            });
+            
+            // Update selected statuses filter if it was selected
+            if (APP.selectedStatuses.includes(oldStatus)) {
+                const selectedIndex = APP.selectedStatuses.indexOf(oldStatus);
+                APP.selectedStatuses[selectedIndex] = newStatus;
+            }
+            
+            saveToLocalStorage();
+            updateFilterDropdowns();
+            renderProjects();
+            closeManageModal();
+            setTimeout(() => openManageModal(), 100);
+            showNotification(`Status updated from "${oldStatus}" to "${newStatus}"`, 'success');
         }
 
         // Export function
