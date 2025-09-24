@@ -12,19 +12,27 @@
         }
 
         :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #1a1a1a;
-            --bg-card: #242424;
-            --bg-hover: #2a2a2a;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --accent-blue: #3b82f6;
-            --accent-green: #10b981;
-            --accent-orange: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-purple: #8b5cf6;
-            --border-color: #333333;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1b;
+            --bg-card: #232326;
+            --bg-hover: #2a2a2d;
+            --text-primary: #e8e8e9;
+            --text-secondary: #9ca3af;
+            --accent-blue: #7dd3fc;
+            --accent-green: #86efac;
+            --accent-orange: #fcd34d;
+            --accent-red: #fca5a5;
+            --accent-purple: #c4b5fd;
+            --border-color: #333336;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            --pastel-green: #86efac;
+            --pastel-green-dark: #4ade80;
+            --pastel-red: #fca5a5;
+            --pastel-red-dark: #f87171;
+            --pastel-blue: #93c5fd;
+            --pastel-blue-dark: #60a5fa;
+            --pastel-purple: #c4b5fd;
+            --pastel-purple-dark: #a78bfa;
         }
 
         body {
@@ -33,6 +41,51 @@
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Add subtle noise texture */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.02;
+            z-index: 0;
+            pointer-events: none;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.01) 35px, rgba(255,255,255,.01) 70px),
+                repeating-linear-gradient(-45deg, transparent, transparent 35px, rgba(255,255,255,.01) 35px, rgba(255,255,255,.01) 70px);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--pastel-purple);
+        }
+
+        /* Focus visible for accessibility */
+        *:focus-visible {
+            outline: 2px solid var(--pastel-blue);
+            outline-offset: 2px;
+            border-radius: 4px;
         }
 
         /* Password Screen */
@@ -126,17 +179,18 @@
         .password-submit {
             width: 100%;
             padding: 1rem;
-            background: var(--accent-blue);
+            background: var(--pastel-blue);
             border: none;
             border-radius: 8px;
-            color: white;
+            color: var(--bg-primary);
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
+            transition: background 0.2s;
         }
 
         .password-submit:hover {
-            background: #2563eb;
+            background: var(--pastel-blue-dark);
         }
 
         /* Main Dashboard */
@@ -146,11 +200,26 @@
         }
 
         .header {
-            background: var(--bg-card);
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--pastel-purple), transparent);
+            opacity: 0.5;
         }
 
         .header-content {
@@ -189,16 +258,19 @@
             color: var(--text-primary);
             cursor: pointer;
             font-size: 0.875rem;
-            transition: background 0.2s;
+            transition: background 0.2s, border-color 0.2s;
         }
 
         .nav-btn:hover {
             background: var(--bg-hover);
+            border-color: var(--pastel-blue);
         }
 
         .nav-btn.active {
-            background: var(--accent-blue);
-            border-color: var(--accent-blue);
+            background: var(--pastel-purple);
+            border-color: var(--pastel-purple);
+            color: var(--bg-primary);
+            font-weight: 500;
         }
 
         .header-actions {
@@ -210,21 +282,24 @@
 
         .btn-primary {
             padding: 0.5rem 1rem;
-            background: var(--accent-blue);
+            background: var(--pastel-blue);
             border: none;
             border-radius: 8px;
-            color: white;
+            color: var(--bg-primary);
             font-size: 0.875rem;
+            font-weight: 500;
             cursor: pointer;
+            transition: background 0.2s;
         }
 
         .btn-primary:hover {
-            background: #2563eb;
+            background: var(--pastel-blue-dark);
         }
 
-        /* Page containers */
+        /* Page containers with fade transitions */
         .page-container {
             display: none;
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .page-container.active {
@@ -234,6 +309,36 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Stats cards with gradients and glow */
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.85) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--pastel-blue), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
 
         .controls {
@@ -260,7 +365,8 @@
 
         .search-input:focus {
             outline: none;
-            border-color: var(--accent-blue);
+            border-color: var(--pastel-blue);
+            box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.1);
         }
 
         .dropdown-filter {
@@ -275,6 +381,11 @@
             color: var(--text-primary);
             font-size: 0.875rem;
             cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .dropdown-button:hover {
+            border-color: var(--pastel-purple);
         }
 
         .dropdown-menu {
@@ -283,14 +394,27 @@
             top: calc(100% + 0.5rem);
             left: 0;
             min-width: 200px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
             border-radius: 8px;
             padding: 0.5rem;
             box-shadow: var(--shadow);
             z-index: 50;
             max-height: 300px;
             overflow-y: auto;
+            animation: dropdownSlide 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .dropdown-menu.open {
@@ -303,10 +427,12 @@
             padding: 0.5rem;
             cursor: pointer;
             border-radius: 4px;
+            transition: all 0.2s;
         }
 
         .dropdown-item:hover {
             background: var(--bg-hover);
+            transform: translateX(4px);
         }
 
         .dropdown-item input[type="checkbox"] {
@@ -330,7 +456,7 @@
         }
 
         .toggle-switch.active {
-            background: var(--accent-blue);
+            background: var(--pastel-purple);
         }
 
         .toggle-slider {
@@ -355,16 +481,45 @@
         }
 
         .project-card {
-            background: var(--bg-card);
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 1.5rem;
-            transition: box-shadow 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--pastel-blue), var(--pastel-purple), var(--pastel-blue));
+            border-radius: 12px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s;
         }
 
         .project-card:hover {
-            box-shadow: var(--shadow);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
         }
+
+        .project-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .project-card:nth-child(1) { animation-delay: 0.05s; }
+        .project-card:nth-child(2) { animation-delay: 0.1s; }
+        .project-card:nth-child(3) { animation-delay: 0.15s; }
+        .project-card:nth-child(4) { animation-delay: 0.2s; }
+        .project-card:nth-child(5) { animation-delay: 0.25s; }
+        .project-card:nth-child(6) { animation-delay: 0.3s; }
 
         .project-header {
             display: flex;
@@ -417,14 +572,76 @@
             opacity: 0.8;
         }
 
-        /* Eisenhower Matrix Styles */
+        /* Eisenhower Matrix Styles with enhanced visuals */
+        .eisenhower-wrapper {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1rem;
+            height: calc(100vh - 180px);
+            min-height: 500px;
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .eisenhower-sidebar {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-y: auto;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .reset-button {
+            width: 100%;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-orange), #fbbf24);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reset-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(252, 211, 77, 0.3);
+        }
+
+        .reset-button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .unassigned-title {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
         .eisenhower-container {
             display: grid;
             grid-template-columns: 120px 1fr 1fr;
             grid-template-rows: 35px 1fr 1fr;
             gap: 0.5rem;
-            height: calc(100vh - 180px);
-            min-height: 500px;
         }
 
         .eisenhower-label {
@@ -437,38 +654,64 @@
         }
 
         .eisenhower-quadrant {
-            background: var(--bg-card);
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.9) 100%);
             border: 2px dashed var(--border-color);
             border-radius: 8px;
             padding: 0.5rem;
             overflow-y: auto;
             position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .eisenhower-quadrant.drag-over {
             border-color: var(--accent-blue);
-            background: rgba(59, 130, 246, 0.1);
+            background: linear-gradient(135deg, rgba(147, 197, 253, 0.1), rgba(196, 181, 253, 0.1));
+            transform: scale(1.02);
         }
 
         .draggable-project {
-            background: var(--bg-secondary);
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-hover));
             border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 0.4rem 0.6rem;
             margin-bottom: 0.3rem;
             cursor: move;
-            transition: transform 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 0.8rem;
             line-height: 1.2;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .draggable-project::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.1), transparent);
+            transition: left 0.4s;
         }
 
         .draggable-project:hover {
-            transform: translateX(2px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transform: translateX(4px) scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-color: var(--pastel-blue);
+        }
+
+        .draggable-project:hover::before {
+            left: 100%;
         }
 
         .draggable-project.dragging {
             opacity: 0.5;
+            transform: rotate(2deg);
+        }
+
+        .draggable-project:active {
+            cursor: grabbing;
         }
 
         .quadrant-title {
@@ -530,8 +773,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
             z-index: 1000;
+            animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .modal-content {
@@ -539,14 +784,40 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 2rem;
             max-width: 600px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -45%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(180deg, rgba(147, 197, 253, 0.05), transparent);
+            border-radius: 16px 16px 0 0;
+            pointer-events: none;
         }
 
         .modal-header {
@@ -592,15 +863,17 @@
 
         .btn-save {
             padding: 0.75rem 1.5rem;
-            background: var(--accent-green);
+            background: var(--pastel-green);
             border: none;
             border-radius: 8px;
-            color: white;
+            color: var(--bg-primary);
+            font-weight: 500;
             cursor: pointer;
+            transition: background 0.2s;
         }
 
         .btn-save:hover {
-            opacity: 0.9;
+            background: var(--pastel-green-dark);
         }
 
         .notification-container {
@@ -632,15 +905,18 @@
         }
 
         .notification.success {
-            border-color: var(--accent-green);
+            border-color: var(--pastel-green);
+            background: rgba(134, 239, 172, 0.1);
         }
 
         .notification.error {
-            border-color: var(--accent-red);
+            border-color: var(--pastel-red);
+            background: rgba(252, 165, 165, 0.1);
         }
 
         .notification.info {
-            border-color: var(--accent-blue);
+            border-color: var(--pastel-blue);
+            background: rgba(147, 197, 253, 0.1);
         }
 
         @media (max-width: 768px) {
@@ -663,6 +939,15 @@
             
             .projects-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .eisenhower-wrapper {
+                grid-template-columns: 1fr;
+            }
+            
+            .eisenhower-sidebar {
+                max-height: 200px;
+                margin-bottom: 1rem;
             }
             
             .eisenhower-container {
@@ -721,13 +1006,13 @@
             <div class="container">
                 <!-- Stats -->
                 <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; text-align: center;">
-                        <div style="font-size: 2rem; color: var(--accent-blue);" id="activeCount">0</div>
-                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Active Projects</div>
+                    <div class="stat-card">
+                        <div style="font-size: 2rem; color: var(--accent-blue); font-weight: 600;" id="activeCount">0</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Active Projects</div>
                     </div>
-                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; text-align: center;">
-                        <div style="font-size: 2rem; color: var(--accent-green);" id="completeCount">0</div>
-                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Completed</div>
+                    <div class="stat-card">
+                        <div style="font-size: 2rem; color: var(--accent-green); font-weight: 600;" id="completeCount">0</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Completed</div>
                     </div>
                 </div>
 
@@ -774,29 +1059,36 @@
         <!-- Eisenhower Matrix Page -->
         <div id="eisenhowerPage" class="page-container">
             <div class="container">
-                <div class="eisenhower-container">
-                    <div></div>
-                    <div class="eisenhower-label">Can Be Delegated</div>
-                    <div class="eisenhower-label">Owned by Me</div>
-                    
-                    <div class="eisenhower-label" style="writing-mode: vertical-lr;">Time-Sensitive</div>
-                    <div class="eisenhower-quadrant" data-quadrant="urgent-delegate">
-                        <div class="quadrant-title">Urgent & Delegate</div>
-                        <div id="quadrant-urgent-delegate"></div>
+                <div class="eisenhower-wrapper">
+                    <div class="eisenhower-sidebar">
+                        <button class="reset-button" onclick="resetEisenhowerMatrix()">Reset Matrix</button>
+                        <div class="unassigned-title">Unassigned Projects</div>
+                        <div id="unassignedProjects"></div>
                     </div>
-                    <div class="eisenhower-quadrant" data-quadrant="urgent-me">
-                        <div class="quadrant-title">Urgent & My Ownership</div>
-                        <div id="quadrant-urgent-me"></div>
-                    </div>
-                    
-                    <div class="eisenhower-label" style="writing-mode: vertical-lr;">Not Time-Sensitive</div>
-                    <div class="eisenhower-quadrant" data-quadrant="not-urgent-delegate">
-                        <div class="quadrant-title">Not Urgent & Delegate</div>
-                        <div id="quadrant-not-urgent-delegate"></div>
-                    </div>
-                    <div class="eisenhower-quadrant" data-quadrant="not-urgent-me">
-                        <div class="quadrant-title">Not Urgent & My Ownership</div>
-                        <div id="quadrant-not-urgent-me"></div>
+                    <div class="eisenhower-container">
+                        <div></div>
+                        <div class="eisenhower-label">Can Be Delegated</div>
+                        <div class="eisenhower-label">Owned by Me</div>
+                        
+                        <div class="eisenhower-label" style="writing-mode: vertical-lr;">Time-Sensitive</div>
+                        <div class="eisenhower-quadrant" data-quadrant="urgent-delegate">
+                            <div class="quadrant-title">Urgent & Delegate</div>
+                            <div id="quadrant-urgent-delegate"></div>
+                        </div>
+                        <div class="eisenhower-quadrant" data-quadrant="urgent-me">
+                            <div class="quadrant-title">Urgent & My Ownership</div>
+                            <div id="quadrant-urgent-me"></div>
+                        </div>
+                        
+                        <div class="eisenhower-label" style="writing-mode: vertical-lr;">Not Time-Sensitive</div>
+                        <div class="eisenhower-quadrant" data-quadrant="not-urgent-delegate">
+                            <div class="quadrant-title">Not Urgent & Delegate</div>
+                            <div id="quadrant-not-urgent-delegate"></div>
+                        </div>
+                        <div class="eisenhower-quadrant" data-quadrant="not-urgent-me">
+                            <div class="quadrant-title">Not Urgent & My Ownership</div>
+                            <div id="quadrant-not-urgent-me"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -810,22 +1102,22 @@
                         <div class="notes-label">Nymbl</div>
                         <textarea class="notes-textarea" id="notesNymbl" placeholder="Enter notes for Nymbl...
 • Use bullet points with • or -
-• Multiple lines are preserved
-• All formatting carries over to PKD export" oninput="saveNotes()"></textarea>
+• Hyphens auto-convert to bullets
+• All formatting carries over to PKD export" oninput="handleNotesInput(event)"></textarea>
                     </div>
                     <div class="notes-section">
                         <div class="notes-label">Cindy</div>
                         <textarea class="notes-textarea" id="notesCindy" placeholder="Enter notes for Cindy...
 • Use bullet points with • or -
-• Multiple lines are preserved
-• All formatting carries over to PKD export" oninput="saveNotes()"></textarea>
+• Hyphens auto-convert to bullets
+• All formatting carries over to PKD export" oninput="handleNotesInput(event)"></textarea>
                     </div>
                     <div class="notes-section">
                         <div class="notes-label">Me</div>
                         <textarea class="notes-textarea" id="notesMe" placeholder="Enter personal notes...
 • Use bullet points with • or -
-• Multiple lines are preserved
-• All formatting carries over to PKD export" oninput="saveNotes()"></textarea>
+• Hyphens auto-convert to bullets
+• All formatting carries over to PKD export" oninput="handleNotesInput(event)"></textarea>
                     </div>
                 </div>
             </div>
@@ -1152,14 +1444,14 @@
             const card = document.createElement('div');
             card.className = 'project-card';
             
-            // Determine status color
-            let statusColor = '--accent-blue';
+            // Determine status color with pastel colors
+            let statusColor = '--pastel-blue';
             if (project.status === 'complete') statusColor = '--text-secondary';
-            else if (project.status === 'on-hold') statusColor = '--accent-red';
+            else if (project.status === 'on-hold') statusColor = '--pastel-red';
             else if (project.status === 'qa' || project.status === 'in-qa') statusColor = '--accent-orange';
-            else if (project.status === 'active' || project.status === 'active-development') statusColor = '--accent-green';
-            else if (project.status === 'stable') statusColor = '--accent-purple';
-            else if (project.status === 'in-progress') statusColor = '--accent-blue';
+            else if (project.status === 'active' || project.status === 'active-development') statusColor = '--pastel-green';
+            else if (project.status === 'stable') statusColor = '--pastel-purple';
+            else if (project.status === 'in-progress') statusColor = '--pastel-blue';
             else if (project.status === 'planning' || project.status === 'planning-phase') statusColor = '--text-secondary';
             else if (project.status === 'in-training') statusColor = '--accent-orange';
             
@@ -1169,23 +1461,23 @@
                         <div class="project-title" onclick="openProjectModal(${project.id})">${project.title}</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary);">ID: ${project.id}</div>
                     </div>
-                    <span class="status-badge" style="background: var(${statusColor}); color: white;">${project.status}</span>
+                    <span class="status-badge" style="background: var(${statusColor}); color: ${statusColor.includes('text-secondary') ? 'var(--text-secondary)' : 'var(--bg-primary)'};">${project.status}</span>
                 </div>
-                ${project.user ? `<div style="margin-bottom: 0.5rem; color: var(--accent-purple); font-size: 0.875rem;">User: ${project.user}</div>` : ''}
+                ${project.user ? `<div style="margin-bottom: 0.5rem; color: var(--pastel-purple); font-size: 0.875rem;">User: ${project.user}</div>` : ''}
                 <div style="margin: 1rem 0; color: var(--text-secondary); font-size: 0.875rem;">
                     ${project.keyDetails ? project.keyDetails.substring(0, 100) + (project.keyDetails.length > 100 ? '...' : '') : 'No details'}
                 </div>
                 <div class="project-footer">
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         ${project.categories && project.categories.length > 0 ? project.categories.map(cat => 
-                            `<span style="padding: 0.25rem 0.5rem; background: rgba(59, 130, 246, 0.2); border-radius: 6px; font-size: 0.75rem; color: var(--accent-blue);">${cat}</span>`
+                            `<span style="padding: 0.25rem 0.5rem; background: rgba(147, 197, 253, 0.15); border-radius: 6px; font-size: 0.75rem; color: var(--pastel-blue);">${cat}</span>`
                         ).join('') : ''}
                     </div>
                     <div class="project-actions">
-                        <button class="edit-btn" style="background: var(--accent-purple); color: white;" onclick="openEditModal(${project.id})">Edit</button>
+                        <button class="edit-btn" style="background: var(--pastel-purple); color: var(--bg-primary); font-weight: 500;" onclick="openEditModal(${project.id})">Edit</button>
                         ${project.status !== 'complete' ? 
-                            `<button class="complete-btn" style="background: var(--accent-green); color: white;" onclick="markComplete(${project.id})">Complete</button>` : ''}
-                        <button class="delete-btn" style="background: var(--accent-red); color: white;" onclick="deleteProject(${project.id})">Delete</button>
+                            `<button class="complete-btn" style="background: var(--pastel-green); color: var(--bg-primary); font-weight: 500;" onclick="markComplete(${project.id})">Complete</button>` : ''}
+                        <button class="delete-btn" style="background: var(--pastel-red); color: var(--bg-primary); font-weight: 500;" onclick="deleteProject(${project.id})">Delete</button>
                     </div>
                 </div>
             `;
@@ -1195,6 +1487,31 @@
 
         // Eisenhower Matrix functions
         function renderEisenhowerMatrix() {
+            // Track which projects are assigned to quadrants
+            const assignedProjectIds = Object.values(APP.eisenhowerMatrix).flat();
+            
+            // Get unassigned projects (excluding completed)
+            const unassignedProjects = APP.projects.filter(p => {
+                if (p.status === 'complete') return false;
+                return !assignedProjectIds.includes(p.id);
+            });
+            
+            // Render unassigned projects in sidebar
+            const unassignedContainer = document.getElementById('unassignedProjects');
+            if (unassignedContainer) {
+                unassignedContainer.innerHTML = '';
+                
+                if (unassignedProjects.length === 0) {
+                    unassignedContainer.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.75rem;">All projects assigned</div>';
+                } else {
+                    unassignedProjects.forEach(project => {
+                        const projectEl = createDraggableProject(project);
+                        unassignedContainer.appendChild(projectEl);
+                    });
+                }
+            }
+            
+            // Render projects in quadrants
             Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
                 const container = document.getElementById(`quadrant-${quadrant}`);
                 if (!container) return;
@@ -1205,44 +1522,44 @@
                 projectIds.forEach(projectId => {
                     const project = APP.projects.find(p => p.id === projectId);
                     if (project && project.status !== 'complete') {
-                        const projectEl = document.createElement('div');
-                        projectEl.className = 'draggable-project';
-                        projectEl.draggable = true;
-                        projectEl.dataset.projectId = project.id;
-                        projectEl.textContent = `${project.title} (ID: ${project.id})`;
-                        
-                        projectEl.addEventListener('dragstart', handleDragStart);
-                        projectEl.addEventListener('dragend', handleDragEnd);
-                        
+                        const projectEl = createDraggableProject(project);
                         container.appendChild(projectEl);
                     }
                 });
             });
+        }
+
+        function createDraggableProject(project) {
+            const projectEl = document.createElement('div');
+            projectEl.className = 'draggable-project';
+            projectEl.draggable = true;
+            projectEl.dataset.projectId = project.id;
+            projectEl.textContent = project.title;
             
-            // Add unassigned projects to a temporary holding area
-            const unassignedProjects = APP.projects.filter(p => {
-                if (p.status === 'complete') return false;
-                const isAssigned = Object.values(APP.eisenhowerMatrix).flat().includes(p.id);
-                return !isAssigned;
+            // Add event listeners
+            projectEl.addEventListener('dragstart', handleDragStart);
+            projectEl.addEventListener('dragend', handleDragEnd);
+            projectEl.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('dragging')) {
+                    openProjectModal(project.id);
+                }
             });
             
-            // Add unassigned projects to the first quadrant as a starting point
-            if (unassignedProjects.length > 0) {
-                const firstQuadrant = document.getElementById('quadrant-urgent-delegate');
-                unassignedProjects.forEach(project => {
-                    const projectEl = document.createElement('div');
-                    projectEl.className = 'draggable-project';
-                    projectEl.draggable = true;
-                    projectEl.dataset.projectId = project.id;
-                    projectEl.style.opacity = '0.6';
-                    projectEl.textContent = `${project.title} (ID: ${project.id}) - Unassigned`;
-                    
-                    projectEl.addEventListener('dragstart', handleDragStart);
-                    projectEl.addEventListener('dragend', handleDragEnd);
-                    
-                    firstQuadrant.appendChild(projectEl);
-                });
-            }
+            return projectEl;
+        }
+
+        function resetEisenhowerMatrix() {
+            showConfirm('Reset the Eisenhower Matrix? This will move all projects back to unassigned.', function() {
+                APP.eisenhowerMatrix = {
+                    'urgent-delegate': [],
+                    'urgent-me': [],
+                    'not-urgent-delegate': [],
+                    'not-urgent-me': []
+                };
+                saveToLocalStorage();
+                renderEisenhowerMatrix();
+                showNotification('Matrix reset successfully', 'success');
+            });
         }
 
         let draggedElement = null;
@@ -1262,6 +1579,56 @@
             APP.notes.cindy = document.getElementById('notesCindy').value;
             APP.notes.me = document.getElementById('notesMe').value;
             saveToLocalStorage();
+        }
+
+        function handleNotesInput(e) {
+            const textarea = e.target;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            
+            // Convert dashes to bullets
+            let value = textarea.value;
+            let newValue = value.replace(/^-\s/gm, '• ');
+            
+            if (value !== newValue) {
+                // Calculate cursor position adjustment
+                const beforeCursor = value.substring(0, start);
+                const beforeCursorNew = beforeCursor.replace(/^-\s/gm, '• ');
+                const diff = beforeCursorNew.length - beforeCursor.length;
+                
+                // Update the value
+                textarea.value = newValue;
+                
+                // Restore cursor position
+                textarea.selectionStart = start + diff;
+                textarea.selectionEnd = end + diff;
+            }
+            
+            saveNotes();
+        }
+
+        function handleProjectTextInput(e) {
+            const textarea = e.target;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            
+            // Convert dashes to bullets
+            let value = textarea.value;
+            let newValue = value.replace(/^-\s/gm, '• ');
+            
+            if (value !== newValue) {
+                // Calculate cursor position adjustment
+                const beforeCursor = value.substring(0, start);
+                const beforeCursorNew = beforeCursor.replace(/^-\s/gm, '• ');
+                const diff = beforeCursorNew.length - beforeCursor.length;
+                
+                // Update the value
+                textarea.value = newValue;
+                
+                // Restore cursor position
+                textarea.selectionStart = start + diff;
+                textarea.selectionEnd = end + diff;
+            }
         }
 
         function loadNotes() {
@@ -1294,8 +1661,8 @@
                 <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; max-width: 400px;">
                     <p style="margin-bottom: 1.5rem; color: var(--text-primary);">${message}</p>
                     <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                        <button onclick="cancelConfirm()" style="padding: 0.5rem 1.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; cursor: pointer;">Cancel</button>
-                        <button onclick="acceptConfirm()" style="padding: 0.5rem 1.5rem; background: var(--accent-red); color: white; border: none; border-radius: 6px; cursor: pointer;">Confirm</button>
+                        <button onclick="cancelConfirm()" style="padding: 0.5rem 1.5rem; background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); border-radius: 6px; cursor: pointer; font-weight: 500;">Cancel</button>
+                        <button onclick="acceptConfirm()" style="padding: 0.5rem 1.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Confirm</button>
                     </div>
                 </div>
             `;
@@ -1461,15 +1828,15 @@
                         <label class="form-label">Key Details</label>
                         <textarea class="form-textarea" id="projectDetailsInput" placeholder="Enter key details...
 • Use bullet points with • or -
-• Multiple lines are preserved
-• All formatting carries over to PKD export"></textarea>
+• Hyphens auto-convert to bullets
+• All formatting carries over to PKD export" oninput="handleProjectTextInput(event)"></textarea>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Next Steps</label>
                         <textarea class="form-textarea" id="projectNextStepsInput" placeholder="Enter next steps...
 • Use bullet points with • or -
-• Multiple lines are preserved
-• All formatting carries over to PKD export"></textarea>
+• Hyphens auto-convert to bullets
+• All formatting carries over to PKD export" oninput="handleProjectTextInput(event)"></textarea>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Links</label>
@@ -1477,7 +1844,7 @@
                         <button class="btn-primary" onclick="addLink()" style="font-size: 0.875rem; padding: 0.5rem 1rem;">Add Link</button>
                     </div>
                     <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                        <button class="btn-primary" onclick="closeEditModal()" style="background: var(--bg-secondary); border: 1px solid var(--border-color);">Cancel</button>
+                        <button class="btn-primary" onclick="closeEditModal()" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); font-weight: 500;">Cancel</button>
                         <button class="btn-save" onclick="saveProject()">Save Project</button>
                     </div>
                 </div>
@@ -1496,8 +1863,8 @@
             } else {
                 container.innerHTML = APP.currentProjectLinks.map((link, idx) => `
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <a href="${link.url}" target="_blank" style="color: var(--accent-blue);">${link.alias}</a>
-                        <button onclick="removeLink(${idx})" style="padding: 0.25rem 0.5rem; background: var(--accent-red); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Remove</button>
+                        <a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a>
+                        <button onclick="removeLink(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Remove</button>
                     </div>
                 `).join('');
             }
@@ -1519,8 +1886,8 @@
                     <input type="url" id="linkUrlInput" placeholder="https://example.com" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
-                    <button onclick="saveLinkFromForm()" style="padding: 0.5rem 1rem; background: var(--accent-green); color: white; border: none; border-radius: 4px; cursor: pointer;">Save</button>
-                    <button onclick="cancelLinkForm()" style="padding: 0.5rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button onclick="saveLinkFromForm()" style="padding: 0.5rem 1rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Save</button>
+                    <button onclick="cancelLinkForm()" style="padding: 0.5rem 1rem; background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); border-radius: 4px; cursor: pointer; font-weight: 500;">Cancel</button>
                 </div>
             `;
             
@@ -1651,7 +2018,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Status</label>
-                        <div><span style="background: var(--accent-blue); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.875rem;">${project.status}</span></div>
+                        <div><span style="background: var(--pastel-blue); color: var(--bg-primary); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.875rem; font-weight: 500;">${project.status}</span></div>
                     </div>
                     ${project.user ? `
                     <div class="form-group">
@@ -1676,7 +2043,7 @@
                             <label class="form-label">Links</label>
                             <div>
                                 ${project.links.map(link => 
-                                    `<div style="margin-bottom: 0.5rem;"><a href="${link.url}" target="_blank" style="color: var(--accent-blue);">${link.alias}</a></div>`
+                                    `<div style="margin-bottom: 0.5rem;"><a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a></div>`
                                 ).join('')}
                             </div>
                         </div>
@@ -1713,8 +2080,8 @@
                             ${APP.categories.map((cat, idx) => `
                                 <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
                                     <input type="text" id="cat-edit-${idx}" value="${cat}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
-                                    <button onclick="updateCategory(${idx})" style="padding: 0.25rem 0.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Update</button>
-                                    <button onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--accent-red); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Delete</button>
+                                    <button onclick="updateCategory(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-blue); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Update</button>
+                                    <button onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
                                 </div>
                             `).join('')}
                         </div>
@@ -1730,8 +2097,8 @@
                             ${APP.statuses.map((status, idx) => `
                                 <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
                                     <input type="text" id="status-edit-${idx}" value="${status}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
-                                    <button onclick="updateStatus(${idx})" style="padding: 0.25rem 0.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Update</button>
-                                    <button onclick="deleteStatus('${status}')" style="padding: 0.25rem 0.5rem; background: var(--accent-red); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Delete</button>
+                                    <button onclick="updateStatus(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-blue); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Update</button>
+                                    <button onclick="deleteStatus('${status}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
                                 </div>
                             `).join('')}
                         </div>
@@ -1747,8 +2114,8 @@
                             ${APP.users.map((user, idx) => `
                                 <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
                                     <input type="text" id="user-edit-${idx}" value="${user}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
-                                    <button onclick="updateUser(${idx})" style="padding: 0.25rem 0.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Update</button>
-                                    <button onclick="deleteUser('${user.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--accent-red); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Delete</button>
+                                    <button onclick="updateUser(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-blue); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Update</button>
+                                    <button onclick="deleteUser('${user.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
                                 </div>
                             `).join('')}
                         </div>
@@ -2533,9 +2900,13 @@
             // Set up drag and drop for Eisenhower matrix
             document.addEventListener('dragover', function(e) {
                 const quadrant = e.target.closest('.eisenhower-quadrant');
-                if (quadrant && draggedElement) {
+                const sidebar = e.target.closest('.eisenhower-sidebar');
+                
+                if ((quadrant || sidebar) && draggedElement) {
                     e.preventDefault();
-                    quadrant.classList.add('drag-over');
+                    if (quadrant) {
+                        quadrant.classList.add('drag-over');
+                    }
                 }
             });
             
@@ -2548,26 +2919,42 @@
             
             document.addEventListener('drop', function(e) {
                 const quadrant = e.target.closest('.eisenhower-quadrant');
-                if (quadrant && draggedElement) {
-                    e.preventDefault();
-                    quadrant.classList.remove('drag-over');
-                    
-                    const quadrantType = quadrant.dataset.quadrant;
+                const sidebar = e.target.closest('#unassignedProjects');
+                
+                if (draggedElement) {
                     const projectId = parseInt(draggedElement.dataset.projectId);
                     
-                    // Remove project from all quadrants
-                    Object.keys(APP.eisenhowerMatrix).forEach(q => {
-                        APP.eisenhowerMatrix[q] = APP.eisenhowerMatrix[q].filter(id => id !== projectId);
-                    });
-                    
-                    // Add to new quadrant
-                    if (!APP.eisenhowerMatrix[quadrantType].includes(projectId)) {
-                        APP.eisenhowerMatrix[quadrantType].push(projectId);
+                    if (quadrant) {
+                        e.preventDefault();
+                        quadrant.classList.remove('drag-over');
+                        
+                        const quadrantType = quadrant.dataset.quadrant;
+                        
+                        // Remove project from all quadrants
+                        Object.keys(APP.eisenhowerMatrix).forEach(q => {
+                            APP.eisenhowerMatrix[q] = APP.eisenhowerMatrix[q].filter(id => id !== projectId);
+                        });
+                        
+                        // Add to new quadrant
+                        if (!APP.eisenhowerMatrix[quadrantType].includes(projectId)) {
+                            APP.eisenhowerMatrix[quadrantType].push(projectId);
+                        }
+                        
+                        saveToLocalStorage();
+                        renderEisenhowerMatrix();
+                        showNotification('Project moved successfully', 'success');
+                    } else if (sidebar) {
+                        e.preventDefault();
+                        
+                        // Remove project from all quadrants (moving to unassigned)
+                        Object.keys(APP.eisenhowerMatrix).forEach(q => {
+                            APP.eisenhowerMatrix[q] = APP.eisenhowerMatrix[q].filter(id => id !== projectId);
+                        });
+                        
+                        saveToLocalStorage();
+                        renderEisenhowerMatrix();
+                        showNotification('Project moved to unassigned', 'success');
                     }
-                    
-                    saveToLocalStorage();
-                    renderEisenhowerMatrix();
-                    showNotification('Project moved successfully', 'success');
                 }
             });
         });
