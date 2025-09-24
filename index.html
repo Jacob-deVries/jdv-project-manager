@@ -161,6 +161,12 @@
             gap: 1rem;
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
         .logo {
             font-size: 1.5rem;
             font-weight: 700;
@@ -168,6 +174,31 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-hover);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
         }
 
         .header-actions {
@@ -189,6 +220,15 @@
 
         .btn-primary:hover {
             background: #2563eb;
+        }
+
+        /* Page containers */
+        .page-container {
+            display: none;
+        }
+
+        .page-container.active {
+            display: block;
         }
 
         .container {
@@ -377,6 +417,112 @@
             opacity: 0.8;
         }
 
+        /* Eisenhower Matrix Styles */
+        .eisenhower-container {
+            display: grid;
+            grid-template-columns: 120px 1fr 1fr;
+            grid-template-rows: 35px 1fr 1fr;
+            gap: 0.5rem;
+            height: calc(100vh - 180px);
+            min-height: 500px;
+        }
+
+        .eisenhower-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .eisenhower-quadrant {
+            background: var(--bg-card);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .eisenhower-quadrant.drag-over {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .draggable-project {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.4rem 0.6rem;
+            margin-bottom: 0.3rem;
+            cursor: move;
+            transition: transform 0.2s;
+            font-size: 0.8rem;
+            line-height: 1.2;
+        }
+
+        .draggable-project:hover {
+            transform: translateX(2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .draggable-project.dragging {
+            opacity: 0.5;
+        }
+
+        .quadrant-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Notes Page Styles */
+        .notes-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            height: calc(100vh - 200px);
+            min-height: 500px;
+        }
+
+        .notes-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notes-label {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+
+        .notes-textarea {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            resize: none;
+            font-family: inherit;
+        }
+
+        .notes-textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -440,7 +586,7 @@
         }
 
         .form-textarea {
-            min-height: 100px;
+            min-height: 120px;
             resize: vertical;
         }
 
@@ -502,6 +648,11 @@
                 flex-direction: column;
             }
             
+            .header-left {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
             .controls {
                 flex-direction: column;
             }
@@ -512,6 +663,16 @@
             
             .projects-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .eisenhower-container {
+                grid-template-columns: 80px 1fr;
+                grid-template-rows: 30px repeat(4, minmax(150px, 1fr));
+            }
+            
+            .notes-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
             }
         }
     </style>
@@ -536,11 +697,18 @@
     <div id="dashboardWrapper">
         <header class="header">
             <div class="header-content">
-                <h1 class="logo">PKD Dashboard</h1>
+                <div class="header-left">
+                    <h1 class="logo">PKD Dashboard</h1>
+                    <div class="nav-buttons">
+                        <button class="nav-btn active" onclick="showPage('projects')">Projects</button>
+                        <button class="nav-btn" onclick="showPage('eisenhower')">Eisenhower</button>
+                        <button class="nav-btn" onclick="showPage('notes')">Notes</button>
+                    </div>
+                </div>
                 <div class="header-actions">
                     <span id="lastUpdatedText">Last Updated: Never</span>
-                    <button class="btn-primary" onclick="openCreateModal()">New Project</button>
-                    <button class="btn-primary" onclick="openManageModal()">Manage Settings</button>
+                    <button class="btn-primary" id="projectsOnlyBtn" onclick="openCreateModal()">New Project</button>
+                    <button class="btn-primary" id="manageBtn" onclick="openManageModal()">Manage Settings</button>
                     <button class="btn-primary" onclick="exportPKD()">Export PKD</button>
                     <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Upload PKD</button>
                     <input type="file" id="fileInput" style="display: none;" accept=".txt" onchange="handleFileUpload(event)">
@@ -548,64 +716,148 @@
             </div>
         </header>
 
-        <div class="container">
-            <!-- Stats -->
-            <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; text-align: center;">
-                    <div style="font-size: 2rem; color: var(--accent-blue);" id="activeCount">0</div>
-                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Active Projects</div>
+        <!-- Projects Page -->
+        <div id="projectsPage" class="page-container active">
+            <div class="container">
+                <!-- Stats -->
+                <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; text-align: center;">
+                        <div style="font-size: 2rem; color: var(--accent-blue);" id="activeCount">0</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Active Projects</div>
+                    </div>
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; text-align: center;">
+                        <div style="font-size: 2rem; color: var(--accent-green);" id="completeCount">0</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Completed</div>
+                    </div>
                 </div>
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; text-align: center;">
-                    <div style="font-size: 2rem; color: var(--accent-green);" id="completeCount">0</div>
-                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Completed</div>
+
+                <!-- Controls -->
+                <div class="controls">
+                    <div class="search-box">
+                        <input type="text" class="search-input" placeholder="Search projects..." id="searchInput" oninput="renderProjects()">
+                    </div>
+                    
+                    <div class="dropdown-filter">
+                        <button class="dropdown-button" onclick="toggleDropdown('categoryMenu')">
+                            Categories <span id="categoryCount"></span>
+                        </button>
+                        <div class="dropdown-menu" id="categoryMenu"></div>
+                    </div>
+
+                    <div class="dropdown-filter">
+                        <button class="dropdown-button" onclick="toggleDropdown('statusMenu')">
+                            Statuses <span id="statusCount"></span>
+                        </button>
+                        <div class="dropdown-menu" id="statusMenu"></div>
+                    </div>
+
+                    <div class="dropdown-filter">
+                        <button class="dropdown-button" onclick="toggleDropdown('userMenu')">
+                            Users <span id="userCount"></span>
+                        </button>
+                        <div class="dropdown-menu" id="userMenu"></div>
+                    </div>
+
+                    <div class="toggle-container">
+                        <label>Show Completed</label>
+                        <div class="toggle-switch" id="showCompletedToggle" onclick="toggleCompleted()">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Projects Grid -->
+                <div class="projects-grid" id="projectsGrid"></div>
             </div>
+        </div>
 
-            <!-- Controls -->
-            <div class="controls">
-                <div class="search-box">
-                    <input type="text" class="search-input" placeholder="Search projects..." id="searchInput" oninput="renderProjects()">
-                </div>
-                
-                <div class="dropdown-filter">
-                    <button class="dropdown-button" onclick="toggleDropdown('categoryMenu')">
-                        Categories <span id="categoryCount"></span>
-                    </button>
-                    <div class="dropdown-menu" id="categoryMenu"></div>
-                </div>
-
-                <div class="dropdown-filter">
-                    <button class="dropdown-button" onclick="toggleDropdown('statusMenu')">
-                        Statuses <span id="statusCount"></span>
-                    </button>
-                    <div class="dropdown-menu" id="statusMenu"></div>
-                </div>
-
-                <div class="toggle-container">
-                    <label>Show Completed</label>
-                    <div class="toggle-switch" id="showCompletedToggle" onclick="toggleCompleted()">
-                        <div class="toggle-slider"></div>
+        <!-- Eisenhower Matrix Page -->
+        <div id="eisenhowerPage" class="page-container">
+            <div class="container">
+                <div class="eisenhower-container">
+                    <div></div>
+                    <div class="eisenhower-label">Can Be Delegated</div>
+                    <div class="eisenhower-label">Owned by Me</div>
+                    
+                    <div class="eisenhower-label" style="writing-mode: vertical-lr;">Time-Sensitive</div>
+                    <div class="eisenhower-quadrant" data-quadrant="urgent-delegate">
+                        <div class="quadrant-title">Urgent & Delegate</div>
+                        <div id="quadrant-urgent-delegate"></div>
+                    </div>
+                    <div class="eisenhower-quadrant" data-quadrant="urgent-me">
+                        <div class="quadrant-title">Urgent & My Ownership</div>
+                        <div id="quadrant-urgent-me"></div>
+                    </div>
+                    
+                    <div class="eisenhower-label" style="writing-mode: vertical-lr;">Not Time-Sensitive</div>
+                    <div class="eisenhower-quadrant" data-quadrant="not-urgent-delegate">
+                        <div class="quadrant-title">Not Urgent & Delegate</div>
+                        <div id="quadrant-not-urgent-delegate"></div>
+                    </div>
+                    <div class="eisenhower-quadrant" data-quadrant="not-urgent-me">
+                        <div class="quadrant-title">Not Urgent & My Ownership</div>
+                        <div id="quadrant-not-urgent-me"></div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Projects Grid -->
-            <div class="projects-grid" id="projectsGrid"></div>
+        <!-- Notes Page -->
+        <div id="notesPage" class="page-container">
+            <div class="container">
+                <div class="notes-container">
+                    <div class="notes-section">
+                        <div class="notes-label">Nymbl</div>
+                        <textarea class="notes-textarea" id="notesNymbl" placeholder="Enter notes for Nymbl...
+• Use bullet points with • or -
+• Multiple lines are preserved
+• All formatting carries over to PKD export" oninput="saveNotes()"></textarea>
+                    </div>
+                    <div class="notes-section">
+                        <div class="notes-label">Cindy</div>
+                        <textarea class="notes-textarea" id="notesCindy" placeholder="Enter notes for Cindy...
+• Use bullet points with • or -
+• Multiple lines are preserved
+• All formatting carries over to PKD export" oninput="saveNotes()"></textarea>
+                    </div>
+                    <div class="notes-section">
+                        <div class="notes-label">Me</div>
+                        <textarea class="notes-textarea" id="notesMe" placeholder="Enter personal notes...
+• Use bullet points with • or -
+• Multiple lines are preserved
+• All formatting carries over to PKD export" oninput="saveNotes()"></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Global state - starts completely empty
+        // Global state
         const APP = {
             projects: [],
             categories: [],
             statuses: [],
+            users: [],
             selectedCategories: [],
             selectedStatuses: [],
+            selectedUsers: [],
             showCompleted: false,
             lastUpdated: 'Never',
             currentEditingProject: null,
             currentProjectLinks: [],
+            eisenhowerMatrix: {
+                'urgent-delegate': [],
+                'urgent-me': [],
+                'not-urgent-delegate': [],
+                'not-urgent-me': []
+            },
+            notes: {
+                nymbl: '',
+                cindy: '',
+                me: ''
+            },
+            currentPage: 'projects',
             PASSWORD_HASH: 2147093827 // Hash for 'eCapital'
         };
 
@@ -646,9 +898,22 @@
             APP.projects = [];
             APP.categories = [];
             APP.statuses = [];
+            APP.users = [];
             APP.selectedCategories = [];
             APP.selectedStatuses = [];
+            APP.selectedUsers = [];
             APP.lastUpdated = 'Never';
+            APP.eisenhowerMatrix = {
+                'urgent-delegate': [],
+                'urgent-me': [],
+                'not-urgent-delegate': [],
+                'not-urgent-me': []
+            };
+            APP.notes = {
+                nymbl: '',
+                cindy: '',
+                me: ''
+            };
             
             updateStats();
             updateFilterDropdowns();
@@ -660,14 +925,55 @@
             document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
         }
 
-        // Save to localStorage (only called after user actions, not on init)
+        // Page navigation
+        function showPage(page) {
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Hide all pages
+            document.querySelectorAll('.page-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(`${page}Page`).classList.add('active');
+            
+            // Update button visibility
+            const projectsOnlyBtn = document.getElementById('projectsOnlyBtn');
+            const manageBtn = document.getElementById('manageBtn');
+            
+            if (page === 'projects') {
+                projectsOnlyBtn.style.display = 'inline-block';
+                manageBtn.style.display = 'inline-block';
+            } else {
+                projectsOnlyBtn.style.display = 'none';
+                manageBtn.style.display = 'none';
+            }
+            
+            APP.currentPage = page;
+            
+            // Initialize page-specific content
+            if (page === 'eisenhower') {
+                renderEisenhowerMatrix();
+            } else if (page === 'notes') {
+                loadNotes();
+            }
+        }
+
+        // Save to localStorage
         function saveToLocalStorage() {
             if (typeof localStorage !== 'undefined') {
                 const data = {
                     projects: APP.projects,
                     categories: APP.categories,
                     statuses: APP.statuses,
-                    lastUpdated: APP.lastUpdated
+                    users: APP.users,
+                    lastUpdated: APP.lastUpdated,
+                    eisenhowerMatrix: APP.eisenhowerMatrix,
+                    notes: APP.notes
                 };
                 try {
                     localStorage.setItem('pkdDashboardData', JSON.stringify(data));
@@ -715,6 +1021,20 @@
                 `;
                 statusMenu.appendChild(item);
             });
+
+            // Users
+            const userMenu = document.getElementById('userMenu');
+            userMenu.innerHTML = '';
+            APP.users.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                const isChecked = APP.selectedUsers.includes(user) ? 'checked' : '';
+                item.innerHTML = `
+                    <input type="checkbox" id="user-${user}" onchange="toggleUser('${user}')" ${isChecked}>
+                    <label for="user-${user}">${user}</label>
+                `;
+                userMenu.appendChild(item);
+            });
         }
 
         // Toggle dropdown visibility
@@ -723,7 +1043,7 @@
             menu.classList.toggle('open');
         }
 
-        // Toggle category filter
+        // Toggle filters
         function toggleCategory(category) {
             const index = APP.selectedCategories.indexOf(category);
             if (index > -1) {
@@ -735,7 +1055,6 @@
             renderProjects();
         }
 
-        // Toggle status filter
         function toggleStatus(status) {
             const index = APP.selectedStatuses.indexOf(status);
             if (index > -1) {
@@ -747,13 +1066,26 @@
             renderProjects();
         }
 
+        function toggleUser(user) {
+            const index = APP.selectedUsers.indexOf(user);
+            if (index > -1) {
+                APP.selectedUsers.splice(index, 1);
+            } else {
+                APP.selectedUsers.push(user);
+            }
+            updateFilterCounts();
+            renderProjects();
+        }
+
         // Update filter counts
         function updateFilterCounts() {
             const catCount = document.getElementById('categoryCount');
             const statusCount = document.getElementById('statusCount');
+            const userCount = document.getElementById('userCount');
             
             catCount.textContent = APP.selectedCategories.length > 0 ? `(${APP.selectedCategories.length})` : '';
             statusCount.textContent = APP.selectedStatuses.length > 0 ? `(${APP.selectedStatuses.length})` : '';
+            userCount.textContent = APP.selectedUsers.length > 0 ? `(${APP.selectedUsers.length})` : '';
         }
 
         // Toggle completed projects visibility
@@ -783,6 +1115,11 @@
                 // Filter by statuses
                 if (APP.selectedStatuses.length > 0) {
                     if (!APP.selectedStatuses.includes(project.status)) return false;
+                }
+
+                // Filter by users
+                if (APP.selectedUsers.length > 0) {
+                    if (!project.user || !APP.selectedUsers.includes(project.user)) return false;
                 }
                 
                 // Filter by search
@@ -834,6 +1171,7 @@
                     </div>
                     <span class="status-badge" style="background: var(${statusColor}); color: white;">${project.status}</span>
                 </div>
+                ${project.user ? `<div style="margin-bottom: 0.5rem; color: var(--accent-purple); font-size: 0.875rem;">User: ${project.user}</div>` : ''}
                 <div style="margin: 1rem 0; color: var(--text-secondary); font-size: 0.875rem;">
                     ${project.keyDetails ? project.keyDetails.substring(0, 100) + (project.keyDetails.length > 100 ? '...' : '') : 'No details'}
                 </div>
@@ -853,6 +1191,83 @@
             `;
             
             return card;
+        }
+
+        // Eisenhower Matrix functions
+        function renderEisenhowerMatrix() {
+            Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
+                const container = document.getElementById(`quadrant-${quadrant}`);
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                const projectIds = APP.eisenhowerMatrix[quadrant];
+                projectIds.forEach(projectId => {
+                    const project = APP.projects.find(p => p.id === projectId);
+                    if (project && project.status !== 'complete') {
+                        const projectEl = document.createElement('div');
+                        projectEl.className = 'draggable-project';
+                        projectEl.draggable = true;
+                        projectEl.dataset.projectId = project.id;
+                        projectEl.textContent = `${project.title} (ID: ${project.id})`;
+                        
+                        projectEl.addEventListener('dragstart', handleDragStart);
+                        projectEl.addEventListener('dragend', handleDragEnd);
+                        
+                        container.appendChild(projectEl);
+                    }
+                });
+            });
+            
+            // Add unassigned projects to a temporary holding area
+            const unassignedProjects = APP.projects.filter(p => {
+                if (p.status === 'complete') return false;
+                const isAssigned = Object.values(APP.eisenhowerMatrix).flat().includes(p.id);
+                return !isAssigned;
+            });
+            
+            // Add unassigned projects to the first quadrant as a starting point
+            if (unassignedProjects.length > 0) {
+                const firstQuadrant = document.getElementById('quadrant-urgent-delegate');
+                unassignedProjects.forEach(project => {
+                    const projectEl = document.createElement('div');
+                    projectEl.className = 'draggable-project';
+                    projectEl.draggable = true;
+                    projectEl.dataset.projectId = project.id;
+                    projectEl.style.opacity = '0.6';
+                    projectEl.textContent = `${project.title} (ID: ${project.id}) - Unassigned`;
+                    
+                    projectEl.addEventListener('dragstart', handleDragStart);
+                    projectEl.addEventListener('dragend', handleDragEnd);
+                    
+                    firstQuadrant.appendChild(projectEl);
+                });
+            }
+        }
+
+        let draggedElement = null;
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        // Notes functions
+        function saveNotes() {
+            APP.notes.nymbl = document.getElementById('notesNymbl').value;
+            APP.notes.cindy = document.getElementById('notesCindy').value;
+            APP.notes.me = document.getElementById('notesMe').value;
+            saveToLocalStorage();
+        }
+
+        function loadNotes() {
+            document.getElementById('notesNymbl').value = APP.notes.nymbl || '';
+            document.getElementById('notesCindy').value = APP.notes.cindy || '';
+            document.getElementById('notesMe').value = APP.notes.me || '';
         }
 
         // Show notification
@@ -903,6 +1318,12 @@
             
             showConfirm(`Mark "${project.title}" as complete?`, function() {
                 project.status = 'complete';
+                
+                // Remove from Eisenhower matrix if present
+                Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
+                    APP.eisenhowerMatrix[quadrant] = APP.eisenhowerMatrix[quadrant].filter(pid => pid !== id);
+                });
+                
                 saveToLocalStorage();
                 updateStats();
                 renderProjects();
@@ -917,6 +1338,12 @@
             
             showConfirm(`Delete project "${project.title}"? This action cannot be undone.`, function() {
                 APP.projects = APP.projects.filter(p => p.id !== id);
+                
+                // Remove from Eisenhower matrix
+                Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
+                    APP.eisenhowerMatrix[quadrant] = APP.eisenhowerMatrix[quadrant].filter(pid => pid !== id);
+                });
+                
                 saveToLocalStorage();
                 updateStats();
                 renderProjects();
@@ -964,6 +1391,7 @@
             document.getElementById('projectIdInput').value = project.id;
             document.getElementById('projectTitleInput').value = project.title;
             document.getElementById('projectStatusSelect').value = project.status;
+            document.getElementById('projectUserSelect').value = project.user || '';
             document.getElementById('projectDetailsInput').value = project.keyDetails || '';
             document.getElementById('projectNextStepsInput').value = project.nextSteps || '';
             
@@ -1010,6 +1438,13 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label class="form-label">User</label>
+                        <select class="form-select" id="projectUserSelect">
+                            <option value="">Not Assigned</option>
+                            ${APP.users.map(u => `<option value="${u}">${u}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Categories ${APP.categories.length === 0 ? '(Add categories in Manage Settings)' : '*'}</label>
                         <div id="categoryCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
                             ${APP.categories.length > 0 ? 
@@ -1024,11 +1459,17 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Key Details</label>
-                        <textarea class="form-textarea" id="projectDetailsInput" placeholder="Enter key details"></textarea>
+                        <textarea class="form-textarea" id="projectDetailsInput" placeholder="Enter key details...
+• Use bullet points with • or -
+• Multiple lines are preserved
+• All formatting carries over to PKD export"></textarea>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Next Steps</label>
-                        <textarea class="form-textarea" id="projectNextStepsInput" placeholder="Enter next steps"></textarea>
+                        <textarea class="form-textarea" id="projectNextStepsInput" placeholder="Enter next steps...
+• Use bullet points with • or -
+• Multiple lines are preserved
+• All formatting carries over to PKD export"></textarea>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Links</label>
@@ -1129,6 +1570,7 @@
             const id = parseInt(document.getElementById('projectIdInput').value);
             const title = document.getElementById('projectTitleInput').value.trim();
             const status = document.getElementById('projectStatusSelect').value;
+            const user = document.getElementById('projectUserSelect').value;
             const keyDetails = document.getElementById('projectDetailsInput').value.trim();
             const nextSteps = document.getElementById('projectNextStepsInput').value.trim();
             
@@ -1151,6 +1593,7 @@
                 id,
                 title,
                 status,
+                user: user || null,
                 categories,
                 keyDetails,
                 nextSteps,
@@ -1210,17 +1653,23 @@
                         <label class="form-label">Status</label>
                         <div><span style="background: var(--accent-blue); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.875rem;">${project.status}</span></div>
                     </div>
+                    ${project.user ? `
+                    <div class="form-group">
+                        <label class="form-label">Assigned User</label>
+                        <div>${project.user}</div>
+                    </div>
+                    ` : ''}
                     <div class="form-group">
                         <label class="form-label">Categories</label>
                         <div>${project.categories ? project.categories.join(', ') : 'None'}</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Key Details</label>
-                        <div style="white-space: pre-wrap;">${project.keyDetails || 'No details provided'}</div>
+                        <div style="white-space: pre-wrap; line-height: 1.5;">${project.keyDetails || 'No details provided'}</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Next Steps</label>
-                        <div style="white-space: pre-wrap;">${project.nextSteps || 'No next steps defined'}</div>
+                        <div style="white-space: pre-wrap; line-height: 1.5;">${project.nextSteps || 'No next steps defined'}</div>
                     </div>
                     ${project.links && project.links.length > 0 ? `
                         <div class="form-group">
@@ -1287,6 +1736,23 @@
                             `).join('')}
                         </div>
                     </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Users</label>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="newUserInput" placeholder="Enter user name" style="flex: 1;">
+                            <button class="btn-save" onclick="addUser()">Add</button>
+                        </div>
+                        <div id="usersList">
+                            ${APP.users.map((user, idx) => `
+                                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
+                                    <input type="text" id="user-edit-${idx}" value="${user}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                                    <button onclick="updateUser(${idx})" style="padding: 0.25rem 0.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Update</button>
+                                    <button onclick="deleteUser('${user.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--accent-red); color: white; border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Delete</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
                 </div>
             `;
             document.body.appendChild(modal);
@@ -1298,6 +1764,7 @@
             if (modal) modal.remove();
         }
 
+        // Add/Update/Delete management functions
         function addCategory() {
             const input = document.getElementById('newCategoryInput');
             const category = input.value.trim();
@@ -1374,7 +1841,43 @@
             });
         }
 
-        // Update category name
+        function addUser() {
+            const input = document.getElementById('newUserInput');
+            const user = input.value.trim();
+            
+            if (!user) {
+                showNotification('Please enter a user name', 'error');
+                return;
+            }
+            
+            if (APP.users.includes(user)) {
+                showNotification('This user already exists', 'error');
+                return;
+            }
+            
+            APP.users.push(user);
+            saveToLocalStorage();
+            updateFilterDropdowns();
+            closeManageModal();
+            setTimeout(() => openManageModal(), 100);
+            showNotification('User added successfully', 'success');
+        }
+
+        function deleteUser(user) {
+            showConfirm(`Delete user "${user}"? This will remove them from all projects.`, function() {
+                APP.users = APP.users.filter(u => u !== user);
+                APP.projects.forEach(p => {
+                    if (p.user === user) p.user = null;
+                });
+                saveToLocalStorage();
+                updateFilterDropdowns();
+                renderProjects();
+                closeManageModal();
+                setTimeout(() => openManageModal(), 100);
+                showNotification('User deleted successfully', 'success');
+            });
+        }
+
         function updateCategory(index) {
             const input = document.getElementById(`cat-edit-${index}`);
             if (!input) return;
@@ -1421,7 +1924,6 @@
             showNotification(`Category updated from "${oldCategory}" to "${newCategory}"`, 'success');
         }
 
-        // Update status name
         function updateStatus(index) {
             const input = document.getElementById(`status-edit-${index}`);
             if (!input) return;
@@ -1467,6 +1969,51 @@
             showNotification(`Status updated from "${oldStatus}" to "${newStatus}"`, 'success');
         }
 
+        function updateUser(index) {
+            const input = document.getElementById(`user-edit-${index}`);
+            if (!input) return;
+            
+            const oldUser = APP.users[index];
+            const newUser = input.value.trim();
+            
+            if (!newUser) {
+                showNotification('User name cannot be empty', 'error');
+                return;
+            }
+            
+            if (newUser === oldUser) {
+                return; // No change
+            }
+            
+            if (APP.users.includes(newUser)) {
+                showNotification('This user name already exists', 'error');
+                return;
+            }
+            
+            // Update user in the users array
+            APP.users[index] = newUser;
+            
+            // Update user in all projects that have it
+            APP.projects.forEach(project => {
+                if (project.user === oldUser) {
+                    project.user = newUser;
+                }
+            });
+            
+            // Update selected users filter if it was selected
+            if (APP.selectedUsers.includes(oldUser)) {
+                const selectedIndex = APP.selectedUsers.indexOf(oldUser);
+                APP.selectedUsers[selectedIndex] = newUser;
+            }
+            
+            saveToLocalStorage();
+            updateFilterDropdowns();
+            renderProjects();
+            closeManageModal();
+            setTimeout(() => openManageModal(), 100);
+            showNotification(`User updated from "${oldUser}" to "${newUser}"`, 'success');
+        }
+
         // Export function
         function exportPKD() {
             const today = new Date();
@@ -1491,8 +2038,43 @@
                 content += `**${project.id}. ${project.title}**\n\n`;
                 content += `-   **Status**: ${project.status}\n\n`;
                 content += `-   **Project Category**: ${project.categories ? project.categories.join(', ') : ''}\n\n`;
-                content += `-   **Key Details**: ${project.keyDetails || ''}\n\n`;
-                content += `-   **Next Steps**: ${project.nextSteps || ''}\n\n`;
+                if (project.user) {
+                    content += `-   **User**: ${project.user}\n\n`;
+                }
+                
+                // Handle Key Details with multi-line support
+                content += `-   **Key Details**: `;
+                if (project.keyDetails && project.keyDetails.trim()) {
+                    const detailLines = project.keyDetails.split('\n');
+                    if (detailLines.length === 1) {
+                        content += `${project.keyDetails}\n\n`;
+                    } else {
+                        content += `\n`;
+                        detailLines.forEach((line, idx) => {
+                            content += `    ${line}\n`;
+                        });
+                        content += '\n';
+                    }
+                } else {
+                    content += '\n\n';
+                }
+                
+                // Handle Next Steps with multi-line support
+                content += `-   **Next Steps**: `;
+                if (project.nextSteps && project.nextSteps.trim()) {
+                    const stepLines = project.nextSteps.split('\n');
+                    if (stepLines.length === 1) {
+                        content += `${project.nextSteps}\n\n`;
+                    } else {
+                        content += `\n`;
+                        stepLines.forEach((line, idx) => {
+                            content += `    ${line}\n`;
+                        });
+                        content += '\n';
+                    }
+                } else {
+                    content += '\n\n';
+                }
                 
                 if (project.links && project.links.length > 0) {
                     content += `-   **Links**: `;
@@ -1503,6 +2085,69 @@
                     content += '\n\n';
                 }
             });
+            
+            // Add Eisenhower Matrix
+            content += `**Eisenhower Matrix**\n\n`;
+            
+            const quadrantNames = {
+                'urgent-delegate': 'Time-Sensitive & Can Be Delegated',
+                'urgent-me': 'Time-Sensitive & Owned by Me',
+                'not-urgent-delegate': 'Not Time-Sensitive & Can Be Delegated',
+                'not-urgent-me': 'Not Time-Sensitive & Owned by Me'
+            };
+            
+            Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
+                content += `**${quadrantNames[quadrant]}**\n`;
+                const projectIds = APP.eisenhowerMatrix[quadrant];
+                if (projectIds.length > 0) {
+                    projectIds.forEach(id => {
+                        const project = APP.projects.find(p => p.id === id);
+                        if (project) {
+                            content += `-   ${project.title} (ID: ${project.id})\n`;
+                        }
+                    });
+                } else {
+                    content += `-   (Empty)\n`;
+                }
+                content += '\n';
+            });
+            
+            // Add Notes with proper formatting preservation
+            content += `**Notes**\n\n`;
+            
+            content += `**Nymbl Notes:**\n`;
+            if (APP.notes.nymbl && APP.notes.nymbl.trim()) {
+                // Preserve formatting by indenting each line
+                const nymblLines = APP.notes.nymbl.split('\n');
+                nymblLines.forEach(line => {
+                    content += `${line}\n`;
+                });
+            } else {
+                content += `(No notes)\n`;
+            }
+            content += '\n';
+            
+            content += `**Cindy Notes:**\n`;
+            if (APP.notes.cindy && APP.notes.cindy.trim()) {
+                const cindyLines = APP.notes.cindy.split('\n');
+                cindyLines.forEach(line => {
+                    content += `${line}\n`;
+                });
+            } else {
+                content += `(No notes)\n`;
+            }
+            content += '\n';
+            
+            content += `**Personal Notes:**\n`;
+            if (APP.notes.me && APP.notes.me.trim()) {
+                const meLines = APP.notes.me.split('\n');
+                meLines.forEach(line => {
+                    content += `${line}\n`;
+                });
+            } else {
+                content += `(No notes)\n`;
+            }
+            content += '\n';
             
             content += `**Weekly Review Checklist**\n\n`;
             content += `-   [ ] Update project statuses\n\n`;
@@ -1532,12 +2177,25 @@
                 projects: [],
                 categories: [],
                 statuses: [],
-                lastUpdated: 'Never'
+                users: [],
+                lastUpdated: 'Never',
+                eisenhowerMatrix: {
+                    'urgent-delegate': [],
+                    'urgent-me': [],
+                    'not-urgent-delegate': [],
+                    'not-urgent-me': []
+                },
+                notes: {
+                    nymbl: '',
+                    cindy: '',
+                    me: ''
+                }
             };
             
             // Use Set to collect unique values
             const categoriesSet = new Set();
             const statusesSet = new Set();
+            const usersSet = new Set();
             
             const lines = content.split('\n');
             
@@ -1555,14 +2213,18 @@
             
             // Find projects section
             const projectsStart = lines.findIndex(line => line.includes('**Active Projects**'));
+            const eisenhowerStart = lines.findIndex(line => line.includes('**Eisenhower Matrix**'));
+            const notesStart = lines.findIndex(line => line.includes('**Notes**'));
+            
             if (projectsStart === -1) {
                 console.log('No Active Projects section found');
                 return result;
             }
             
             let currentProject = null;
+            const projectsEnd = eisenhowerStart !== -1 ? eisenhowerStart : (notesStart !== -1 ? notesStart : lines.length);
             
-            for (let i = projectsStart + 1; i < lines.length; i++) {
+            for (let i = projectsStart + 1; i < projectsEnd; i++) {
                 const line = lines[i];
                 const trimmedLine = line.trim();
                 
@@ -1576,6 +2238,7 @@
                         id: parseInt(projectMatch[1]),
                         title: projectMatch[2],
                         status: 'planning',
+                        user: null,
                         categories: [],
                         keyDetails: '',
                         nextSteps: '',
@@ -1604,7 +2267,6 @@
                     if (parts.length > 1) {
                         const cats = parts[1].trim();
                         if (cats) {
-                            // Split by comma and clean each category
                             const categoryList = cats.split(',').map(c => c.trim()).filter(c => c);
                             currentProject.categories = categoryList;
                             categoryList.forEach(c => {
@@ -1615,19 +2277,56 @@
                     }
                 }
                 
-                // Key Details
-                if (line.includes('**Key Details**:')) {
-                    const parts = line.split('**Key Details**:');
+                // User
+                if (line.includes('**User**:')) {
+                    const parts = line.split('**User**:');
                     if (parts.length > 1) {
-                        currentProject.keyDetails = parts[1].trim();
+                        const user = parts[1].trim();
+                        if (user) {
+                            currentProject.user = user;
+                            usersSet.add(user);
+                            console.log(`  User: ${user}`);
+                        }
                     }
                 }
                 
-                // Next Steps  
+                // Key Details - handle multi-line
+                if (line.includes('**Key Details**:')) {
+                    const parts = line.split('**Key Details**:');
+                    if (parts.length > 1 && parts[1].trim()) {
+                        // Single line detail
+                        currentProject.keyDetails = parts[1].trim();
+                    } else {
+                        // Multi-line detail - collect indented lines
+                        const detailLines = [];
+                        let j = i + 1;
+                        while (j < projectsEnd && lines[j] && !lines[j].includes('**') && !lines[j].trim().startsWith('-')) {
+                            if (lines[j].trim()) {
+                                detailLines.push(lines[j].replace(/^    /, ''));
+                            }
+                            j++;
+                        }
+                        currentProject.keyDetails = detailLines.join('\n').trim();
+                    }
+                }
+                
+                // Next Steps - handle multi-line
                 if (line.includes('**Next Steps**:')) {
                     const parts = line.split('**Next Steps**:');
-                    if (parts.length > 1) {
+                    if (parts.length > 1 && parts[1].trim()) {
+                        // Single line steps
                         currentProject.nextSteps = parts[1].trim();
+                    } else {
+                        // Multi-line steps - collect indented lines
+                        const stepLines = [];
+                        let j = i + 1;
+                        while (j < projectsEnd && lines[j] && !lines[j].includes('**') && !lines[j].trim().startsWith('-')) {
+                            if (lines[j].trim()) {
+                                stepLines.push(lines[j].replace(/^    /, ''));
+                            }
+                            j++;
+                        }
+                        currentProject.nextSteps = stepLines.join('\n').trim();
                     }
                 }
                 
@@ -1657,21 +2356,91 @@
                 result.projects.push(currentProject);
             }
             
+            // Parse Eisenhower Matrix
+            if (eisenhowerStart !== -1) {
+                let currentQuadrant = null;
+                const quadrantMapping = {
+                    'Time-Sensitive & Can Be Delegated': 'urgent-delegate',
+                    'Time-Sensitive & Owned by Me': 'urgent-me',
+                    'Not Time-Sensitive & Can Be Delegated': 'not-urgent-delegate',
+                    'Not Time-Sensitive & Owned by Me': 'not-urgent-me'
+                };
+                
+                const matrixEnd = notesStart !== -1 ? notesStart : lines.length;
+                
+                for (let i = eisenhowerStart + 1; i < matrixEnd; i++) {
+                    const line = lines[i].trim();
+                    
+                    // Check for quadrant header
+                    Object.keys(quadrantMapping).forEach(quadrantName => {
+                        if (line.includes(`**${quadrantName}**`)) {
+                            currentQuadrant = quadrantMapping[quadrantName];
+                        }
+                    });
+                    
+                    // Parse project in quadrant
+                    if (currentQuadrant && line.startsWith('-')) {
+                        const match = line.match(/ID:\s*(\d+)/);
+                        if (match) {
+                            const projectId = parseInt(match[1]);
+                            result.eisenhowerMatrix[currentQuadrant].push(projectId);
+                        }
+                    }
+                }
+            }
+            
+            // Parse Notes
+            if (notesStart !== -1) {
+                let currentNote = null;
+                let noteContent = {
+                    nymbl: [],
+                    cindy: [],
+                    me: []
+                };
+                
+                for (let i = notesStart + 1; i < lines.length; i++) {
+                    const line = lines[i];
+                    
+                    if (line.includes('**Nymbl Notes:**')) {
+                        currentNote = 'nymbl';
+                        continue;
+                    } else if (line.includes('**Cindy Notes:**')) {
+                        currentNote = 'cindy';
+                        continue;
+                    } else if (line.includes('**Personal Notes:**')) {
+                        currentNote = 'me';
+                        continue;
+                    } else if (line.includes('**Weekly Review Checklist**')) {
+                        break;
+                    } else if (line.startsWith('**') && line.endsWith('**')) {
+                        // New section started, stop current note
+                        currentNote = null;
+                        continue;
+                    }
+                    
+                    if (currentNote && !line.includes('(No notes)')) {
+                        noteContent[currentNote].push(line);
+                    }
+                }
+                
+                // Join the lines together preserving formatting
+                result.notes.nymbl = noteContent.nymbl.join('\n').trim();
+                result.notes.cindy = noteContent.cindy.join('\n').trim();
+                result.notes.me = noteContent.me.join('\n').trim();
+            }
+            
             // Convert Sets to Arrays
             result.categories = Array.from(categoriesSet).sort();
             result.statuses = Array.from(statusesSet).sort();
+            result.users = Array.from(usersSet).sort();
             
             console.log('=== PARSING COMPLETE ===');
             console.log('Unique categories found:', result.categories);
             console.log('Unique statuses found:', result.statuses);
+            console.log('Unique users found:', result.users);
             console.log('Total projects:', result.projects.length);
-            
-            // Log first few projects with their categories for debugging
-            result.projects.slice(0, 5).forEach(p => {
-                console.log(`Project "${p.title}" (ID: ${p.id})`);
-                console.log(`  Categories: [${p.categories.join(', ')}]`);
-                console.log(`  Status: ${p.status}`);
-            });
+            console.log('Eisenhower Matrix:', result.eisenhowerMatrix);
+            console.log('Notes:', result.notes);
             
             return result;
         }
@@ -1699,23 +2468,27 @@
                         APP.projects = parsed.projects;
                         APP.categories = parsed.categories;
                         APP.statuses = parsed.statuses;
+                        APP.users = parsed.users;
+                        APP.eisenhowerMatrix = parsed.eisenhowerMatrix;
+                        APP.notes = parsed.notes;
                         
                         // Log for debugging
                         console.log('Projects loaded:', APP.projects);
                         console.log('Categories loaded:', APP.categories);
                         console.log('Statuses loaded:', APP.statuses);
-                        
-                        // Check that projects have their categories
-                        APP.projects.forEach(p => {
-                            console.log(`Project ${p.id} (${p.title}) has categories:`, p.categories);
-                        });
+                        console.log('Users loaded:', APP.users);
                         
                         saveToLocalStorage();
                         updateStats();
                         updateFilterDropdowns();
                         renderProjects();
                         
-                        showNotification(`Loaded ${APP.projects.length} projects with ${APP.categories.length} categories`, 'success');
+                        // If on notes page, load notes
+                        if (APP.currentPage === 'notes') {
+                            loadNotes();
+                        }
+                        
+                        showNotification(`Loaded ${APP.projects.length} projects with ${APP.categories.length} categories and ${APP.users.length} users`, 'success');
                     } else {
                         showNotification('No projects found in file', 'error');
                     }
@@ -1754,6 +2527,47 @@
                 if (e.key === 'Escape') {
                     const modals = document.querySelectorAll('.modal');
                     modals.forEach(modal => modal.remove());
+                }
+            });
+            
+            // Set up drag and drop for Eisenhower matrix
+            document.addEventListener('dragover', function(e) {
+                const quadrant = e.target.closest('.eisenhower-quadrant');
+                if (quadrant && draggedElement) {
+                    e.preventDefault();
+                    quadrant.classList.add('drag-over');
+                }
+            });
+            
+            document.addEventListener('dragleave', function(e) {
+                const quadrant = e.target.closest('.eisenhower-quadrant');
+                if (quadrant) {
+                    quadrant.classList.remove('drag-over');
+                }
+            });
+            
+            document.addEventListener('drop', function(e) {
+                const quadrant = e.target.closest('.eisenhower-quadrant');
+                if (quadrant && draggedElement) {
+                    e.preventDefault();
+                    quadrant.classList.remove('drag-over');
+                    
+                    const quadrantType = quadrant.dataset.quadrant;
+                    const projectId = parseInt(draggedElement.dataset.projectId);
+                    
+                    // Remove project from all quadrants
+                    Object.keys(APP.eisenhowerMatrix).forEach(q => {
+                        APP.eisenhowerMatrix[q] = APP.eisenhowerMatrix[q].filter(id => id !== projectId);
+                    });
+                    
+                    // Add to new quadrant
+                    if (!APP.eisenhowerMatrix[quadrantType].includes(projectId)) {
+                        APP.eisenhowerMatrix[quadrantType].push(projectId);
+                    }
+                    
+                    saveToLocalStorage();
+                    renderEisenhowerMatrix();
+                    showNotification('Project moved successfully', 'success');
                 }
             });
         });
