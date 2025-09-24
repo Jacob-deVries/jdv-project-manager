@@ -594,7 +594,7 @@
         .reset-button {
             width: 100%;
             padding: 0.5rem;
-            background: linear-gradient(135deg, var(--accent-orange), #fbbf24);
+            background: linear-gradient(135deg, #fde68a, #fcd34d);
             color: var(--bg-primary);
             border: none;
             border-radius: 6px;
@@ -622,7 +622,7 @@
 
         .reset-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(252, 211, 77, 0.3);
+            box-shadow: 0 4px 12px rgba(253, 230, 138, 0.3);
         }
 
         .reset-button:active::before {
@@ -2399,6 +2399,15 @@
                 content += `${index + 1}.  ${project.title}\n\n`;
             });
             
+            // Add Users list
+            if (APP.users.length > 0) {
+                content += `**Users List**\n\n`;
+                APP.users.forEach(user => {
+                    content += `-   ${user}\n`;
+                });
+                content += `\n`;
+            }
+            
             content += `**Active Projects**\n\n`;
             
             APP.projects.forEach(project => {
@@ -2578,10 +2587,25 @@
                 }
             }
             
-            // Find projects section
+            // Find sections
             const projectsStart = lines.findIndex(line => line.includes('**Active Projects**'));
             const eisenhowerStart = lines.findIndex(line => line.includes('**Eisenhower Matrix**'));
             const notesStart = lines.findIndex(line => line.includes('**Notes**'));
+            const usersStart = lines.findIndex(line => line.includes('**Users List**'));
+            
+            // Parse Users List if it exists
+            if (usersStart !== -1 && usersStart < projectsStart) {
+                const usersEnd = projectsStart !== -1 ? projectsStart : lines.length;
+                for (let i = usersStart + 1; i < usersEnd; i++) {
+                    const line = lines[i].trim();
+                    if (line.startsWith('-')) {
+                        const user = line.replace(/^-\s*/, '').trim();
+                        if (user && !line.includes('**')) {
+                            usersSet.add(user);
+                        }
+                    }
+                }
+            }
             
             if (projectsStart === -1) {
                 console.log('No Active Projects section found');
