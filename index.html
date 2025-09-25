@@ -1067,27 +1067,27 @@
                     </div>
                     <div class="eisenhower-container">
                         <div></div>
-                        <div class="eisenhower-label">Can Be Delegated</div>
-                        <div class="eisenhower-label">Owned by Me</div>
+                        <div class="eisenhower-label">Scope/Direction Unknown</div>
+                        <div class="eisenhower-label">Clear Work Defined</div>
                         
                         <div class="eisenhower-label" style="writing-mode: vertical-lr;">Time-Sensitive</div>
-                        <div class="eisenhower-quadrant" data-quadrant="urgent-delegate">
-                            <div class="quadrant-title">Urgent & Delegate</div>
-                            <div id="quadrant-urgent-delegate"></div>
+                        <div class="eisenhower-quadrant" data-quadrant="urgent-unclear">
+                            <div class="quadrant-title">Urgent - Needs Definition</div>
+                            <div id="quadrant-urgent-unclear"></div>
                         </div>
-                        <div class="eisenhower-quadrant" data-quadrant="urgent-me">
-                            <div class="quadrant-title">Urgent & My Ownership</div>
-                            <div id="quadrant-urgent-me"></div>
+                        <div class="eisenhower-quadrant" data-quadrant="urgent-clear">
+                            <div class="quadrant-title">Urgent - Ready to Execute</div>
+                            <div id="quadrant-urgent-clear"></div>
                         </div>
                         
                         <div class="eisenhower-label" style="writing-mode: vertical-lr;">Not Time-Sensitive</div>
-                        <div class="eisenhower-quadrant" data-quadrant="not-urgent-delegate">
-                            <div class="quadrant-title">Not Urgent & Delegate</div>
-                            <div id="quadrant-not-urgent-delegate"></div>
+                        <div class="eisenhower-quadrant" data-quadrant="not-urgent-unclear">
+                            <div class="quadrant-title">Future - Needs Definition</div>
+                            <div id="quadrant-not-urgent-unclear"></div>
                         </div>
-                        <div class="eisenhower-quadrant" data-quadrant="not-urgent-me">
-                            <div class="quadrant-title">Not Urgent & My Ownership</div>
-                            <div id="quadrant-not-urgent-me"></div>
+                        <div class="eisenhower-quadrant" data-quadrant="not-urgent-clear">
+                            <div class="quadrant-title">Future - Ready When Needed</div>
+                            <div id="quadrant-not-urgent-clear"></div>
                         </div>
                     </div>
                 </div>
@@ -1139,10 +1139,10 @@
             currentEditingProject: null,
             currentProjectLinks: [],
             eisenhowerMatrix: {
-                'urgent-delegate': [],
-                'urgent-me': [],
-                'not-urgent-delegate': [],
-                'not-urgent-me': []
+                'urgent-unclear': [],
+                'urgent-clear': [],
+                'not-urgent-unclear': [],
+                'not-urgent-clear': []
             },
             notes: {
                 nymbl: '',
@@ -1196,10 +1196,10 @@
             APP.selectedUsers = [];
             APP.lastUpdated = 'Never';
             APP.eisenhowerMatrix = {
-                'urgent-delegate': [],
-                'urgent-me': [],
-                'not-urgent-delegate': [],
-                'not-urgent-me': []
+                'urgent-unclear': [],
+                'urgent-clear': [],
+                'not-urgent-unclear': [],
+                'not-urgent-clear': []
             };
             APP.notes = {
                 nymbl: '',
@@ -1411,7 +1411,9 @@
 
                 // Filter by users
                 if (APP.selectedUsers.length > 0) {
-                    if (!project.user || !APP.selectedUsers.includes(project.user)) return false;
+                    const hasUser = project.users && project.users.length > 0 &&
+                        project.users.some(user => APP.selectedUsers.includes(user));
+                    if (!hasUser) return false;
                 }
                 
                 // Filter by search
@@ -1463,7 +1465,7 @@
                     </div>
                     <span class="status-badge" style="background: var(${statusColor}); color: ${statusColor.includes('text-secondary') ? 'var(--text-secondary)' : 'var(--bg-primary)'};">${project.status}</span>
                 </div>
-                ${project.user ? `<div style="margin-bottom: 0.5rem; color: var(--pastel-purple); font-size: 0.875rem;">User: ${project.user}</div>` : ''}
+                ${project.users && project.users.length > 0 ? `<div style="margin-bottom: 0.5rem; color: var(--pastel-purple); font-size: 0.875rem;">Users: ${project.users.join(', ')}</div>` : ''}
                 <div style="margin: 1rem 0; color: var(--text-secondary); font-size: 0.875rem;">
                     ${project.keyDetails ? project.keyDetails.substring(0, 100) + (project.keyDetails.length > 100 ? '...' : '') : 'No details'}
                 </div>
@@ -1551,10 +1553,10 @@
         function resetEisenhowerMatrix() {
             showConfirm('Reset the Eisenhower Matrix? This will move all projects back to unassigned.', function() {
                 APP.eisenhowerMatrix = {
-                    'urgent-delegate': [],
-                    'urgent-me': [],
-                    'not-urgent-delegate': [],
-                    'not-urgent-me': []
+                    'urgent-unclear': [],
+                    'urgent-clear': [],
+                    'not-urgent-unclear': [],
+                    'not-urgent-clear': []
                 };
                 saveToLocalStorage();
                 renderEisenhowerMatrix();
@@ -1758,7 +1760,6 @@
             document.getElementById('projectIdInput').value = project.id;
             document.getElementById('projectTitleInput').value = project.title;
             document.getElementById('projectStatusSelect').value = project.status;
-            document.getElementById('projectUserSelect').value = project.user || '';
             document.getElementById('projectDetailsInput').value = project.keyDetails || '';
             document.getElementById('projectNextStepsInput').value = project.nextSteps || '';
             
@@ -1766,6 +1767,14 @@
             if (project.categories) {
                 project.categories.forEach(cat => {
                     const checkbox = document.getElementById(`cat-check-${cat}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            // Check the appropriate users
+            if (project.users && project.users.length > 0) {
+                project.users.forEach(user => {
+                    const checkbox = document.getElementById(`user-check-${user}`);
                     if (checkbox) checkbox.checked = true;
                 });
             }
@@ -1805,11 +1814,17 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">User</label>
-                        <select class="form-select" id="projectUserSelect">
-                            <option value="">Not Assigned</option>
-                            ${APP.users.map(u => `<option value="${u}">${u}</option>`).join('')}
-                        </select>
+                        <label class="form-label">Users</label>
+                        <div id="userCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            ${APP.users.length > 0 ? 
+                                APP.users.map(user => `
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                        <input type="checkbox" id="user-check-${user}" value="${user}">
+                                        ${user}
+                                    </label>
+                                `).join('') :
+                                '<span style="color: var(--text-secondary);">No users available</span>'}
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Categories ${APP.categories.length === 0 ? '(Add categories in Manage Settings)' : '*'}</label>
@@ -1937,13 +1952,17 @@
             const id = parseInt(document.getElementById('projectIdInput').value);
             const title = document.getElementById('projectTitleInput').value.trim();
             const status = document.getElementById('projectStatusSelect').value;
-            const user = document.getElementById('projectUserSelect').value;
             const keyDetails = document.getElementById('projectDetailsInput').value.trim();
             const nextSteps = document.getElementById('projectNextStepsInput').value.trim();
             
             const categories = [];
             document.querySelectorAll('#categoryCheckboxes input:checked').forEach(cb => {
                 categories.push(cb.value);
+            });
+            
+            const users = [];
+            document.querySelectorAll('#userCheckboxes input:checked').forEach(cb => {
+                users.push(cb.value);
             });
             
             if (!title) {
@@ -1960,7 +1979,7 @@
                 id,
                 title,
                 status,
-                user: user || null,
+                users: users,
                 categories,
                 keyDetails,
                 nextSteps,
@@ -2020,10 +2039,10 @@
                         <label class="form-label">Status</label>
                         <div><span style="background: var(--pastel-blue); color: var(--bg-primary); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.875rem; font-weight: 500;">${project.status}</span></div>
                     </div>
-                    ${project.user ? `
+                    ${project.users && project.users.length > 0 ? `
                     <div class="form-group">
-                        <label class="form-label">Assigned User</label>
-                        <div>${project.user}</div>
+                        <label class="form-label">Assigned Users</label>
+                        <div>${project.users.join(', ')}</div>
                     </div>
                     ` : ''}
                     <div class="form-group">
@@ -2071,14 +2090,15 @@
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Categories</label>
+                        <label class="form-label">Categories <span style="color: var(--text-secondary); font-size: 0.75rem;">(Drag to reorder)</span></label>
                         <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                             <input type="text" class="form-input" id="newCategoryInput" placeholder="Enter category name" style="flex: 1;">
                             <button class="btn-save" onclick="addCategory()">Add</button>
                         </div>
                         <div id="categoriesList">
                             ${APP.categories.map((cat, idx) => `
-                                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
+                                <div class="settings-list-item" draggable="true" data-index="${idx}" data-type="category">
+                                    <span class="drag-handle">≡</span>
                                     <input type="text" id="cat-edit-${idx}" value="${cat}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
                                     <button onclick="updateCategory(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-blue); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Update</button>
                                     <button onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
@@ -2088,14 +2108,15 @@
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Statuses</label>
+                        <label class="form-label">Statuses <span style="color: var(--text-secondary); font-size: 0.75rem;">(Drag to reorder)</span></label>
                         <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                             <input type="text" class="form-input" id="newStatusInput" placeholder="Enter status name" style="flex: 1;">
                             <button class="btn-save" onclick="addStatus()">Add</button>
                         </div>
                         <div id="statusesList">
                             ${APP.statuses.map((status, idx) => `
-                                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
+                                <div class="settings-list-item" draggable="true" data-index="${idx}" data-type="status">
+                                    <span class="drag-handle">≡</span>
                                     <input type="text" id="status-edit-${idx}" value="${status}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
                                     <button onclick="updateStatus(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-blue); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Update</button>
                                     <button onclick="deleteStatus('${status}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
@@ -2105,14 +2126,15 @@
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Users</label>
+                        <label class="form-label">Users <span style="color: var(--text-secondary); font-size: 0.75rem;">(Drag to reorder)</span></label>
                         <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                             <input type="text" class="form-input" id="newUserInput" placeholder="Enter user name" style="flex: 1;">
                             <button class="btn-save" onclick="addUser()">Add</button>
                         </div>
                         <div id="usersList">
                             ${APP.users.map((user, idx) => `
-                                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 0.5rem;">
+                                <div class="settings-list-item" draggable="true" data-index="${idx}" data-type="user">
+                                    <span class="drag-handle">≡</span>
                                     <input type="text" id="user-edit-${idx}" value="${user}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
                                     <button onclick="updateUser(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-blue); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Update</button>
                                     <button onclick="deleteUser('${user.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
@@ -2124,6 +2146,81 @@
             `;
             document.body.appendChild(modal);
             modal.style.display = 'block';
+            
+            // Initialize drag and drop for settings lists
+            initializeSettingsDragDrop();
+        }
+
+        // Initialize drag and drop for settings lists
+        function initializeSettingsDragDrop() {
+            let draggedSettingsItem = null;
+            let draggedType = null;
+            
+            document.querySelectorAll('.settings-list-item').forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    draggedSettingsItem = this;
+                    draggedType = this.dataset.type;
+                    this.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                
+                item.addEventListener('dragend', function(e) {
+                    this.classList.remove('dragging');
+                });
+                
+                item.addEventListener('dragover', function(e) {
+                    if (e.preventDefault) {
+                        e.preventDefault();
+                    }
+                    e.dataTransfer.dropEffect = 'move';
+                    
+                    // Only allow reordering within the same type
+                    if (this.dataset.type === draggedType && this !== draggedSettingsItem) {
+                        this.classList.add('drag-over');
+                    }
+                    
+                    return false;
+                });
+                
+                item.addEventListener('dragleave', function(e) {
+                    this.classList.remove('drag-over');
+                });
+                
+                item.addEventListener('drop', function(e) {
+                    if (e.stopPropagation) {
+                        e.stopPropagation();
+                    }
+                    
+                    this.classList.remove('drag-over');
+                    
+                    // Only reorder within the same type
+                    if (this.dataset.type !== draggedType || this === draggedSettingsItem) {
+                        return false;
+                    }
+                    
+                    const fromIndex = parseInt(draggedSettingsItem.dataset.index);
+                    const toIndex = parseInt(this.dataset.index);
+                    
+                    // Reorder the appropriate array
+                    if (draggedType === 'category') {
+                        const [removed] = APP.categories.splice(fromIndex, 1);
+                        APP.categories.splice(toIndex, 0, removed);
+                    } else if (draggedType === 'status') {
+                        const [removed] = APP.statuses.splice(fromIndex, 1);
+                        APP.statuses.splice(toIndex, 0, removed);
+                    } else if (draggedType === 'user') {
+                        const [removed] = APP.users.splice(fromIndex, 1);
+                        APP.users.splice(toIndex, 0, removed);
+                    }
+                    
+                    saveToLocalStorage();
+                    closeManageModal();
+                    setTimeout(() => openManageModal(), 100);
+                    showNotification(`${draggedType.charAt(0).toUpperCase() + draggedType.slice(1)} order updated`, 'success');
+                    
+                    return false;
+                });
+            });
         }
 
         function closeManageModal() {
@@ -2234,7 +2331,9 @@
             showConfirm(`Delete user "${user}"? This will remove them from all projects.`, function() {
                 APP.users = APP.users.filter(u => u !== user);
                 APP.projects.forEach(p => {
-                    if (p.user === user) p.user = null;
+                    if (p.users && p.users.length > 0) {
+                        p.users = p.users.filter(u => u !== user);
+                    }
                 });
                 saveToLocalStorage();
                 updateFilterDropdowns();
@@ -2362,8 +2461,9 @@
             
             // Update user in all projects that have it
             APP.projects.forEach(project => {
-                if (project.user === oldUser) {
-                    project.user = newUser;
+                if (project.users && project.users.includes(oldUser)) {
+                    const userIndex = project.users.indexOf(oldUser);
+                    project.users[userIndex] = newUser;
                 }
             });
             
@@ -2414,8 +2514,8 @@
                 content += `**${project.id}. ${project.title}**\n\n`;
                 content += `-   **Status**: ${project.status}\n\n`;
                 content += `-   **Project Category**: ${project.categories ? project.categories.join(', ') : ''}\n\n`;
-                if (project.user) {
-                    content += `-   **User**: ${project.user}\n\n`;
+                if (project.users && project.users.length > 0) {
+                    content += `-   **Users**: ${project.users.join(', ')}\n\n`;
                 }
                 
                 // Handle Key Details with multi-line support
@@ -2466,10 +2566,10 @@
             content += `**Eisenhower Matrix**\n\n`;
             
             const quadrantNames = {
-                'urgent-delegate': 'Time-Sensitive & Can Be Delegated',
-                'urgent-me': 'Time-Sensitive & Owned by Me',
-                'not-urgent-delegate': 'Not Time-Sensitive & Can Be Delegated',
-                'not-urgent-me': 'Not Time-Sensitive & Owned by Me'
+                'urgent-unclear': 'Time-Sensitive & Scope/Direction Unknown',
+                'urgent-clear': 'Time-Sensitive & Clear Work Defined',
+                'not-urgent-unclear': 'Not Time-Sensitive & Scope/Direction Unknown',
+                'not-urgent-clear': 'Not Time-Sensitive & Clear Work Defined'
             };
             
             Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
@@ -2556,10 +2656,10 @@
                 users: [],
                 lastUpdated: 'Never',
                 eisenhowerMatrix: {
-                    'urgent-delegate': [],
-                    'urgent-me': [],
-                    'not-urgent-delegate': [],
-                    'not-urgent-me': []
+                    'urgent-unclear': [],
+                    'urgent-clear': [],
+                    'not-urgent-unclear': [],
+                    'not-urgent-clear': []
                 },
                 notes: {
                     nymbl: '',
@@ -2629,7 +2729,7 @@
                         id: parseInt(projectMatch[1]),
                         title: projectMatch[2],
                         status: 'planning',
-                        user: null,
+                        users: [],
                         categories: [],
                         keyDetails: '',
                         nextSteps: '',
@@ -2668,15 +2768,19 @@
                     }
                 }
                 
-                // User
-                if (line.includes('**User**:')) {
-                    const parts = line.split('**User**:');
+                // User/Users - handle both single and multiple
+                if (line.includes('**User**:') || line.includes('**Users**:')) {
+                    const parts = line.includes('**Users**:') ? line.split('**Users**:') : line.split('**User**:');
                     if (parts.length > 1) {
-                        const user = parts[1].trim();
-                        if (user) {
-                            currentProject.user = user;
-                            usersSet.add(user);
-                            console.log(`  User: ${user}`);
+                        const usersString = parts[1].trim();
+                        if (usersString) {
+                            // Parse comma-separated users
+                            const usersList = usersString.split(',').map(u => u.trim()).filter(u => u);
+                            currentProject.users = usersList;
+                            usersList.forEach(u => {
+                                usersSet.add(u);
+                            });
+                            console.log(`  Users: ${usersList.join(', ')}`);
                         }
                     }
                 }
@@ -2751,10 +2855,15 @@
             if (eisenhowerStart !== -1) {
                 let currentQuadrant = null;
                 const quadrantMapping = {
-                    'Time-Sensitive & Can Be Delegated': 'urgent-delegate',
-                    'Time-Sensitive & Owned by Me': 'urgent-me',
-                    'Not Time-Sensitive & Can Be Delegated': 'not-urgent-delegate',
-                    'Not Time-Sensitive & Owned by Me': 'not-urgent-me'
+                    'Time-Sensitive & Scope/Direction Unknown': 'urgent-unclear',
+                    'Time-Sensitive & Clear Work Defined': 'urgent-clear',
+                    'Not Time-Sensitive & Scope/Direction Unknown': 'not-urgent-unclear',
+                    'Not Time-Sensitive & Clear Work Defined': 'not-urgent-clear',
+                    // Support old format for backwards compatibility
+                    'Time-Sensitive & Can Be Delegated': 'urgent-unclear',
+                    'Time-Sensitive & Owned by Me': 'urgent-clear',
+                    'Not Time-Sensitive & Can Be Delegated': 'not-urgent-unclear',
+                    'Not Time-Sensitive & Owned by Me': 'not-urgent-clear'
                 };
                 
                 const matrixEnd = notesStart !== -1 ? notesStart : lines.length;
