@@ -485,7 +485,6 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
-            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
         }
 
         .project-card::before {
@@ -568,7 +567,6 @@
             gap: 1rem;
             height: calc(100vh - 180px);
             min-height: 500px;
-            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .eisenhower-sidebar {
@@ -592,31 +590,11 @@
             font-size: 0.875rem;
             font-weight: 500;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .reset-button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
         }
 
         .reset-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(253, 230, 138, 0.3);
-        }
-
-        .reset-button:active::before {
-            width: 300px;
-            height: 300px;
         }
 
         .unassigned-title {
@@ -669,29 +647,12 @@
             font-size: 0.8rem;
             line-height: 1.2;
             user-select: none;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .draggable-project::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.1), transparent);
-            transition: left 0.4s;
         }
 
         .draggable-project:hover {
             transform: translateX(4px) scale(1.02);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             border-color: var(--pastel-blue);
-        }
-
-        .draggable-project:hover::before {
-            left: 100%;
         }
 
         .draggable-project.dragging {
@@ -721,7 +682,6 @@
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(5px);
             z-index: 1000;
-            animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .modal-content {
@@ -739,30 +699,6 @@
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: var(--shadow);
-            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -45%);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%);
-            }
-        }
-
-        .modal-content::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 100px;
-            background: linear-gradient(180deg, rgba(147, 197, 253, 0.05), transparent);
-            border-radius: 16px 16px 0 0;
-            pointer-events: none;
         }
 
         .modal-header {
@@ -853,17 +789,14 @@
 
         .notification.success {
             border-color: var(--pastel-green);
-            background: rgba(35, 35, 38, 0.98);
         }
 
         .notification.error {
             border-color: var(--pastel-red);
-            background: rgba(35, 35, 38, 0.98);
         }
 
         .notification.info {
             border-color: var(--pastel-blue);
-            background: rgba(35, 35, 38, 0.98);
         }
 
         .settings-list-item {
@@ -889,67 +822,771 @@
             cursor: grab;
         }
 
-        .drag-handle:active {
-            cursor: grabbing;
-        }
-
-        .notes-textarea {
-            flex: 1;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
-            color: var(--text-primary);
-            font-size: 0.875rem;
-            resize: none;
-            font-family: inherit;
-        }
-
-        .notes-textarea:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-        }
-
         @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-            }
-            
-            .header-left {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .controls {
-                flex-direction: column;
-            }
-            
-            .search-box {
-                min-width: 100%;
-            }
-            
             #projectsPage .container {
                 grid-template-columns: 1fr !important;
             }
             
-            #projectsPage .container > div:first-child > div[style*="grid-template-columns"] {
+            #projectsGrid {
                 grid-template-columns: 1fr !important;
-            }
-            
-            .eisenhower-wrapper {
-                grid-template-columns: 1fr;
-            }
-            
-            .eisenhower-sidebar {
-                max-height: 200px;
-                margin-bottom: 1rem;
-            }
-            
-            .eisenhower-container {
-                grid-template-columns: 80px 1fr;
-                grid-template-rows: 30px repeat(4, minmax(150px, 1fr));
             }
         }
     </style>
 </head>
 <body>
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <div id="passwordScreen">
+        <div class="password-container">
+            <div class="password-logo">PKD Dashboard</div>
+            <h2 class="password-title">Secure Access</h2>
+            <p class="password-subtitle">Please enter your password to continue</p>
+            <input type="password" class="password-input" id="passwordInput" placeholder="Enter password">
+            <div class="password-error" id="passwordError">Incorrect password. Please try again.</div>
+            <button class="password-submit" onclick="checkPassword()">Access Dashboard</button>
+        </div>
+    </div>
+
+    <div id="dashboardWrapper">
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="logo">PKD Dashboard</h1>
+                    <div class="nav-buttons">
+                        <button class="nav-btn active" onclick="showPage('projects')">Projects & Notes</button>
+                        <button class="nav-btn" onclick="showPage('eisenhower')">Eisenhower</button>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span id="lastUpdatedText">Last Updated: Never</span>
+                    <button class="btn-primary" id="projectsOnlyBtn" onclick="openCreateModal()">New Project</button>
+                    <button class="btn-primary" id="manageBtn" onclick="openManageModal()">Manage Settings</button>
+                    <button class="btn-primary" onclick="exportPKD()">Export PKD</button>
+                    <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Upload PKD</button>
+                    <input type="file" id="fileInput" style="display: none;" accept=".txt" onchange="handleFileUpload(event)">
+                </div>
+            </div>
+        </header>
+
+        <div id="projectsPage" class="page-container active">
+            <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none;">
+                <div>
+                    <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div class="stat-card">
+                            <div style="font-size: 2rem; color: var(--accent-blue); font-weight: 600;" id="activeCount">0</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Active Projects</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 2rem; color: var(--accent-green); font-weight: 600;" id="completeCount">0</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Completed</div>
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <div class="search-box">
+                            <input type="text" class="search-input" placeholder="Search projects..." id="searchInput" oninput="renderProjects()">
+                        </div>
+                        
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('categoryMenu')">
+                                Categories <span id="categoryCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="categoryMenu"></div>
+                        </div>
+
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('statusMenu')">
+                                Statuses <span id="statusCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="statusMenu"></div>
+                        </div>
+
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('userMenu')">
+                                Users <span id="userCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="userMenu"></div>
+                        </div>
+
+                        <div class="toggle-container">
+                            <label>Show Completed</label>
+                            <div class="toggle-switch" id="showCompletedToggle" onclick="toggleCompleted()">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="projectsGrid"></div>
+                </div>
+                
+                <div>
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; height: calc(100vh - 200px); display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <select id="notesSelector" onchange="switchNote()" style="flex: 1; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.875rem; margin-right: 0.5rem;">
+                                <option value="Nymbl">Nymbl</option>
+                                <option value="Cindy">Cindy</option>
+                                <option value="Me">Me</option>
+                            </select>
+                            <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">+ New Note</button>
+                        </div>
+                        <textarea id="notesTextarea" style="flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); font-size: 0.875rem; resize: none; font-family: inherit;" placeholder="Enter notes...
+• Use bullet points with • or -
+• Hyphens auto-convert to bullets
+• All formatting carries over to PKD export" oninput="handleNotesInput(event)"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="eisenhowerPage" class="page-container">
+            <div class="container">
+                <div class="eisenhower-wrapper">
+                    <div class="eisenhower-sidebar">
+                        <button class="reset-button" onclick="resetEisenhowerMatrix()">Reset Matrix</button>
+                        <div class="unassigned-title">Unassigned Projects</div>
+                        <div id="unassignedProjects"></div>
+                    </div>
+                    <div class="eisenhower-container">
+                        <div></div>
+                        <div class="eisenhower-label">Scope/Direction Unknown</div>
+                        <div class="eisenhower-label">Clear Work Defined</div>
+                        
+                        <div class="eisenhower-label" style="writing-mode: vertical-lr;">Time-Sensitive</div>
+                        <div class="eisenhower-quadrant" data-quadrant="urgent-unclear">
+                            <div class="quadrant-title">Urgent - Needs Definition</div>
+                            <div id="quadrant-urgent-unclear"></div>
+                        </div>
+                        <div class="eisenhower-quadrant" data-quadrant="urgent-clear">
+                            <div class="quadrant-title">Urgent - Ready to Execute</div>
+                            <div id="quadrant-urgent-clear"></div>
+                        </div>
+                        
+                        <div class="eisenhower-label" style="writing-mode: vertical-lr;">Not Time-Sensitive</div>
+                        <div class="eisenhower-quadrant" data-quadrant="not-urgent-unclear">
+                            <div class="quadrant-title">Future - Needs Definition</div>
+                            <div id="quadrant-not-urgent-unclear"></div>
+                        </div>
+                        <div class="eisenhower-quadrant" data-quadrant="not-urgent-clear">
+                            <div class="quadrant-title">Future - Ready When Needed</div>
+                            <div id="quadrant-not-urgent-clear"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const APP = {
+            projects: [],
+            categories: [],
+            statuses: [],
+            users: [],
+            selectedCategories: [],
+            selectedStatuses: [],
+            selectedUsers: [],
+            showCompleted: false,
+            lastUpdated: 'Never',
+            currentEditingProject: null,
+            currentProjectLinks: [],
+            eisenhowerMatrix: {
+                'urgent-unclear': [],
+                'urgent-clear': [],
+                'not-urgent-unclear': [],
+                'not-urgent-clear': []
+            },
+            notes: {
+                nymbl: '',
+                cindy: '',
+                me: ''
+            },
+            currentNoteName: 'Nymbl',
+            currentPage: 'projects',
+            PASSWORD_HASH: 2147093827
+        };
+
+        function hashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash;
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('passwordInput');
+            const error = document.getElementById('passwordError');
+            const password = input.value;
+            
+            if (hashCode(password) === APP.PASSWORD_HASH) {
+                document.getElementById('passwordScreen').style.display = 'none';
+                document.getElementById('dashboardWrapper').style.display = 'block';
+                initializeDashboard();
+            } else {
+                input.classList.add('error');
+                error.classList.add('show');
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    error.classList.remove('show');
+                }, 2000);
+            }
+        }
+
+        function initializeDashboard() {
+            updateStats();
+            updateFilterDropdowns();
+            loadNotes();
+            
+            const grid = document.getElementById('projectsGrid');
+            grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;"><h3>Welcome to PKD Dashboard</h3><p style="margin-top: 1rem;">Upload a PKD file to get started, or create your first project.</p></div>';
+            
+            document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
+        }
+
+        function showPage(page) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.page-container').forEach(container => container.classList.remove('active'));
+            document.getElementById(`${page}Page`).classList.add('active');
+            
+            const projectsOnlyBtn = document.getElementById('projectsOnlyBtn');
+            const manageBtn = document.getElementById('manageBtn');
+            
+            if (page === 'projects') {
+                projectsOnlyBtn.style.display = 'inline-block';
+                manageBtn.style.display = 'inline-block';
+            } else {
+                projectsOnlyBtn.style.display = 'none';
+                manageBtn.style.display = 'none';
+            }
+            
+            APP.currentPage = page;
+            
+            if (page === 'eisenhower') {
+                renderEisenhowerMatrix();
+            }
+        }
+
+        function saveToLocalStorage() {
+            if (typeof localStorage !== 'undefined') {
+                const data = {
+                    projects: APP.projects,
+                    categories: APP.categories,
+                    statuses: APP.statuses,
+                    users: APP.users,
+                    lastUpdated: APP.lastUpdated,
+                    eisenhowerMatrix: APP.eisenhowerMatrix,
+                    notes: APP.notes
+                };
+                try {
+                    localStorage.setItem('pkdDashboardData', JSON.stringify(data));
+                } catch (e) {
+                    console.error('Error saving to localStorage:', e);
+                }
+            }
+        }
+
+        function updateStats() {
+            const active = APP.projects.filter(p => p.status !== 'complete').length;
+            const complete = APP.projects.filter(p => p.status === 'complete').length;
+            
+            document.getElementById('activeCount').textContent = active;
+            document.getElementById('completeCount').textContent = complete;
+        }
+
+        function updateFilterDropdowns() {
+            if (APP.selectedCategories.length === 0 && APP.categories.length > 0) {
+                APP.selectedCategories = [...APP.categories];
+            }
+            if (APP.selectedStatuses.length === 0 && APP.statuses.length > 0) {
+                APP.selectedStatuses = [...APP.statuses];
+            }
+            if (APP.selectedUsers.length === 0 && APP.users.length > 0) {
+                APP.selectedUsers = [...APP.users];
+            }
+            
+            const categoryMenu = document.getElementById('categoryMenu');
+            categoryMenu.innerHTML = '';
+            APP.categories.forEach(cat => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                const isChecked = APP.selectedCategories.includes(cat) ? 'checked' : '';
+                item.innerHTML = `
+                    <input type="checkbox" id="cat-${cat}" onchange="toggleCategory('${cat}')" ${isChecked}>
+                    <label for="cat-${cat}">${cat}</label>
+                `;
+                categoryMenu.appendChild(item);
+            });
+
+            const statusMenu = document.getElementById('statusMenu');
+            statusMenu.innerHTML = '';
+            APP.statuses.forEach(status => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                const isChecked = APP.selectedStatuses.includes(status) ? 'checked' : '';
+                item.innerHTML = `
+                    <input type="checkbox" id="status-${status}" onchange="toggleStatus('${status}')" ${isChecked}>
+                    <label for="status-${status}">${status}</label>
+                `;
+                statusMenu.appendChild(item);
+            });
+
+            const userMenu = document.getElementById('userMenu');
+            userMenu.innerHTML = '';
+            APP.users.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                const isChecked = APP.selectedUsers.includes(user) ? 'checked' : '';
+                item.innerHTML = `
+                    <input type="checkbox" id="user-${user}" onchange="toggleUser('${user}')" ${isChecked}>
+                    <label for="user-${user}">${user}</label>
+                `;
+                userMenu.appendChild(item);
+            });
+            
+            updateFilterCounts();
+        }
+
+        function toggleDropdown(menuId) {
+            const menu = document.getElementById(menuId);
+            menu.classList.toggle('open');
+        }
+
+        function toggleCategory(category) {
+            const index = APP.selectedCategories.indexOf(category);
+            if (index > -1) {
+                APP.selectedCategories.splice(index, 1);
+            } else {
+                APP.selectedCategories.push(category);
+            }
+            updateFilterCounts();
+            renderProjects();
+        }
+
+        function toggleStatus(status) {
+            const index = APP.selectedStatuses.indexOf(status);
+            if (index > -1) {
+                APP.selectedStatuses.splice(index, 1);
+            } else {
+                APP.selectedStatuses.push(status);
+            }
+            updateFilterCounts();
+            renderProjects();
+        }
+
+        function toggleUser(user) {
+            const index = APP.selectedUsers.indexOf(user);
+            if (index > -1) {
+                APP.selectedUsers.splice(index, 1);
+            } else {
+                APP.selectedUsers.push(user);
+            }
+            updateFilterCounts();
+            renderProjects();
+        }
+
+        function updateFilterCounts() {
+            document.getElementById('categoryCount').textContent = APP.selectedCategories.length > 0 ? `(${APP.selectedCategories.length})` : '';
+            document.getElementById('statusCount').textContent = APP.selectedStatuses.length > 0 ? `(${APP.selectedStatuses.length})` : '';
+            document.getElementById('userCount').textContent = APP.selectedUsers.length > 0 ? `(${APP.selectedUsers.length})` : '';
+        }
+
+        function toggleCompleted() {
+            APP.showCompleted = !APP.showCompleted;
+            document.getElementById('showCompletedToggle').classList.toggle('active');
+            renderProjects();
+        }
+
+        function renderProjects() {
+            const grid = document.getElementById('projectsGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = APP.projects.filter(project => {
+                if (!APP.showCompleted && project.status === 'complete') return false;
+                
+                if (APP.selectedCategories.length > 0) {
+                    const hasCategory = project.categories && 
+                        project.categories.some(cat => APP.selectedCategories.includes(cat));
+                    if (!hasCategory) return false;
+                }
+                
+                if (APP.selectedStatuses.length > 0) {
+                    if (!APP.selectedStatuses.includes(project.status)) return false;
+                }
+
+                if (APP.selectedUsers.length > 0) {
+                    const hasUser = project.users && project.users.length > 0 &&
+                        project.users.some(user => APP.selectedUsers.includes(user));
+                    if (!hasUser) return false;
+                }
+                
+                if (search) {
+                    const searchInProject = 
+                        project.title.toLowerCase().includes(search) ||
+                        (project.keyDetails && project.keyDetails.toLowerCase().includes(search)) ||
+                        (project.nextSteps && project.nextSteps.toLowerCase().includes(search));
+                    if (!searchInProject) return false;
+                }
+                
+                return true;
+            });
+            
+            filtered.sort((a, b) => {
+                const priorityA = a.priority || 999;
+                const priorityB = b.priority || 999;
+                return priorityA - priorityB;
+            });
+            
+            grid.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;">No projects found. Upload a PKD file to get started.</div>';
+                return;
+            }
+            
+            filtered.forEach(project => {
+                const card = createProjectCard(project);
+                grid.appendChild(card);
+            });
+        }
+
+        function createProjectCard(project) {
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            
+            let statusColor = '--pastel-blue';
+            if (project.status === 'complete') statusColor = '--text-secondary';
+            else if (project.status === 'on-hold') statusColor = '--pastel-red';
+            else if (project.status === 'moving') statusColor = '--pastel-green';
+            else if (project.status === 'stable') statusColor = '--pastel-purple';
+            else if (project.status === 'in-progress') statusColor = '--pastel-blue';
+            else if (project.status === 'idea') statusColor = '--accent-orange';
+            
+            card.innerHTML = `
+                <div class="project-header">
+                    <div>
+                        <div class="project-title" onclick="openProjectModal(${project.id})">${project.title}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">ID: ${project.id} | Priority: ${project.priority || 999}</div>
+                    </div>
+                    <span class="status-badge" style="background: var(${statusColor}); color: ${statusColor.includes('text-secondary') ? 'var(--text-secondary)' : 'var(--bg-primary)'};">${project.status}</span>
+                </div>
+                ${project.users && project.users.length > 0 ? `<div style="margin-bottom: 0.5rem; color: var(--pastel-purple); font-size: 0.875rem;">Users: ${project.users.join(', ')}</div>` : ''}
+                <div style="margin: 1rem 0; color: var(--text-secondary); font-size: 0.875rem;">
+                    ${project.keyDetails ? project.keyDetails.substring(0, 100) + (project.keyDetails.length > 100 ? '...' : '') : 'No details'}
+                </div>
+                <div class="project-footer">
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        ${project.categories && project.categories.length > 0 ? project.categories.map(cat => 
+                            `<span style="padding: 0.25rem 0.5rem; background: rgba(147, 197, 253, 0.15); border-radius: 6px; font-size: 0.75rem; color: var(--pastel-blue);">${cat}</span>`
+                        ).join('') : ''}
+                    </div>
+                    <div class="project-actions">
+                        <button class="edit-btn" style="background: var(--pastel-purple); color: var(--bg-primary); font-weight: 500;" onclick="openEditModal(${project.id})">Edit</button>
+                        ${project.status !== 'complete' ? 
+                            `<button class="complete-btn" style="background: var(--pastel-green); color: var(--bg-primary); font-weight: 500;" onclick="markComplete(${project.id})">Complete</button>` : ''}
+                        <button class="delete-btn" style="background: var(--pastel-red); color: var(--bg-primary); font-weight: 500;" onclick="deleteProject(${project.id})">Delete</button>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function switchNote() {
+            saveCurrentNote();
+            const selector = document.getElementById('notesSelector');
+            APP.currentNoteName = selector.value;
+            loadNotes();
+        }
+        
+        function saveCurrentNote() {
+            const textarea = document.getElementById('notesTextarea');
+            const noteName = APP.currentNoteName;
+            const noteKey = noteName.toLowerCase().replace(/\s+/g, '_');
+            APP.notes[noteKey] = textarea.value;
+            saveToLocalStorage();
+        }
+        
+        function loadNotes() {
+            const textarea = document.getElementById('notesTextarea');
+            const selector = document.getElementById('notesSelector');
+            
+            if (!textarea || !selector) return;
+            
+            const noteName = APP.currentNoteName;
+            const noteKey = noteName.toLowerCase().replace(/\s+/g, '_');
+            textarea.value = APP.notes[noteKey] || '';
+            selector.value = noteName;
+        }
+        
+        function addNewNote() {
+            const noteName = prompt('Enter note name:');
+            if (!noteName || !noteName.trim()) return;
+            
+            const trimmedName = noteName.trim();
+            const noteKey = trimmedName.toLowerCase().replace(/\s+/g, '_');
+            
+            if (APP.notes[noteKey] !== undefined) {
+                showNotification('A note with this name already exists', 'error');
+                return;
+            }
+            
+            APP.notes[noteKey] = '';
+            
+            const selector = document.getElementById('notesSelector');
+            const option = document.createElement('option');
+            option.value = trimmedName;
+            option.textContent = trimmedName;
+            selector.appendChild(option);
+            
+            APP.currentNoteName = trimmedName;
+            selector.value = trimmedName;
+            loadNotes();
+            
+            saveToLocalStorage();
+            showNotification(`Note "${trimmedName}" created`, 'success');
+        }
+
+        function handleNotesInput(e) {
+            const textarea = e.target;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            
+            let value = textarea.value;
+            let newValue = value.replace(/^-\s/gm, '• ');
+            
+            if (value !== newValue) {
+                const beforeCursor = value.substring(0, start);
+                const beforeCursorNew = beforeCursor.replace(/^-\s/gm, '• ');
+                const diff = beforeCursorNew.length - beforeCursor.length;
+                
+                textarea.value = newValue;
+                textarea.selectionStart = start + diff;
+                textarea.selectionEnd = end + diff;
+            }
+            
+            saveCurrentNote();
+        }
+
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                if (container.contains(notification)) {
+                    container.removeChild(notification);
+                }
+            }, 3000);
+        }
+
+        function showConfirm(message, onConfirm) {
+            const confirmDiv = document.createElement('div');
+            confirmDiv.id = 'confirmDialog';
+            confirmDiv.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 9999;';
+            confirmDiv.innerHTML = `
+                <div style="background: rgba(35, 35, 38, 0.98); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; max-width: 400px; box-shadow: var(--shadow);">
+                    <p style="margin-bottom: 1.5rem; color: var(--text-primary);">${message}</p>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button onclick="cancelConfirm()" style="padding: 0.5rem 1.5rem; background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); border-radius: 6px; cursor: pointer; font-weight: 500;">Cancel</button>
+                        <button onclick="acceptConfirm()" style="padding: 0.5rem 1.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Confirm</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmDiv);
+            
+            window.acceptConfirm = function() {
+                confirmDiv.remove();
+                if (onConfirm) onConfirm();
+            };
+            
+            window.cancelConfirm = function() {
+                confirmDiv.remove();
+            };
+        }
+
+        function markComplete(id) {
+            const project = APP.projects.find(p => p.id === id);
+            if (!project) return;
+            
+            showConfirm(`Mark "${project.title}" as complete?`, function() {
+                project.status = 'complete';
+                
+                Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
+                    APP.eisenhowerMatrix[quadrant] = APP.eisenhowerMatrix[quadrant].filter(pid => pid !== id);
+                });
+                
+                saveToLocalStorage();
+                updateStats();
+                renderProjects();
+                showNotification('Project marked as complete', 'success');
+            });
+        }
+
+        function deleteProject(id) {
+            const project = APP.projects.find(p => p.id === id);
+            if (!project) return;
+            
+            showConfirm(`Delete project "${project.title}"? This action cannot be undone.`, function() {
+                APP.projects = APP.projects.filter(p => p.id !== id);
+                
+                Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
+                    APP.eisenhowerMatrix[quadrant] = APP.eisenhowerMatrix[quadrant].filter(pid => pid !== id);
+                });
+                
+                saveToLocalStorage();
+                updateStats();
+                renderProjects();
+                showNotification('Project deleted successfully', 'success');
+            });
+        }
+
+        function openCreateModal() {
+            if (APP.categories.length === 0) {
+                showNotification('Please upload a PKD file first or add categories in Manage Settings', 'error');
+                return;
+            }
+            
+            APP.currentEditingProject = null;
+            APP.currentProjectLinks = [];
+            
+            const modal = createEditModal();
+            document.body.appendChild(modal);
+            
+            const maxId = APP.projects.length > 0 ? Math.max(...APP.projects.map(p => p.id)) + 1 : 1;
+            document.getElementById('projectIdInput').value = maxId;
+            
+            const maxPriority = APP.projects.length > 0 ? Math.max(...APP.projects.map(p => p.priority || 999)) + 1 : 1;
+            document.getElementById('projectPriorityInput').value = maxPriority;
+            
+            const statusSelect = document.getElementById('projectStatusSelect');
+            if (APP.statuses.includes('idea')) {
+                statusSelect.value = 'idea';
+            } else if (APP.statuses.length > 0) {
+                statusSelect.value = APP.statuses[0];
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function openEditModal(id) {
+            APP.currentEditingProject = id;
+            const project = APP.projects.find(p => p.id === id);
+            if (!project) return;
+            
+            APP.currentProjectLinks = project.links ? [...project.links] : [];
+            
+            const modal = createEditModal();
+            document.body.appendChild(modal);
+            
+            document.getElementById('projectIdInput').value = project.id;
+            document.getElementById('projectTitleInput').value = project.title;
+            document.getElementById('projectStatusSelect').value = project.status;
+            document.getElementById('projectPriorityInput').value = project.priority || 999;
+            document.getElementById('projectDetailsInput').value = project.keyDetails || '';
+            document.getElementById('projectNextStepsInput').value = project.nextSteps || '';
+            
+            if (project.categories) {
+                project.categories.forEach(cat => {
+                    const checkbox = document.getElementById(`cat-check-${cat}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            if (project.users && project.users.length > 0) {
+                project.users.forEach(user => {
+                    const checkbox = document.getElementById(`user-check-${user}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            updateLinksDisplay();
+            modal.style.display = 'block';
+        }
+
+        function createEditModal() {
+            const existing = document.getElementById('editModal');
+            if (existing) existing.remove();
+            
+            const modal = document.createElement('div');
+            modal.id = 'editModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${APP.currentEditingProject ? 'Edit Project' : 'Create New Project'}</h2>
+                        <button class="close-btn" onclick="closeEditModal()">&times;</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Project ID</label>
+                        <input type="text" class="form-input" id="projectIdInput" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority (lower numbers appear first)</label>
+                        <input type="number" class="form-input" id="projectPriorityInput" placeholder="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Title *</label>
+                        <input type="text" class="form-input" id="projectTitleInput" placeholder="Enter project title">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="projectStatusSelect">
+                            ${APP.statuses.length > 0 ? 
+                                APP.statuses.map(s => `<option value="${s}">${s}</option>`).join('') :
+                                '<option value="idea">idea</option>'}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Users</label>
+                        <div id="userCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            ${APP.users.length > 0 ? 
+                                APP.users.map(user => `
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                        <input type="checkbox" id="user-check-${user}" value="${user}">
+                                        ${user}
+                                    </label>
+                                `).join('') :
+                                '<span style="color: var(--text-secondary);">No users available</span>'}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categories ${APP.categories.length === 0 ? '(Add categories in Manage Settings)' : '*'}</label>
+                        <div id="categoryCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            ${APP.categories.length > 0 ? 
+                                APP.categories.map(cat => `
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                        <input type="checkbox" id="cat-check-${cat}" value="${cat}">
+                                        ${cat}
+                                    </label>
+                                `).join('') :
+                                '<span style="color: var(--text-secondary);">No categories available</span>'}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Key Details</label>
+                        <textarea class="form-textarea" id="projectDetailsInput" placeholder="Enter key details..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Next Steps</label>
+                        <textarea class="form-textarea" id="projectNextStepsInput" placeholder="Enter next steps..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Links</label>
+                        <div id="projectLinksDisplay" style="margin-bottom: 1rem;"></div>
+                        <button class="btn-primary" onclick="addLink()" style="font-size: 0.875rem; padding: 0.5rem 1rem;">Add Link</button>
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button class="btn-primary" onclick="closeEditModal()" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); font-weight: 500;">Cancel</button>
+                        <button class="btn-save" onclick="saveProject()">Save Project</button>
+                    </div>
+                </div>
+            `;
+            
+            updateLinksDisplay();
+            return modal;
