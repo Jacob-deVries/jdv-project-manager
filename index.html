@@ -869,8 +869,8 @@
         </header>
 
         <div id="projectsPage" class="page-container active">
-            <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none;">
-                <div>
+            <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none; height: calc(100vh - 200px);">
+                <div style="display: flex; flex-direction: column; overflow: hidden;">
                     <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
                         <div class="stat-card">
                             <div style="font-size: 2rem; color: var(--accent-blue); font-weight: 600;" id="activeCount">0</div>
@@ -916,20 +916,22 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="projectsGrid"></div>
+                    <div style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="projectsGrid"></div>
+                    </div>
                 </div>
                 
-                <div>
-                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; height: calc(100vh - 200px); display: flex; flex-direction: column;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div style="display: flex; flex-direction: column; overflow: hidden;">
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; height: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0;">
                             <select id="notesSelector" onchange="switchNote()" style="flex: 1; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.875rem; margin-right: 0.5rem;">
                                 <option value="Nymbl">Nymbl</option>
                                 <option value="Cindy">Cindy</option>
                                 <option value="Me">Me</option>
                             </select>
-                            <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">+ New Note</button>
+                            <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem; flex-shrink: 0;">+ New Note</button>
                         </div>
-                        <textarea id="notesTextarea" style="flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); font-size: 0.875rem; resize: none; font-family: inherit;" placeholder="Enter notes...
+                        <textarea id="notesTextarea" style="flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); font-size: 0.875rem; resize: none; font-family: inherit; overflow-y: auto;" placeholder="Enter notes...
 • Use bullet points with • or -
 • Hyphens auto-convert to bullets
 • All formatting carries over to PKD export" oninput="handleNotesInput(event)"></textarea>
