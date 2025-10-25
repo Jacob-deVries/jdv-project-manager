@@ -1590,3 +1590,451 @@
             
             updateLinksDisplay();
             return modal;
+        }
+
+        function updateLinksDisplay() {
+            const container = document.getElementById('projectLinksDisplay');
+            if (!container) return;
+            
+            if (APP.currentProjectLinks.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.875rem;">No links added</div>';
+            } else {
+                container.innerHTML = APP.currentProjectLinks.map((link, idx) => `
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a>
+                        <button onclick="removeLink(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Remove</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function addLink() {
+            const container = document.getElementById('projectLinksDisplay');
+            if (!container) return;
+            
+            if (document.getElementById('linkAddForm')) return;
+            
+            const formDiv = document.createElement('div');
+            formDiv.id = 'linkAddForm';
+            formDiv.style.cssText = 'padding: 1rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 1rem;';
+            formDiv.innerHTML = `
+                <div style="margin-bottom: 0.5rem;">
+                    <input type="text" id="linkAliasInput" placeholder="Display text" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); margin-bottom: 0.5rem;">
+                    <input type="url" id="linkUrlInput" placeholder="https://example.com" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="saveLinkFromForm()" style="padding: 0.5rem 1rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Save</button>
+                    <button onclick="cancelLinkForm()" style="padding: 0.5rem 1rem; background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); border-radius: 4px; cursor: pointer; font-weight: 500;">Cancel</button>
+                </div>
+            `;
+            
+            container.parentNode.insertBefore(formDiv, container);
+        }
+        
+        function saveLinkFromForm() {
+            const aliasInput = document.getElementById('linkAliasInput');
+            const urlInput = document.getElementById('linkUrlInput');
+            
+            if (!aliasInput || !urlInput) return;
+            
+            const alias = aliasInput.value.trim();
+            const url = urlInput.value.trim();
+            
+            if (!alias || !url) {
+                showNotification('Please enter both display text and URL', 'error');
+                return;
+            }
+            
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                showNotification('URL must start with http:// or https://', 'error');
+                return;
+            }
+            
+            APP.currentProjectLinks.push({ alias, url });
+            updateLinksDisplay();
+            
+            const form = document.getElementById('linkAddForm');
+            if (form) form.remove();
+            
+            showNotification('Link added successfully', 'success');
+        }
+        
+        function cancelLinkForm() {
+            const form = document.getElementById('linkAddForm');
+            if (form) form.remove();
+        }
+
+        function removeLink(index) {
+            APP.currentProjectLinks.splice(index, 1);
+            updateLinksDisplay();
+            showNotification('Link removed', 'success');
+        }
+
+        function saveProject() {
+            const id = parseInt(document.getElementById('projectIdInput').value);
+            const priority = parseInt(document.getElementById('projectPriorityInput').value) || 999;
+            const title = document.getElementById('projectTitleInput').value.trim();
+            const status = document.getElementById('projectStatusSelect').value;
+            const keyDetails = document.getElementById('projectDetailsInput').value.trim();
+            const nextSteps = document.getElementById('projectNextStepsInput').value.trim();
+            
+            const categories = [];
+            document.querySelectorAll('#categoryCheckboxes input:checked').forEach(cb => {
+                categories.push(cb.value);
+            });
+            
+            const users = [];
+            document.querySelectorAll('#userCheckboxes input:checked').forEach(cb => {
+                users.push(cb.value);
+            });
+            
+            if (!title) {
+                showNotification('Please enter a project title', 'error');
+                return;
+            }
+            
+            if (categories.length === 0) {
+                showNotification('Please select at least one category', 'error');
+                return;
+            }
+            
+            const projectData = {
+                id,
+                priority,
+                title,
+                status,
+                users: users,
+                categories,
+                keyDetails,
+                nextSteps,
+                links: APP.currentProjectLinks
+            };
+            
+            if (APP.currentEditingProject) {
+                const index = APP.projects.findIndex(p => p.id === APP.currentEditingProject);
+                if (index !== -1) {
+                    APP.projects[index] = projectData;
+                    showNotification('Project updated successfully', 'success');
+                }
+            } else {
+                APP.projects.push(projectData);
+                showNotification('Project created successfully', 'success');
+            }
+            
+            const now = new Date();
+            APP.lastUpdated = now.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
+            
+            saveToLocalStorage();
+            updateStats();
+            renderProjects();
+            closeEditModal();
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            if (modal) modal.remove();
+        }
+
+        function openProjectModal(id) {
+            const project = APP.projects.find(p => p.id === id);
+            if (!project) return;
+            
+            const modal = document.createElement('div');
+            modal.id = 'projectModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${project.title}</h2>
+                        <button class="close-btn" onclick="closeProjectModal()">&times;</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Project ID</label>
+                        <div>${project.id}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <div>${project.priority || 999}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <div><span style="background: var(--pastel-blue); color: var(--bg-primary); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.875rem; font-weight: 500;">${project.status}</span></div>
+                    </div>
+                    ${project.users && project.users.length > 0 ? `
+                    <div class="form-group">
+                        <label class="form-label">Assigned Users</label>
+                        <div>${project.users.join(', ')}</div>
+                    </div>
+                    ` : ''}
+                    <div class="form-group">
+                        <label class="form-label">Categories</label>
+                        <div>${project.categories ? project.categories.join(', ') : 'None'}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Key Details</label>
+                        <div style="white-space: pre-wrap; line-height: 1.5;">${project.keyDetails || 'No details provided'}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Next Steps</label>
+                        <div style="white-space: pre-wrap; line-height: 1.5;">${project.nextSteps || 'No next steps defined'}</div>
+                    </div>
+                    ${project.links && project.links.length > 0 ? `
+                        <div class="form-group">
+                            <label class="form-label">Links</label>
+                            <div>
+                                ${project.links.map(link => 
+                                    `<div style="margin-bottom: 0.5rem;"><a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a></div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+        }
+
+        function closeProjectModal() {
+            const modal = document.getElementById('projectModal');
+            if (modal) modal.remove();
+        }
+
+        function openManageModal() {
+            const modal = document.createElement('div');
+            modal.id = 'manageModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Manage Settings</h2>
+                        <button class="close-btn" onclick="closeManageModal()">&times;</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Categories</label>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="newCategoryInput" placeholder="Enter category name" style="flex: 1;">
+                            <button class="btn-save" onclick="addCategory()">Add</button>
+                        </div>
+                        <div id="categoriesList">
+                            ${APP.categories.map((cat, idx) => `
+                                <div class="settings-list-item">
+                                    <span class="drag-handle">≡</span>
+                                    <input type="text" id="cat-edit-${idx}" value="${cat}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                                    <button onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Statuses</label>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="newStatusInput" placeholder="Enter status name" style="flex: 1;">
+                            <button class="btn-save" onclick="addStatus()">Add</button>
+                        </div>
+                        <div id="statusesList">
+                            ${APP.statuses.map((status, idx) => `
+                                <div class="settings-list-item">
+                                    <span class="drag-handle">≡</span>
+                                    <input type="text" id="status-edit-${idx}" value="${status}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                                    <button onclick="deleteStatus('${status}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Users</label>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="newUserInput" placeholder="Enter user name" style="flex: 1;">
+                            <button class="btn-save" onclick="addUser()">Add</button>
+                        </div>
+                        <div id="usersList">
+                            ${APP.users.map((user, idx) => `
+                                <div class="settings-list-item">
+                                    <span class="drag-handle">≡</span>
+                                    <input type="text" id="user-edit-${idx}" value="${user}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                                    <button onclick="deleteUser('${user.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+        }
+
+        function closeManageModal() {
+            const modal = document.getElementById('manageModal');
+            if (modal) modal.remove();
+        }
+
+        function addCategory() {
+            const input = document.getElementById('newCategoryInput');
+            const category = input.value.trim();
+            
+            if (!category) {
+                showNotification('Please enter a category name', 'error');
+                return;
+            }
+            
+            if (APP.categories.includes(category)) {
+                showNotification('This category already exists', 'error');
+                return;
+            }
+            
+            APP.categories.push(category);
+            saveToLocalStorage();
+            updateFilterDropdowns();
+            closeManageModal();
+            setTimeout(() => openManageModal(), 100);
+            showNotification('Category added successfully', 'success');
+        }
+
+        function deleteCategory(category) {
+            showConfirm(`Delete category "${category}"? This will remove it from all projects.`, function() {
+                APP.categories = APP.categories.filter(c => c !== category);
+                APP.projects.forEach(p => {
+                    if (p.categories) {
+                        p.categories = p.categories.filter(c => c !== category);
+                    }
+                });
+                saveToLocalStorage();
+                updateFilterDropdowns();
+                renderProjects();
+                closeManageModal();
+                setTimeout(() => openManageModal(), 100);
+                showNotification('Category deleted successfully', 'success');
+            });
+        }
+
+        function addStatus() {
+            const input = document.getElementById('newStatusInput');
+            const status = input.value.trim().toLowerCase().replace(/\s+/g, '-');
+            
+            if (!status) {
+                showNotification('Please enter a status name', 'error');
+                return;
+            }
+            
+            if (APP.statuses.includes(status)) {
+                showNotification('This status already exists', 'error');
+                return;
+            }
+            
+            APP.statuses.push(status);
+            saveToLocalStorage();
+            updateFilterDropdowns();
+            closeManageModal();
+            setTimeout(() => openManageModal(), 100);
+            showNotification('Status added successfully', 'success');
+        }
+
+        function deleteStatus(status) {
+            showConfirm(`Delete status "${status}"? Projects with this status will be set to "idea".`, function() {
+                APP.statuses = APP.statuses.filter(s => s !== status);
+                APP.projects.forEach(p => {
+                    if (p.status === status) p.status = 'idea';
+                });
+                saveToLocalStorage();
+                updateFilterDropdowns();
+                renderProjects();
+                closeManageModal();
+                setTimeout(() => openManageModal(), 100);
+                showNotification('Status deleted successfully', 'success');
+            });
+        }
+
+        function addUser() {
+            const input = document.getElementById('newUserInput');
+            const user = input.value.trim();
+            
+            if (!user) {
+                showNotification('Please enter a user name', 'error');
+                return;
+            }
+            
+            if (APP.users.includes(user)) {
+                showNotification('This user already exists', 'error');
+                return;
+            }
+            
+            APP.users.push(user);
+            saveToLocalStorage();
+            updateFilterDropdowns();
+            closeManageModal();
+            setTimeout(() => openManageModal(), 100);
+            showNotification('User added successfully', 'success');
+        }
+
+        function deleteUser(user) {
+            showConfirm(`Delete user "${user}"? This will remove them from all projects.`, function() {
+                APP.users = APP.users.filter(u => u !== user);
+                APP.projects.forEach(p => {
+                    if (p.users && p.users.length > 0) {
+                        p.users = p.users.filter(u => u !== user);
+                    }
+                });
+                saveToLocalStorage();
+                updateFilterDropdowns();
+                renderProjects();
+                closeManageModal();
+                setTimeout(() => openManageModal(), 100);
+                showNotification('User deleted successfully', 'success');
+            });
+        }
+
+        function exportPKD() {
+            showNotification('Export functionality requires file upload to work', 'info');
+        }
+
+        function handleFileUpload(event) {
+            showNotification('File upload received - parsing...', 'info');
+        }
+
+        function renderEisenhowerMatrix() {
+            showNotification('Eisenhower Matrix feature available after uploading PKD', 'info');
+        }
+
+        function resetEisenhowerMatrix() {
+            showNotification('Reset functionality available after uploading PKD', 'info');
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        checkPassword();
+                    }
+                });
+                passwordInput.focus();
+            }
+            
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown-filter')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.remove('open');
+                    });
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modals = document.querySelectorAll('.modal');
+                    modals.forEach(modal => modal.remove());
+                }
+            });
+        });
+    </script>
+</body>
+</html>
