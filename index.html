@@ -561,115 +561,80 @@
             opacity: 0.8;
         }
 
-        .eisenhower-wrapper {
-            display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 1rem;
+        .timeline-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
             height: calc(100vh - 180px);
             min-height: 500px;
         }
 
-        .eisenhower-sidebar {
-            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
+        .timeline-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 1rem;
+        }
+
+        .timeline-container {
+            flex: 1;
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
             overflow-y: auto;
             box-shadow: var(--shadow);
         }
 
-        .reset-button {
-            width: 100%;
-            padding: 0.5rem;
-            background: linear-gradient(135deg, #fde68a, #fcd34d);
-            color: var(--bg-primary);
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .reset-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(253, 230, 138, 0.3);
-        }
-
-        .unassigned-title {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .eisenhower-container {
-            display: grid;
-            grid-template-columns: 120px 1fr 1fr;
-            grid-template-rows: 35px 1fr 1fr;
-            gap: 0.5rem;
-        }
-
-        .eisenhower-label {
+        .timeline-view {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 0.875rem;
+            gap: 2rem;
+            min-height: 100%;
         }
 
-        .eisenhower-quadrant {
-            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.9) 100%);
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            padding: 0.5rem;
-            overflow-y: auto;
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .timeline-status-column {
+            flex: 1;
+            min-width: 250px;
         }
 
-        .eisenhower-quadrant.drag-over {
-            border-color: var(--accent-blue);
-            background: linear-gradient(135deg, rgba(147, 197, 253, 0.1), rgba(196, 181, 253, 0.1));
-            transform: scale(1.02);
+        .timeline-status-header {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
         }
 
-        .draggable-project {
-            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-hover));
+        .timeline-project-item {
+            background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 0.4rem 0.6rem;
-            margin-bottom: 0.3rem;
-            cursor: move;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 0.8rem;
-            line-height: 1.2;
-            user-select: none;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .draggable-project:hover {
-            transform: translateX(4px) scale(1.02);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        .timeline-project-item:hover {
+            transform: translateX(4px);
             border-color: var(--pastel-blue);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        .draggable-project.dragging {
-            opacity: 0.5;
-            transform: rotate(2deg);
+        .timeline-project-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
         }
 
-        .draggable-project:active {
-            cursor: grabbing;
-        }
-
-        .quadrant-title {
+        .timeline-project-meta {
             font-size: 0.75rem;
             color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            text-align: center;
-            font-weight: 500;
         }
 
         .modal {
@@ -822,6 +787,28 @@
             cursor: grab;
         }
 
+        .note-header-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-delete-note {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--pastel-red);
+            color: var(--pastel-red);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-delete-note:hover {
+            background: var(--pastel-red);
+            color: var(--bg-primary);
+        }
+
         @media (max-width: 768px) {
             #projectsPage .container {
                 grid-template-columns: 1fr !important;
@@ -829,6 +816,10 @@
             
             #projectsGrid {
                 grid-template-columns: 1fr !important;
+            }
+
+            .timeline-view {
+                flex-direction: column;
             }
         }
     </style>
@@ -854,7 +845,7 @@
                     <h1 class="logo">PKD Dashboard</h1>
                     <div class="nav-buttons">
                         <button class="nav-btn active" onclick="showPage('projects')">Projects & Notes</button>
-                        <button class="nav-btn" onclick="showPage('eisenhower')">Eisenhower</button>
+                        <button class="nav-btn" onclick="showPage('timeline')">Timeline View</button>
                     </div>
                 </div>
                 <div class="header-actions">
@@ -929,7 +920,10 @@
                                 <option value="Cindy">Cindy</option>
                                 <option value="Me">Me</option>
                             </select>
-                            <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem; flex-shrink: 0;">+ New Note</button>
+                            <div class="note-header-controls">
+                                <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem; flex-shrink: 0;">+ New Note</button>
+                                <button class="btn-delete-note" onclick="deleteCurrentNote()">Delete</button>
+                            </div>
                         </div>
                         <textarea id="notesTextarea" style="flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); font-size: 0.875rem; resize: none; font-family: inherit; overflow-y: auto;" placeholder="Enter notes...
 • Use bullet points with • or -
@@ -940,38 +934,25 @@
             </div>
         </div>
 
-        <div id="eisenhowerPage" class="page-container">
+        <div id="timelinePage" class="page-container">
             <div class="container">
-                <div class="eisenhower-wrapper">
-                    <div class="eisenhower-sidebar">
-                        <button class="reset-button" onclick="resetEisenhowerMatrix()">Reset Matrix</button>
-                        <div class="unassigned-title">Unassigned Projects</div>
-                        <div id="unassignedProjects"></div>
+                <div class="timeline-wrapper">
+                    <div class="timeline-controls">
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('timelineCategoryMenu')">
+                                Filter by Category <span id="timelineCategoryCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="timelineCategoryMenu"></div>
+                        </div>
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('timelineUserMenu')">
+                                Filter by User <span id="timelineUserCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="timelineUserMenu"></div>
+                        </div>
                     </div>
-                    <div class="eisenhower-container">
-                        <div></div>
-                        <div class="eisenhower-label">Scope/Direction Unknown</div>
-                        <div class="eisenhower-label">Clear Work Defined</div>
-                        
-                        <div class="eisenhower-label" style="writing-mode: vertical-lr;">Time-Sensitive</div>
-                        <div class="eisenhower-quadrant" data-quadrant="urgent-unclear">
-                            <div class="quadrant-title">Urgent - Needs Definition</div>
-                            <div id="quadrant-urgent-unclear"></div>
-                        </div>
-                        <div class="eisenhower-quadrant" data-quadrant="urgent-clear">
-                            <div class="quadrant-title">Urgent - Ready to Execute</div>
-                            <div id="quadrant-urgent-clear"></div>
-                        </div>
-                        
-                        <div class="eisenhower-label" style="writing-mode: vertical-lr;">Not Time-Sensitive</div>
-                        <div class="eisenhower-quadrant" data-quadrant="not-urgent-unclear">
-                            <div class="quadrant-title">Future - Needs Definition</div>
-                            <div id="quadrant-not-urgent-unclear"></div>
-                        </div>
-                        <div class="eisenhower-quadrant" data-quadrant="not-urgent-clear">
-                            <div class="quadrant-title">Future - Ready When Needed</div>
-                            <div id="quadrant-not-urgent-clear"></div>
-                        </div>
+                    <div class="timeline-container">
+                        <div class="timeline-view" id="timelineView"></div>
                     </div>
                 </div>
             </div>
@@ -991,12 +972,6 @@
             lastUpdated: 'Never',
             currentEditingProject: null,
             currentProjectLinks: [],
-            eisenhowerMatrix: {
-                'urgent-unclear': [],
-                'urgent-clear': [],
-                'not-urgent-unclear': [],
-                'not-urgent-clear': []
-            },
             notes: {
                 nymbl: '',
                 cindy: '',
@@ -1004,7 +979,11 @@
             },
             currentNoteName: 'Nymbl',
             currentPage: 'projects',
-            PASSWORD_HASH: 2147093827
+            PASSWORD_HASH: 2147093827,
+            timelineFilters: {
+                categories: [],
+                users: []
+            }
         };
 
         function hashCode(str) {
@@ -1067,8 +1046,8 @@
             
             APP.currentPage = page;
             
-            if (page === 'eisenhower') {
-                renderEisenhowerMatrix();
+            if (page === 'timeline') {
+                renderTimeline();
             }
         }
 
@@ -1080,7 +1059,6 @@
                     statuses: APP.statuses,
                     users: APP.users,
                     lastUpdated: APP.lastUpdated,
-                    eisenhowerMatrix: APP.eisenhowerMatrix,
                     notes: APP.notes
                 };
                 try {
@@ -1149,7 +1127,79 @@
                 userMenu.appendChild(item);
             });
             
+            updateTimelineFilterDropdowns();
             updateFilterCounts();
+        }
+
+        function updateTimelineFilterDropdowns() {
+            if (APP.timelineFilters.categories.length === 0 && APP.categories.length > 0) {
+                APP.timelineFilters.categories = [...APP.categories];
+            }
+            if (APP.timelineFilters.users.length === 0 && APP.users.length > 0) {
+                APP.timelineFilters.users = [...APP.users];
+            }
+
+            const timelineCategoryMenu = document.getElementById('timelineCategoryMenu');
+            if (timelineCategoryMenu) {
+                timelineCategoryMenu.innerHTML = '';
+                APP.categories.forEach(cat => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    const isChecked = APP.timelineFilters.categories.includes(cat) ? 'checked' : '';
+                    item.innerHTML = `
+                        <input type="checkbox" id="timeline-cat-${cat}" onchange="toggleTimelineCategory('${cat}')" ${isChecked}>
+                        <label for="timeline-cat-${cat}">${cat}</label>
+                    `;
+                    timelineCategoryMenu.appendChild(item);
+                });
+            }
+
+            const timelineUserMenu = document.getElementById('timelineUserMenu');
+            if (timelineUserMenu) {
+                timelineUserMenu.innerHTML = '';
+                APP.users.forEach(user => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    const isChecked = APP.timelineFilters.users.includes(user) ? 'checked' : '';
+                    item.innerHTML = `
+                        <input type="checkbox" id="timeline-user-${user}" onchange="toggleTimelineUser('${user}')" ${isChecked}>
+                        <label for="timeline-user-${user}">${user}</label>
+                    `;
+                    timelineUserMenu.appendChild(item);
+                });
+            }
+
+            const timelineCategoryCount = document.getElementById('timelineCategoryCount');
+            if (timelineCategoryCount) {
+                timelineCategoryCount.textContent = APP.timelineFilters.categories.length > 0 ? `(${APP.timelineFilters.categories.length})` : '';
+            }
+
+            const timelineUserCount = document.getElementById('timelineUserCount');
+            if (timelineUserCount) {
+                timelineUserCount.textContent = APP.timelineFilters.users.length > 0 ? `(${APP.timelineFilters.users.length})` : '';
+            }
+        }
+
+        function toggleTimelineCategory(category) {
+            const index = APP.timelineFilters.categories.indexOf(category);
+            if (index > -1) {
+                APP.timelineFilters.categories.splice(index, 1);
+            } else {
+                APP.timelineFilters.categories.push(category);
+            }
+            updateTimelineFilterDropdowns();
+            renderTimeline();
+        }
+
+        function toggleTimelineUser(user) {
+            const index = APP.timelineFilters.users.indexOf(user);
+            if (index > -1) {
+                APP.timelineFilters.users.splice(index, 1);
+            } else {
+                APP.timelineFilters.users.push(user);
+            }
+            updateTimelineFilterDropdowns();
+            renderTimeline();
         }
 
         function toggleDropdown(menuId) {
@@ -1297,6 +1347,75 @@
             return card;
         }
 
+        function renderTimeline() {
+            const timelineView = document.getElementById('timelineView');
+            if (!timelineView) return;
+
+            const statusOrder = ['idea', 'in-progress', 'moving', 'stable', 'on-hold', 'complete'];
+            
+            let filtered = APP.projects.filter(project => {
+                if (APP.timelineFilters.categories.length > 0) {
+                    const hasCategory = project.categories && 
+                        project.categories.some(cat => APP.timelineFilters.categories.includes(cat));
+                    if (!hasCategory) return false;
+                }
+
+                if (APP.timelineFilters.users.length > 0) {
+                    const hasUser = project.users && project.users.length > 0 &&
+                        project.users.some(user => APP.timelineFilters.users.includes(user));
+                    if (!hasUser) return false;
+                }
+
+                return true;
+            });
+
+            const projectsByStatus = {};
+            statusOrder.forEach(status => {
+                projectsByStatus[status] = filtered.filter(p => p.status === status)
+                    .sort((a, b) => (a.priority || 999) - (b.priority || 999));
+            });
+
+            timelineView.innerHTML = '';
+
+            statusOrder.forEach(status => {
+                const column = document.createElement('div');
+                column.className = 'timeline-status-column';
+
+                const header = document.createElement('div');
+                header.className = 'timeline-status-header';
+                header.textContent = status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                header.textContent += ` (${projectsByStatus[status].length})`;
+                column.appendChild(header);
+
+                projectsByStatus[status].forEach(project => {
+                    const projectItem = document.createElement('div');
+                    projectItem.className = 'timeline-project-item';
+                    projectItem.onclick = () => openProjectModal(project.id);
+
+                    const title = document.createElement('div');
+                    title.className = 'timeline-project-title';
+                    title.textContent = project.title;
+                    projectItem.appendChild(title);
+
+                    const meta = document.createElement('div');
+                    meta.className = 'timeline-project-meta';
+                    const metaParts = [];
+                    if (project.users && project.users.length > 0) {
+                        metaParts.push(`Users: ${project.users.join(', ')}`);
+                    }
+                    if (project.categories && project.categories.length > 0) {
+                        metaParts.push(project.categories.join(', '));
+                    }
+                    meta.textContent = metaParts.join(' | ');
+                    projectItem.appendChild(meta);
+
+                    column.appendChild(projectItem);
+                });
+
+                timelineView.appendChild(column);
+            });
+        }
+
         function switchNote() {
             saveCurrentNote();
             const selector = document.getElementById('notesSelector');
@@ -1350,6 +1469,34 @@
             
             saveToLocalStorage();
             showNotification(`Note "${trimmedName}" created`, 'success');
+        }
+
+        function deleteCurrentNote() {
+            const selector = document.getElementById('notesSelector');
+            const currentNoteName = selector.value;
+            const noteKey = currentNoteName.toLowerCase().replace(/\s+/g, '_');
+
+            const defaultNotes = ['Nymbl', 'Cindy', 'Me'];
+            if (defaultNotes.includes(currentNoteName)) {
+                showNotification('Cannot delete default notes', 'error');
+                return;
+            }
+
+            showConfirm(`Delete note "${currentNoteName}"? This action cannot be undone.`, function() {
+                delete APP.notes[noteKey];
+
+                const optionToRemove = Array.from(selector.options).find(opt => opt.value === currentNoteName);
+                if (optionToRemove) {
+                    selector.removeChild(optionToRemove);
+                }
+
+                APP.currentNoteName = 'Nymbl';
+                selector.value = 'Nymbl';
+                loadNotes();
+
+                saveToLocalStorage();
+                showNotification('Note deleted successfully', 'success');
+            });
         }
 
         function handleNotesInput(e) {
@@ -1419,13 +1566,12 @@
             showConfirm(`Mark "${project.title}" as complete?`, function() {
                 project.status = 'complete';
                 
-                Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
-                    APP.eisenhowerMatrix[quadrant] = APP.eisenhowerMatrix[quadrant].filter(pid => pid !== id);
-                });
-                
                 saveToLocalStorage();
                 updateStats();
                 renderProjects();
+                if (APP.currentPage === 'timeline') {
+                    renderTimeline();
+                }
                 showNotification('Project marked as complete', 'success');
             });
         }
@@ -1437,13 +1583,12 @@
             showConfirm(`Delete project "${project.title}"? This action cannot be undone.`, function() {
                 APP.projects = APP.projects.filter(p => p.id !== id);
                 
-                Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
-                    APP.eisenhowerMatrix[quadrant] = APP.eisenhowerMatrix[quadrant].filter(pid => pid !== id);
-                });
-                
                 saveToLocalStorage();
                 updateStats();
                 renderProjects();
+                if (APP.currentPage === 'timeline') {
+                    renderTimeline();
+                }
                 showNotification('Project deleted successfully', 'success');
             });
         }
@@ -1735,6 +1880,9 @@
             saveToLocalStorage();
             updateStats();
             renderProjects();
+            if (APP.currentPage === 'timeline') {
+                renderTimeline();
+            }
             closeEditModal();
         }
 
@@ -2071,31 +2219,6 @@
                 }
             });
             
-            content += `**Eisenhower Matrix**\n\n`;
-            
-            const quadrantNames = {
-                'urgent-unclear': 'Time-Sensitive & Scope/Direction Unknown',
-                'urgent-clear': 'Time-Sensitive & Clear Work Defined',
-                'not-urgent-unclear': 'Not Time-Sensitive & Scope/Direction Unknown',
-                'not-urgent-clear': 'Not Time-Sensitive & Clear Work Defined'
-            };
-            
-            Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
-                content += `**${quadrantNames[quadrant]}**\n`;
-                const projectIds = APP.eisenhowerMatrix[quadrant];
-                if (projectIds.length > 0) {
-                    projectIds.forEach(id => {
-                        const project = APP.projects.find(p => p.id === id);
-                        if (project) {
-                            content += `-   ${project.title} (ID: ${project.id})\n`;
-                        }
-                    });
-                } else {
-                    content += `-   (Empty)\n`;
-                }
-                content += '\n';
-            });
-            
             content += `**Notes**\n\n`;
             
             const noteNames = Object.keys(APP.notes);
@@ -2150,12 +2273,6 @@
                 statuses: [],
                 users: [],
                 lastUpdated: 'Never',
-                eisenhowerMatrix: {
-                    'urgent-unclear': [],
-                    'urgent-clear': [],
-                    'not-urgent-unclear': [],
-                    'not-urgent-clear': []
-                },
                 notes: {
                     nymbl: '',
                     cindy: '',
@@ -2181,7 +2298,6 @@
             }
             
             const projectsStart = lines.findIndex(line => line.includes('**Active Projects**'));
-            const eisenhowerStart = lines.findIndex(line => line.includes('**Eisenhower Matrix**'));
             const notesStart = lines.findIndex(line => line.includes('**Notes**'));
             const usersStart = lines.findIndex(line => line.includes('**Users List**'));
             
@@ -2204,7 +2320,7 @@
             }
             
             let currentProject = null;
-            const projectsEnd = eisenhowerStart !== -1 ? eisenhowerStart : (notesStart !== -1 ? notesStart : lines.length);
+            const projectsEnd = notesStart !== -1 ? notesStart : lines.length;
             
             for (let i = projectsStart + 1; i < projectsEnd; i++) {
                 const line = lines[i];
@@ -2321,36 +2437,6 @@
                 result.projects.push(currentProject);
             }
             
-            if (eisenhowerStart !== -1) {
-                let currentQuadrant = null;
-                const quadrantMapping = {
-                    'Time-Sensitive & Scope/Direction Unknown': 'urgent-unclear',
-                    'Time-Sensitive & Clear Work Defined': 'urgent-clear',
-                    'Not Time-Sensitive & Scope/Direction Unknown': 'not-urgent-unclear',
-                    'Not Time-Sensitive & Clear Work Defined': 'not-urgent-clear'
-                };
-                
-                const matrixEnd = notesStart !== -1 ? notesStart : lines.length;
-                
-                for (let i = eisenhowerStart + 1; i < matrixEnd; i++) {
-                    const line = lines[i].trim();
-                    
-                    Object.keys(quadrantMapping).forEach(quadrantName => {
-                        if (line.includes(`**${quadrantName}**`)) {
-                            currentQuadrant = quadrantMapping[quadrantName];
-                        }
-                    });
-                    
-                    if (currentQuadrant && line.startsWith('-')) {
-                        const match = line.match(/ID:\s*(\d+)/);
-                        if (match) {
-                            const projectId = parseInt(match[1]);
-                            result.eisenhowerMatrix[currentQuadrant].push(projectId);
-                        }
-                    }
-                }
-            }
-            
             if (notesStart !== -1) {
                 let currentNote = null;
                 let noteContent = {};
@@ -2426,7 +2512,6 @@
                         APP.categories = parsed.categories;
                         APP.statuses = parsed.statuses;
                         APP.users = parsed.users;
-                        APP.eisenhowerMatrix = parsed.eisenhowerMatrix;
                         APP.notes = parsed.notes;
                         
                         const selector = document.getElementById('notesSelector');
@@ -2475,89 +2560,6 @@
             event.target.value = '';
         }
 
-        function renderEisenhowerMatrix() {
-            const assignedProjectIds = Object.values(APP.eisenhowerMatrix).flat();
-            
-            const unassignedProjects = APP.projects.filter(p => {
-                if (p.status === 'complete') return false;
-                return !assignedProjectIds.includes(p.id);
-            });
-            
-            const unassignedContainer = document.getElementById('unassignedProjects');
-            if (unassignedContainer) {
-                unassignedContainer.innerHTML = '';
-                
-                if (unassignedProjects.length === 0) {
-                    unassignedContainer.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.75rem;">All projects assigned</div>';
-                } else {
-                    unassignedProjects.forEach(project => {
-                        const projectEl = createDraggableProject(project);
-                        unassignedContainer.appendChild(projectEl);
-                    });
-                }
-            }
-            
-            Object.keys(APP.eisenhowerMatrix).forEach(quadrant => {
-                const container = document.getElementById(`quadrant-${quadrant}`);
-                if (!container) return;
-                
-                container.innerHTML = '';
-                
-                const projectIds = APP.eisenhowerMatrix[quadrant];
-                projectIds.forEach(projectId => {
-                    const project = APP.projects.find(p => p.id === projectId);
-                    if (project && project.status !== 'complete') {
-                        const projectEl = createDraggableProject(project);
-                        container.appendChild(projectEl);
-                    }
-                });
-            });
-        }
-
-        function createDraggableProject(project) {
-            const projectEl = document.createElement('div');
-            projectEl.className = 'draggable-project';
-            projectEl.draggable = true;
-            projectEl.dataset.projectId = project.id;
-            projectEl.textContent = project.title;
-            
-            projectEl.addEventListener('dragstart', handleDragStart);
-            projectEl.addEventListener('dragend', handleDragEnd);
-            projectEl.addEventListener('click', function(e) {
-                if (!e.target.classList.contains('dragging')) {
-                    openProjectModal(project.id);
-                }
-            });
-            
-            return projectEl;
-        }
-
-        function resetEisenhowerMatrix() {
-            showConfirm('Reset the Eisenhower Matrix? This will move all projects back to unassigned.', function() {
-                APP.eisenhowerMatrix = {
-                    'urgent-unclear': [],
-                    'urgent-clear': [],
-                    'not-urgent-unclear': [],
-                    'not-urgent-clear': []
-                };
-                saveToLocalStorage();
-                renderEisenhowerMatrix();
-                showNotification('Matrix reset successfully', 'success');
-            });
-        }
-
-        let draggedElement = null;
-
-        function handleDragStart(e) {
-            draggedElement = e.target;
-            e.target.classList.add('dragging');
-        }
-
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-        }
-
-        // Initialize on load
         document.addEventListener('DOMContentLoaded', function() {
             const passwordInput = document.getElementById('passwordInput');
             if (passwordInput) {
@@ -2581,63 +2583,6 @@
                 if (e.key === 'Escape') {
                     const modals = document.querySelectorAll('.modal');
                     modals.forEach(modal => modal.remove());
-                }
-            });
-            
-            document.addEventListener('dragover', function(e) {
-                const quadrant = e.target.closest('.eisenhower-quadrant');
-                const sidebar = e.target.closest('.eisenhower-sidebar');
-                
-                if ((quadrant || sidebar) && draggedElement) {
-                    e.preventDefault();
-                    if (quadrant) {
-                        quadrant.classList.add('drag-over');
-                    }
-                }
-            });
-            
-            document.addEventListener('dragleave', function(e) {
-                const quadrant = e.target.closest('.eisenhower-quadrant');
-                if (quadrant) {
-                    quadrant.classList.remove('drag-over');
-                }
-            });
-            
-            document.addEventListener('drop', function(e) {
-                const quadrant = e.target.closest('.eisenhower-quadrant');
-                const sidebar = e.target.closest('#unassignedProjects');
-                
-                if (draggedElement) {
-                    const projectId = parseInt(draggedElement.dataset.projectId);
-                    
-                    if (quadrant) {
-                        e.preventDefault();
-                        quadrant.classList.remove('drag-over');
-                        
-                        const quadrantType = quadrant.dataset.quadrant;
-                        
-                        Object.keys(APP.eisenhowerMatrix).forEach(q => {
-                            APP.eisenhowerMatrix[q] = APP.eisenhowerMatrix[q].filter(id => id !== projectId);
-                        });
-                        
-                        if (!APP.eisenhowerMatrix[quadrantType].includes(projectId)) {
-                            APP.eisenhowerMatrix[quadrantType].push(projectId);
-                        }
-                        
-                        saveToLocalStorage();
-                        renderEisenhowerMatrix();
-                        showNotification('Project moved successfully', 'success');
-                    } else if (sidebar) {
-                        e.preventDefault();
-                        
-                        Object.keys(APP.eisenhowerMatrix).forEach(q => {
-                            APP.eisenhowerMatrix[q] = APP.eisenhowerMatrix[q].filter(id => id !== projectId);
-                        });
-                        
-                        saveToLocalStorage();
-                        renderEisenhowerMatrix();
-                        showNotification('Project moved to unassigned', 'success');
-                    }
                 }
             });
         });
