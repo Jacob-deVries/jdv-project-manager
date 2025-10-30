@@ -409,6 +409,32 @@
             animation: dropdownSlide 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        .dropdown-select-controls {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .dropdown-select-btn {
+            flex: 1;
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dropdown-select-btn:hover {
+            background: var(--pastel-blue);
+            color: var(--bg-primary);
+            border-color: var(--pastel-blue);
+        }
+
         @keyframes dropdownSlide {
             from {
                 opacity: 0;
@@ -945,6 +971,12 @@
                             <div class="dropdown-menu" id="timelineCategoryMenu"></div>
                         </div>
                         <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('timelineStatusMenu')">
+                                Filter by Status <span id="timelineStatusCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="timelineStatusMenu"></div>
+                        </div>
+                        <div class="dropdown-filter">
                             <button class="dropdown-button" onclick="toggleDropdown('timelineUserMenu')">
                                 Filter by User <span id="timelineUserCount"></span>
                             </button>
@@ -982,6 +1014,7 @@
             PASSWORD_HASH: 2147093827,
             timelineFilters: {
                 categories: [],
+                statuses: [],
                 users: []
             }
         };
@@ -1090,6 +1123,15 @@
             
             const categoryMenu = document.getElementById('categoryMenu');
             categoryMenu.innerHTML = '';
+            
+            const categoryControls = document.createElement('div');
+            categoryControls.className = 'dropdown-select-controls';
+            categoryControls.innerHTML = `
+                <button class="dropdown-select-btn" onclick="selectAllCategories()">Select All</button>
+                <button class="dropdown-select-btn" onclick="deselectAllCategories()">Deselect All</button>
+            `;
+            categoryMenu.appendChild(categoryControls);
+            
             APP.categories.forEach(cat => {
                 const item = document.createElement('div');
                 item.className = 'dropdown-item';
@@ -1103,6 +1145,15 @@
 
             const statusMenu = document.getElementById('statusMenu');
             statusMenu.innerHTML = '';
+            
+            const statusControls = document.createElement('div');
+            statusControls.className = 'dropdown-select-controls';
+            statusControls.innerHTML = `
+                <button class="dropdown-select-btn" onclick="selectAllStatuses()">Select All</button>
+                <button class="dropdown-select-btn" onclick="deselectAllStatuses()">Deselect All</button>
+            `;
+            statusMenu.appendChild(statusControls);
+            
             APP.statuses.forEach(status => {
                 const item = document.createElement('div');
                 item.className = 'dropdown-item';
@@ -1116,6 +1167,15 @@
 
             const userMenu = document.getElementById('userMenu');
             userMenu.innerHTML = '';
+            
+            const userControls = document.createElement('div');
+            userControls.className = 'dropdown-select-controls';
+            userControls.innerHTML = `
+                <button class="dropdown-select-btn" onclick="selectAllUsers()">Select All</button>
+                <button class="dropdown-select-btn" onclick="deselectAllUsers()">Deselect All</button>
+            `;
+            userMenu.appendChild(userControls);
+            
             APP.users.forEach(user => {
                 const item = document.createElement('div');
                 item.className = 'dropdown-item';
@@ -1135,6 +1195,9 @@
             if (APP.timelineFilters.categories.length === 0 && APP.categories.length > 0) {
                 APP.timelineFilters.categories = [...APP.categories];
             }
+            if (APP.timelineFilters.statuses.length === 0 && APP.statuses.length > 0) {
+                APP.timelineFilters.statuses = [...APP.statuses];
+            }
             if (APP.timelineFilters.users.length === 0 && APP.users.length > 0) {
                 APP.timelineFilters.users = [...APP.users];
             }
@@ -1142,6 +1205,15 @@
             const timelineCategoryMenu = document.getElementById('timelineCategoryMenu');
             if (timelineCategoryMenu) {
                 timelineCategoryMenu.innerHTML = '';
+                
+                const categoryControls = document.createElement('div');
+                categoryControls.className = 'dropdown-select-controls';
+                categoryControls.innerHTML = `
+                    <button class="dropdown-select-btn" onclick="selectAllTimelineCategories()">Select All</button>
+                    <button class="dropdown-select-btn" onclick="deselectAllTimelineCategories()">Deselect All</button>
+                `;
+                timelineCategoryMenu.appendChild(categoryControls);
+                
                 APP.categories.forEach(cat => {
                     const item = document.createElement('div');
                     item.className = 'dropdown-item';
@@ -1154,9 +1226,42 @@
                 });
             }
 
+            const timelineStatusMenu = document.getElementById('timelineStatusMenu');
+            if (timelineStatusMenu) {
+                timelineStatusMenu.innerHTML = '';
+                
+                const statusControls = document.createElement('div');
+                statusControls.className = 'dropdown-select-controls';
+                statusControls.innerHTML = `
+                    <button class="dropdown-select-btn" onclick="selectAllTimelineStatuses()">Select All</button>
+                    <button class="dropdown-select-btn" onclick="deselectAllTimelineStatuses()">Deselect All</button>
+                `;
+                timelineStatusMenu.appendChild(statusControls);
+                
+                APP.statuses.forEach(status => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    const isChecked = APP.timelineFilters.statuses.includes(status) ? 'checked' : '';
+                    item.innerHTML = `
+                        <input type="checkbox" id="timeline-status-${status}" onchange="toggleTimelineStatus('${status}')" ${isChecked}>
+                        <label for="timeline-status-${status}">${status}</label>
+                    `;
+                    timelineStatusMenu.appendChild(item);
+                });
+            }
+
             const timelineUserMenu = document.getElementById('timelineUserMenu');
             if (timelineUserMenu) {
                 timelineUserMenu.innerHTML = '';
+                
+                const userControls = document.createElement('div');
+                userControls.className = 'dropdown-select-controls';
+                userControls.innerHTML = `
+                    <button class="dropdown-select-btn" onclick="selectAllTimelineUsers()">Select All</button>
+                    <button class="dropdown-select-btn" onclick="deselectAllTimelineUsers()">Deselect All</button>
+                `;
+                timelineUserMenu.appendChild(userControls);
+                
                 APP.users.forEach(user => {
                     const item = document.createElement('div');
                     item.className = 'dropdown-item';
@@ -1174,6 +1279,11 @@
                 timelineCategoryCount.textContent = APP.timelineFilters.categories.length > 0 ? `(${APP.timelineFilters.categories.length})` : '';
             }
 
+            const timelineStatusCount = document.getElementById('timelineStatusCount');
+            if (timelineStatusCount) {
+                timelineStatusCount.textContent = APP.timelineFilters.statuses.length > 0 ? `(${APP.timelineFilters.statuses.length})` : '';
+            }
+
             const timelineUserCount = document.getElementById('timelineUserCount');
             if (timelineUserCount) {
                 timelineUserCount.textContent = APP.timelineFilters.users.length > 0 ? `(${APP.timelineFilters.users.length})` : '';
@@ -1186,6 +1296,17 @@
                 APP.timelineFilters.categories.splice(index, 1);
             } else {
                 APP.timelineFilters.categories.push(category);
+            }
+            updateTimelineFilterDropdowns();
+            renderTimeline();
+        }
+
+        function toggleTimelineStatus(status) {
+            const index = APP.timelineFilters.statuses.indexOf(status);
+            if (index > -1) {
+                APP.timelineFilters.statuses.splice(index, 1);
+            } else {
+                APP.timelineFilters.statuses.push(status);
             }
             updateTimelineFilterDropdowns();
             renderTimeline();
@@ -1238,6 +1359,78 @@
             }
             updateFilterCounts();
             renderProjects();
+        }
+
+        function selectAllCategories() {
+            APP.selectedCategories = [...APP.categories];
+            updateFilterDropdowns();
+            renderProjects();
+        }
+
+        function deselectAllCategories() {
+            APP.selectedCategories = [];
+            updateFilterDropdowns();
+            renderProjects();
+        }
+
+        function selectAllStatuses() {
+            APP.selectedStatuses = [...APP.statuses];
+            updateFilterDropdowns();
+            renderProjects();
+        }
+
+        function deselectAllStatuses() {
+            APP.selectedStatuses = [];
+            updateFilterDropdowns();
+            renderProjects();
+        }
+
+        function selectAllUsers() {
+            APP.selectedUsers = [...APP.users];
+            updateFilterDropdowns();
+            renderProjects();
+        }
+
+        function deselectAllUsers() {
+            APP.selectedUsers = [];
+            updateFilterDropdowns();
+            renderProjects();
+        }
+
+        function selectAllTimelineCategories() {
+            APP.timelineFilters.categories = [...APP.categories];
+            updateTimelineFilterDropdowns();
+            renderTimeline();
+        }
+
+        function deselectAllTimelineCategories() {
+            APP.timelineFilters.categories = [];
+            updateTimelineFilterDropdowns();
+            renderTimeline();
+        }
+
+        function selectAllTimelineStatuses() {
+            APP.timelineFilters.statuses = [...APP.statuses];
+            updateTimelineFilterDropdowns();
+            renderTimeline();
+        }
+
+        function deselectAllTimelineStatuses() {
+            APP.timelineFilters.statuses = [];
+            updateTimelineFilterDropdowns();
+            renderTimeline();
+        }
+
+        function selectAllTimelineUsers() {
+            APP.timelineFilters.users = [...APP.users];
+            updateTimelineFilterDropdowns();
+            renderTimeline();
+        }
+
+        function deselectAllTimelineUsers() {
+            APP.timelineFilters.users = [];
+            updateTimelineFilterDropdowns();
+            renderTimeline();
         }
 
         function updateFilterCounts() {
@@ -1358,6 +1551,10 @@
                     const hasCategory = project.categories && 
                         project.categories.some(cat => APP.timelineFilters.categories.includes(cat));
                     if (!hasCategory) return false;
+                }
+
+                if (APP.timelineFilters.statuses.length > 0) {
+                    if (!APP.timelineFilters.statuses.includes(project.status)) return false;
                 }
 
                 if (APP.timelineFilters.users.length > 0) {
@@ -2172,6 +2369,7 @@
             APP.projects.forEach(project => {
                 content += `**${project.id}. ${project.title}**\n\n`;
                 content += `-   **Status**: ${project.status}\n\n`;
+                content += `-   **Priority**: ${project.priority || 999}\n\n`;
                 content += `-   **Project Category**: ${project.categories ? project.categories.join(', ') : ''}\n\n`;
                 if (project.users && project.users.length > 0) {
                     content += `-   **Users**: ${project.users.join(', ')}\n\n`;
@@ -2353,6 +2551,16 @@
                         const status = parts[1].trim().toLowerCase().replace(/\s+/g, '-');
                         currentProject.status = status;
                         statusesSet.add(status);
+                    }
+                }
+                
+                if (line.includes('**Priority**:')) {
+                    const parts = line.split('**Priority**:');
+                    if (parts.length > 1) {
+                        const priority = parseInt(parts[1].trim());
+                        if (!isNaN(priority)) {
+                            currentProject.priority = priority;
+                        }
                     }
                 }
                 
