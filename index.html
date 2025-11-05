@@ -590,77 +590,124 @@
         .timeline-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 2rem;
             height: calc(100vh - 180px);
             min-height: 500px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
         }
 
         .timeline-controls {
             display: flex;
             gap: 1rem;
             align-items: center;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .timeline-header {
+            display: grid;
+            grid-template-rows: auto auto;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+        }
+
+        .timeline-year-row {
+            display: grid;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .timeline-year-cell {
+            padding: 0.75rem;
+            text-align: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .timeline-month-row {
+            display: grid;
+        }
+
+        .timeline-month-cell {
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .timeline-body {
+            flex: 1;
+            overflow-y: auto;
             padding: 1rem;
         }
 
-        .timeline-container {
-            flex: 1;
-            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
-            overflow-y: auto;
-            box-shadow: var(--shadow);
-        }
-
-        .timeline-view {
+        .timeline-project-row {
             display: flex;
-            gap: 2rem;
-            min-height: 100%;
-        }
-
-        .timeline-status-column {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .timeline-status-header {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .timeline-project-item {
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 1rem;
             margin-bottom: 0.75rem;
-            cursor: pointer;
             transition: all 0.2s;
         }
 
-        .timeline-project-item:hover {
-            transform: translateX(4px);
+        .timeline-project-row:hover {
             border-color: var(--pastel-blue);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .timeline-project-info {
+            min-width: 250px;
+            max-width: 250px;
         }
 
         .timeline-project-title {
             font-size: 0.875rem;
             font-weight: 500;
-            margin-bottom: 0.5rem;
             color: var(--text-primary);
+            margin-bottom: 0.25rem;
         }
 
-        .timeline-project-meta {
+        .timeline-project-users {
             font-size: 0.75rem;
             color: var(--text-secondary);
+        }
+
+        .timeline-project-allocations {
+            flex: 1;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .timeline-allocation-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(147, 197, 253, 0.15);
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        .timeline-allocation-input {
+            width: 50px;
+            padding: 0.25rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            text-align: center;
         }
 
         .modal {
@@ -878,6 +925,9 @@
                     <span id="lastUpdatedText">Last Updated: Never</span>
                     <button class="btn-primary" id="projectsOnlyBtn" onclick="openCreateModal()">New Project</button>
                     <button class="btn-primary" id="manageBtn" onclick="openManageModal()">Manage Settings</button>
+                    <div id="timelineHeaderActions" style="display: none;">
+                        <button class="btn-primary" onclick="showAddTimelineProjectMenu()">+ Add to Timeline</button>
+                    </div>
                     <button class="btn-primary" onclick="exportPKD()">Export PKD</button>
                     <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Upload PKD</button>
                     <input type="file" id="fileInput" style="display: none;" accept=".txt" onchange="handleFileUpload(event)">
@@ -961,31 +1011,9 @@
         </div>
 
         <div id="timelinePage" class="page-container">
-            <div class="container">
+            <div class="container" style="max-width: none;">
                 <div class="timeline-wrapper">
-                    <div class="timeline-controls">
-                        <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('timelineCategoryMenu')">
-                                Filter by Category <span id="timelineCategoryCount"></span>
-                            </button>
-                            <div class="dropdown-menu" id="timelineCategoryMenu"></div>
-                        </div>
-                        <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('timelineStatusMenu')">
-                                Filter by Status <span id="timelineStatusCount"></span>
-                            </button>
-                            <div class="dropdown-menu" id="timelineStatusMenu"></div>
-                        </div>
-                        <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('timelineUserMenu')">
-                                Filter by User <span id="timelineUserCount"></span>
-                            </button>
-                            <div class="dropdown-menu" id="timelineUserMenu"></div>
-                        </div>
-                    </div>
-                    <div class="timeline-container">
-                        <div class="timeline-view" id="timelineView"></div>
-                    </div>
+                    <!-- Timeline will be rendered here -->
                 </div>
             </div>
         </div>
@@ -1016,7 +1044,10 @@
                 categories: [],
                 statuses: [],
                 users: []
-            }
+            },
+            timelineStartDate: new Date(),
+            timelineMonthsToShow: 12,
+            timelineProjects: []
         };
 
         function hashCode(str) {
@@ -1068,13 +1099,16 @@
             
             const projectsOnlyBtn = document.getElementById('projectsOnlyBtn');
             const manageBtn = document.getElementById('manageBtn');
+            const timelineHeaderActions = document.getElementById('timelineHeaderActions');
             
             if (page === 'projects') {
                 projectsOnlyBtn.style.display = 'inline-block';
                 manageBtn.style.display = 'inline-block';
+                if (timelineHeaderActions) timelineHeaderActions.style.display = 'none';
             } else {
                 projectsOnlyBtn.style.display = 'none';
                 manageBtn.style.display = 'none';
+                if (timelineHeaderActions) timelineHeaderActions.style.display = 'flex';
             }
             
             APP.currentPage = page;
@@ -1092,7 +1126,9 @@
                     statuses: APP.statuses,
                     users: APP.users,
                     lastUpdated: APP.lastUpdated,
-                    notes: APP.notes
+                    notes: APP.notes,
+                    timelineProjects: APP.timelineProjects,
+                    timelineMonthsToShow: APP.timelineMonthsToShow
                 };
                 try {
                     localStorage.setItem('pkdDashboardData', JSON.stringify(data));
@@ -1541,75 +1577,278 @@
         }
 
         function renderTimeline() {
-            const timelineView = document.getElementById('timelineView');
-            if (!timelineView) return;
+            const timelineWrapper = document.querySelector('.timeline-wrapper');
+            if (!timelineWrapper) return;
 
-            const statusOrder = ['idea', 'in-progress', 'moving', 'stable', 'on-hold', 'complete'];
+            const currentYear = APP.timelineStartDate.getFullYear();
+            const currentMonth = APP.timelineStartDate.getMonth();
             
-            let filtered = APP.projects.filter(project => {
+            const months = [];
+            const years = [];
+            
+            for (let i = 0; i < APP.timelineMonthsToShow; i++) {
+                const date = new Date(currentYear, currentMonth + i, 1);
+                months.push({
+                    name: date.toLocaleDateString('en-US', { month: 'short' }),
+                    year: date.getFullYear()
+                });
+            }
+            
+            const yearSpans = [];
+            let currentYearSpan = { year: months[0].year, count: 1 };
+            
+            for (let i = 1; i < months.length; i++) {
+                if (months[i].year === currentYearSpan.year) {
+                    currentYearSpan.count++;
+                } else {
+                    yearSpans.push(currentYearSpan);
+                    currentYearSpan = { year: months[i].year, count: 1 };
+                }
+            }
+            yearSpans.push(currentYearSpan);
+            
+            const timelineHTML = `
+                <div class="timeline-controls">
+                    <button class="btn-primary" onclick="shiftTimelineBack()">← Previous</button>
+                    <button class="btn-primary" onclick="resetTimelineToToday()">Today</button>
+                    <button class="btn-primary" onclick="shiftTimelineForward()">Next →</button>
+                    
+                    <div class="dropdown-filter">
+                        <button class="dropdown-button" onclick="toggleDropdown('timelineCategoryMenu')">
+                            Filter by Category <span id="timelineCategoryCount"></span>
+                        </button>
+                        <div class="dropdown-menu" id="timelineCategoryMenu"></div>
+                    </div>
+                    
+                    <div class="dropdown-filter">
+                        <button class="dropdown-button" onclick="toggleDropdown('timelineStatusMenu')">
+                            Filter by Status <span id="timelineStatusCount"></span>
+                        </button>
+                        <div class="dropdown-menu" id="timelineStatusMenu"></div>
+                    </div>
+                    
+                    <div class="dropdown-filter">
+                        <button class="dropdown-button" onclick="toggleDropdown('timelineUserMenu')">
+                            Filter by User <span id="timelineUserCount"></span>
+                        </button>
+                        <div class="dropdown-menu" id="timelineUserMenu"></div>
+                    </div>
+                    
+                    <div style="flex: 1;"></div>
+                    <select id="timelineMonthsSelect" onchange="changeTimelineMonths()" style="padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.875rem;">
+                        <option value="6" ${APP.timelineMonthsToShow === 6 ? 'selected' : ''}>6 Months</option>
+                        <option value="12" ${APP.timelineMonthsToShow === 12 ? 'selected' : ''}>12 Months</option>
+                        <option value="18" ${APP.timelineMonthsToShow === 18 ? 'selected' : ''}>18 Months</option>
+                        <option value="24" ${APP.timelineMonthsToShow === 24 ? 'selected' : ''}>24 Months</option>
+                    </select>
+                </div>
+                <div class="timeline-header">
+                    <div class="timeline-year-row" style="grid-template-columns: 250px ${yearSpans.map(y => `repeat(${y.count}, 1fr)`).join(' ')};">
+                        <div class="timeline-year-cell" style="border-right: 2px solid var(--border-color);">Project</div>
+                        ${yearSpans.map(y => `<div class="timeline-year-cell" style="grid-column: span ${y.count};">${y.year}</div>`).join('')}
+                    </div>
+                    <div class="timeline-month-row" style="grid-template-columns: 250px repeat(${months.length}, 1fr);">
+                        <div class="timeline-month-cell" style="border-right: 2px solid var(--border-color);">Users & Allocation</div>
+                        ${months.map(m => `<div class="timeline-month-cell">${m.name}</div>`).join('')}
+                    </div>
+                </div>
+                <div class="timeline-body" id="timelineBody">
+                    ${getFilteredTimelineProjects().map((tp, idx) => renderTimelineProjectRow(tp, idx)).join('')}
+                    ${getFilteredTimelineProjects().length === 0 ? '<div style="text-align: center; padding: 3rem; color: var(--text-secondary);">No projects match the current filters. Add projects using the "+ Add to Timeline" button above.</div>' : ''}
+                </div>
+            `;
+            
+            timelineWrapper.innerHTML = timelineHTML;
+            updateTimelineFilterDropdowns();
+        }
+
+        function getFilteredTimelineProjects() {
+            return APP.timelineProjects.filter((tp, index) => {
+                const project = APP.projects.find(p => p.id === tp.projectId);
+                if (!project) return false;
+                
                 if (APP.timelineFilters.categories.length > 0) {
                     const hasCategory = project.categories && 
                         project.categories.some(cat => APP.timelineFilters.categories.includes(cat));
                     if (!hasCategory) return false;
                 }
-
+                
                 if (APP.timelineFilters.statuses.length > 0) {
                     if (!APP.timelineFilters.statuses.includes(project.status)) return false;
                 }
-
+                
                 if (APP.timelineFilters.users.length > 0) {
                     const hasUser = project.users && project.users.length > 0 &&
                         project.users.some(user => APP.timelineFilters.users.includes(user));
                     if (!hasUser) return false;
                 }
-
+                
                 return true;
+            }).map((tp, filteredIndex) => {
+                const originalIndex = APP.timelineProjects.indexOf(tp);
+                return { ...tp, originalIndex };
             });
+        }
 
-            const projectsByStatus = {};
-            statusOrder.forEach(status => {
-                projectsByStatus[status] = filtered.filter(p => p.status === status)
-                    .sort((a, b) => (a.priority || 999) - (b.priority || 999));
-            });
+        function renderTimelineProjectRow(timelineProjectData, displayIndex) {
+            const timelineProject = timelineProjectData;
+            const actualIndex = timelineProject.originalIndex !== undefined ? timelineProject.originalIndex : displayIndex;
+            const project = APP.projects.find(p => p.id === timelineProject.projectId);
+            if (!project) return '';
+            
+            const allocations = timelineProject.allocations || {};
+            
+            return `
+                <div class="timeline-project-row">
+                    <div class="timeline-project-info">
+                        <div class="timeline-project-title">${project.title}</div>
+                        <div class="timeline-project-users">
+                            ${project.users && project.users.length > 0 ? project.users.join(', ') : 'No users assigned'}
+                        </div>
+                    </div>
+                    <div class="timeline-project-allocations">
+                        ${project.users && project.users.length > 0 ? 
+                            project.users.map(user => `
+                                <div class="timeline-allocation-item">
+                                    <span style="color: var(--pastel-blue);">${user}:</span>
+                                    <input 
+                                        type="number" 
+                                        class="timeline-allocation-input" 
+                                        value="${allocations[user] || 0}" 
+                                        min="0" 
+                                        max="100"
+                                        onchange="updateTimelineAllocation(${actualIndex}, '${user.replace(/'/g, "\\'")}', this.value)"
+                                    >
+                                    <span>%</span>
+                                </div>
+                            `).join('') :
+                            '<span style="color: var(--text-secondary); font-size: 0.75rem;">No users to allocate</span>'
+                        }
+                    </div>
+                    <button onclick="removeTimelineProject(${actualIndex})" style="padding: 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Remove</button>
+                </div>
+            `;
+        }
 
-            timelineView.innerHTML = '';
+        function shiftTimelineBack() {
+            const newDate = new Date(APP.timelineStartDate);
+            newDate.setMonth(newDate.getMonth() - 1);
+            APP.timelineStartDate = newDate;
+            renderTimeline();
+        }
 
-            statusOrder.forEach(status => {
-                const column = document.createElement('div');
-                column.className = 'timeline-status-column';
+        function shiftTimelineForward() {
+            const newDate = new Date(APP.timelineStartDate);
+            newDate.setMonth(newDate.getMonth() + 1);
+            APP.timelineStartDate = newDate;
+            renderTimeline();
+        }
 
-                const header = document.createElement('div');
-                header.className = 'timeline-status-header';
-                header.textContent = status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                header.textContent += ` (${projectsByStatus[status].length})`;
-                column.appendChild(header);
+        function resetTimelineToToday() {
+            APP.timelineStartDate = new Date();
+            renderTimeline();
+        }
 
-                projectsByStatus[status].forEach(project => {
-                    const projectItem = document.createElement('div');
-                    projectItem.className = 'timeline-project-item';
-                    projectItem.onclick = () => openProjectModal(project.id);
+        function changeTimelineMonths() {
+            const select = document.getElementById('timelineMonthsSelect');
+            APP.timelineMonthsToShow = parseInt(select.value);
+            saveToLocalStorage();
+            renderTimeline();
+        }
 
-                    const title = document.createElement('div');
-                    title.className = 'timeline-project-title';
-                    title.textContent = project.title;
-                    projectItem.appendChild(title);
+        function showAddTimelineProjectMenu() {
+            const availableProjects = APP.projects.filter(p => 
+                !APP.timelineProjects.some(tp => tp.projectId === p.id)
+            );
+            
+            if (availableProjects.length === 0) {
+                showNotification('All projects are already on the timeline', 'info');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.id = 'addTimelineProjectModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Add Project to Timeline</h2>
+                        <button class="close-btn" onclick="closeAddTimelineProjectModal()">&times;</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Select Project</label>
+                        <select class="form-select" id="timelineProjectSelect">
+                            ${availableProjects.map(p => 
+                                `<option value="${p.id}">${p.title} (${p.users ? p.users.join(', ') : 'No users'})</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button class="btn-primary" onclick="closeAddTimelineProjectModal()" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); font-weight: 500;">Cancel</button>
+                        <button class="btn-save" onclick="addProjectToTimeline()">Add to Timeline</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+        }
 
-                    const meta = document.createElement('div');
-                    meta.className = 'timeline-project-meta';
-                    const metaParts = [];
-                    if (project.users && project.users.length > 0) {
-                        metaParts.push(`Users: ${project.users.join(', ')}`);
-                    }
-                    if (project.categories && project.categories.length > 0) {
-                        metaParts.push(project.categories.join(', '));
-                    }
-                    meta.textContent = metaParts.join(' | ');
-                    projectItem.appendChild(meta);
+        function closeAddTimelineProjectModal() {
+            const modal = document.getElementById('addTimelineProjectModal');
+            if (modal) modal.remove();
+        }
 
-                    column.appendChild(projectItem);
+        function addProjectToTimeline() {
+            const select = document.getElementById('timelineProjectSelect');
+            if (!select) return;
+            
+            const projectId = parseInt(select.value);
+            const project = APP.projects.find(p => p.id === projectId);
+            
+            if (!project) return;
+            
+            const allocations = {};
+            if (project.users && project.users.length > 0) {
+                project.users.forEach(user => {
+                    allocations[user] = 0;
                 });
+            }
+            
+            APP.timelineProjects.push({
+                projectId: projectId,
+                allocations: allocations
+            });
+            
+            saveToLocalStorage();
+            renderTimeline();
+            closeAddTimelineProjectModal();
+            showNotification(`Added "${project.title}" to timeline`, 'success');
+        }
 
-                timelineView.appendChild(column);
+        function updateTimelineAllocation(projectIndex, user, percentage) {
+            const value = parseInt(percentage) || 0;
+            const clampedValue = Math.max(0, Math.min(100, value));
+            
+            if (!APP.timelineProjects[projectIndex].allocations) {
+                APP.timelineProjects[projectIndex].allocations = {};
+            }
+            
+            APP.timelineProjects[projectIndex].allocations[user] = clampedValue;
+            saveToLocalStorage();
+            showNotification(`Updated ${user}'s allocation to ${clampedValue}%`, 'success');
+        }
+
+        function removeTimelineProject(index) {
+            const timelineProject = APP.timelineProjects[index];
+            const project = APP.projects.find(p => p.id === timelineProject.projectId);
+            
+            if (!project) return;
+            
+            showConfirm(`Remove "${project.title}" from timeline?`, function() {
+                APP.timelineProjects.splice(index, 1);
+                saveToLocalStorage();
+                renderTimeline();
+                showNotification('Project removed from timeline', 'success');
             });
         }
 
