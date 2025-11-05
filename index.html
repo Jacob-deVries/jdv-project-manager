@@ -650,7 +650,7 @@
 
         .timeline-project-row {
             display: grid;
-            grid-template-columns: 250px 1fr auto;
+            grid-template-columns: 200px 1fr auto;
             align-items: center;
             gap: 1rem;
             padding: 1rem;
@@ -667,8 +667,13 @@
         }
 
         .timeline-project-info {
-            min-width: 250px;
-            max-width: 250px;
+            min-width: 200px;
+            max-width: 200px;
+            cursor: pointer;
+        }
+
+        .timeline-project-info:hover .timeline-project-title {
+            color: var(--pastel-blue);
         }
 
         .timeline-project-title {
@@ -683,45 +688,19 @@
             color: var(--text-secondary);
         }
 
-        .timeline-project-allocations {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .timeline-allocation-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.25rem 0.5rem;
-            background: rgba(147, 197, 253, 0.15);
-            border-radius: 6px;
-            font-size: 0.75rem;
-        }
-
-        .timeline-allocation-input {
-            width: 50px;
-            padding: 0.25rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-primary);
-            font-size: 0.75rem;
-            text-align: center;
-        }
-
         .timeline-gantt-container {
             position: relative;
             height: 40px;
-            display: grid;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
         }
 
         .timeline-gantt-bar {
             position: absolute;
             height: 32px;
+            top: 4px;
             background: linear-gradient(135deg, var(--pastel-blue), var(--pastel-purple));
             border-radius: 6px;
-            cursor: move;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -731,6 +710,10 @@
             user-select: none;
             transition: box-shadow 0.2s;
             border: 2px solid transparent;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            padding: 0 8px;
         }
 
         .timeline-gantt-bar:hover {
@@ -744,30 +727,40 @@
             z-index: 10;
         }
 
+        .timeline-gantt-bar-body {
+            flex: 1;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
         .timeline-gantt-handle {
             position: absolute;
-            width: 12px;
+            width: 16px;
             height: 100%;
             cursor: ew-resize;
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 2;
         }
 
         .timeline-gantt-handle-left {
             left: 0;
-            border-left: 3px solid rgba(255, 255, 255, 0.5);
+            border-left: 3px solid rgba(255, 255, 255, 0.7);
             border-radius: 6px 0 0 6px;
         }
 
         .timeline-gantt-handle-right {
             right: 0;
-            border-right: 3px solid rgba(255, 255, 255, 0.5);
+            border-right: 3px solid rgba(255, 255, 255, 0.7);
             border-radius: 0 6px 6px 0;
         }
 
         .timeline-gantt-handle:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .timeline-totals-section {
@@ -1819,34 +1812,42 @@
             
             const currentYear = APP.timelineStartDate.getFullYear();
             const currentMonth = APP.timelineStartDate.getMonth();
+            const timelineStartMs = new Date(currentYear, currentMonth, 1).getTime();
+            const timelineEndMs = new Date(currentYear, currentMonth + APP.timelineMonthsToShow, 1).getTime();
             
-            let ganttHTML = '<div style="color: var(--text-secondary); font-size: 0.75rem;">No timeline set</div>';
+            let ganttHTML = '<div style="color: var(--text-secondary); font-size: 0.75rem; padding: 0.5rem;">Click to set timeline</div>';
             
             if (startDate && endDate) {
                 const startDateObj = new Date(startDate);
                 const endDateObj = new Date(endDate);
                 
-                const timelineStartMs = new Date(currentYear, currentMonth, 1).getTime();
-                const msPerMonth = 30.44 * 24 * 60 * 60 * 1000;
+                const startMs = startDateObj.getTime();
+                const endMs = endDateObj.getTime();
                 
-                const startOffsetMonths = (startDateObj.getTime() - timelineStartMs) / msPerMonth;
-                const durationMonths = (endDateObj.getTime() - startDateObj.getTime()) / msPerMonth;
+                const totalTimelineMs = timelineEndMs - timelineStartMs;
+                const startOffset = startMs - timelineStartMs;
+                const duration = endMs - startMs;
                 
-                const leftPercent = (startOffsetMonths / APP.timelineMonthsToShow) * 100;
-                const widthPercent = (durationMonths / APP.timelineMonthsToShow) * 100;
+                const leftPercent = (startOffset / totalTimelineMs) * 100;
+                const widthPercent = (duration / totalTimelineMs) * 100;
                 
                 if (leftPercent < 100 && leftPercent + widthPercent > 0) {
                     const clampedLeft = Math.max(0, leftPercent);
                     const clampedWidth = Math.min(100 - clampedLeft, widthPercent + Math.min(0, leftPercent));
                     
+                    const startFormatted = startDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    const endFormatted = endDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    
                     ganttHTML = `
                         <div class="timeline-gantt-bar" 
                              style="left: ${clampedLeft}%; width: ${clampedWidth}%;"
-                             data-project-index="${actualIndex}"
-                             onmousedown="startGanttDrag(event, ${actualIndex}, 'move')">
+                             data-project-index="${actualIndex}">
                             <div class="timeline-gantt-handle timeline-gantt-handle-left" 
                                  onmousedown="startGanttDrag(event, ${actualIndex}, 'resize-left')"></div>
-                            ${project.title}
+                            <div class="timeline-gantt-bar-body"
+                                 onmousedown="startGanttDrag(event, ${actualIndex}, 'move')">
+                                ${startFormatted} - ${endFormatted}
+                            </div>
                             <div class="timeline-gantt-handle timeline-gantt-handle-right" 
                                  onmousedown="startGanttDrag(event, ${actualIndex}, 'resize-right')"></div>
                         </div>
@@ -1856,37 +1857,122 @@
             
             return `
                 <div class="timeline-project-row" data-project-index="${actualIndex}">
-                    <div class="timeline-project-info">
+                    <div class="timeline-project-info" onclick="openAllocationModal(${actualIndex})">
                         <div class="timeline-project-title">${project.title}</div>
                         <div class="timeline-project-users">
                             ${project.users && project.users.length > 0 ? project.users.join(', ') : 'No users assigned'}
                         </div>
-                        <div class="timeline-project-allocations">
-                            ${project.users && project.users.length > 0 ? 
-                                project.users.map(user => `
-                                    <div class="timeline-allocation-item">
-                                        <span style="color: var(--pastel-blue);">${user}:</span>
-                                        <input 
-                                            type="number" 
-                                            class="timeline-allocation-input" 
-                                            value="${allocations[user] || 0}" 
-                                            min="0" 
-                                            max="100"
-                                            onchange="updateTimelineAllocation(${actualIndex}, '${user.replace(/'/g, "\\'")}', this.value)"
-                                        >
-                                        <span>%</span>
-                                    </div>
-                                `).join('') :
-                                '<span style="color: var(--text-secondary); font-size: 0.75rem;">No users</span>'
-                            }
-                        </div>
                     </div>
-                    <div class="timeline-gantt-container">
+                    <div class="timeline-gantt-container" onclick="handleGanttContainerClick(event, ${actualIndex})">
                         ${ganttHTML}
                     </div>
-                    <button onclick="removeTimelineProject(${actualIndex})" style="padding: 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Remove</button>
+                    <button onclick="removeTimelineProject(${actualIndex})" style="padding: 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 500; white-space: nowrap;">Remove</button>
                 </div>
             `;
+        }
+
+        function handleGanttContainerClick(event, projectIndex) {
+            const target = event.target;
+            if (target.classList.contains('timeline-gantt-container')) {
+                const rect = target.getBoundingClientRect();
+                const clickX = event.clientX - rect.left;
+                const percentX = (clickX / rect.width) * 100;
+                
+                const monthClicked = Math.floor((percentX / 100) * APP.timelineMonthsToShow);
+                
+                const currentYear = APP.timelineStartDate.getFullYear();
+                const currentMonth = APP.timelineStartDate.getMonth();
+                
+                const startDate = new Date(currentYear, currentMonth + monthClicked, 1);
+                const endDate = new Date(currentYear, currentMonth + monthClicked + 1, 1);
+                
+                const timelineProject = APP.timelineProjects[projectIndex];
+                if (timelineProject) {
+                    timelineProject.startDate = startDate.toISOString();
+                    timelineProject.endDate = endDate.toISOString();
+                    saveToLocalStorage();
+                    renderTimeline();
+                }
+            }
+        }
+
+        function openAllocationModal(projectIndex) {
+            const timelineProject = APP.timelineProjects[projectIndex];
+            if (!timelineProject) return;
+            
+            const project = APP.projects.find(p => p.id === timelineProject.projectId);
+            if (!project) return;
+            
+            const allocations = timelineProject.allocations || {};
+            
+            const modal = document.createElement('div');
+            modal.id = 'allocationModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Edit Allocations - ${project.title}</h2>
+                        <button class="close-btn" onclick="closeAllocationModal()">&times;</button>
+                    </div>
+                    ${project.users && project.users.length > 0 ? `
+                        <div class="form-group">
+                            <label class="form-label">User Allocations (%)</label>
+                            ${project.users.map(user => `
+                                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                                    <label style="flex: 1; color: var(--text-primary);">${user}</label>
+                                    <input 
+                                        type="number" 
+                                        class="form-input" 
+                                        id="alloc-${user}"
+                                        value="${allocations[user] || 0}" 
+                                        min="0" 
+                                        max="100"
+                                        style="width: 100px;"
+                                    >
+                                    <span style="color: var(--text-secondary);">%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<p style="color: var(--text-secondary);">No users assigned to this project.</p>'}
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                        <button class="btn-primary" onclick="closeAllocationModal()" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); font-weight: 500;">Cancel</button>
+                        <button class="btn-save" onclick="saveAllocations(${projectIndex})">Save Allocations</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+        }
+
+        function closeAllocationModal() {
+            const modal = document.getElementById('allocationModal');
+            if (modal) modal.remove();
+        }
+
+        function saveAllocations(projectIndex) {
+            const timelineProject = APP.timelineProjects[projectIndex];
+            if (!timelineProject) return;
+            
+            const project = APP.projects.find(p => p.id === timelineProject.projectId);
+            if (!project || !project.users) return;
+            
+            project.users.forEach(user => {
+                const input = document.getElementById(`alloc-${user}`);
+                if (input) {
+                    const value = parseInt(input.value) || 0;
+                    const clampedValue = Math.max(0, Math.min(100, value));
+                    
+                    if (!timelineProject.allocations) {
+                        timelineProject.allocations = {};
+                    }
+                    timelineProject.allocations[user] = clampedValue;
+                }
+            });
+            
+            saveToLocalStorage();
+            renderTimeline();
+            closeAllocationModal();
+            showNotification('Allocations saved successfully', 'success');
         }
 
         function startGanttDrag(event, projectIndex, dragType) {
@@ -1916,14 +2002,22 @@
             if (!APP.isDraggingGantt || !APP.ganttDragData) return;
             
             const deltaX = event.clientX - APP.ganttDragData.startX;
-            const ganttContainer = document.querySelector('.timeline-gantt-container');
+            
+            const row = document.querySelector(`.timeline-project-row[data-project-index="${APP.ganttDragData.projectIndex}"]`);
+            if (!row) return;
+            
+            const ganttContainer = row.querySelector('.timeline-gantt-container');
             if (!ganttContainer) return;
             
             const containerWidth = ganttContainer.offsetWidth;
-            const deltaMonths = (deltaX / containerWidth) * APP.timelineMonthsToShow;
             
-            const msPerMonth = 30.44 * 24 * 60 * 60 * 1000;
-            const deltaMs = deltaMonths * msPerMonth;
+            const currentYear = APP.timelineStartDate.getFullYear();
+            const currentMonth = APP.timelineStartDate.getMonth();
+            const timelineStartMs = new Date(currentYear, currentMonth, 1).getTime();
+            const timelineEndMs = new Date(currentYear, currentMonth + APP.timelineMonthsToShow, 1).getTime();
+            const totalTimelineMs = timelineEndMs - timelineStartMs;
+            
+            const deltaMs = (deltaX / containerWidth) * totalTimelineMs;
             
             const timelineProject = APP.timelineProjects[APP.ganttDragData.projectIndex];
             if (!timelineProject) return;
@@ -1941,52 +2035,52 @@
                 newStartDate = new Date(originalStart.getTime() + deltaMs);
                 newEndDate = new Date(APP.ganttDragData.originalEndDate);
                 
-                if (newStartDate >= newEndDate) {
-                    newStartDate = new Date(newEndDate.getTime() - msPerMonth * 0.5);
+                const minDuration = 7 * 24 * 60 * 60 * 1000;
+                if (newEndDate.getTime() - newStartDate.getTime() < minDuration) {
+                    newStartDate = new Date(newEndDate.getTime() - minDuration);
                 }
             } else if (APP.ganttDragData.dragType === 'resize-right') {
                 newStartDate = new Date(APP.ganttDragData.originalStartDate);
                 const originalEnd = new Date(APP.ganttDragData.originalEndDate);
                 newEndDate = new Date(originalEnd.getTime() + deltaMs);
                 
-                if (newEndDate <= newStartDate) {
-                    newEndDate = new Date(newStartDate.getTime() + msPerMonth * 0.5);
+                const minDuration = 7 * 24 * 60 * 60 * 1000;
+                if (newEndDate.getTime() - newStartDate.getTime() < minDuration) {
+                    newEndDate = new Date(newStartDate.getTime() + minDuration);
                 }
             }
             
             newStartDate = snapToHalfMonth(newStartDate);
             newEndDate = snapToHalfMonth(newEndDate);
             
-            timelineProject.startDate = newStartDate.toISOString();
-            timelineProject.endDate = newEndDate.toISOString();
+            const startMs = newStartDate.getTime();
+            const endMs = newEndDate.getTime();
             
-            const row = document.querySelector(`.timeline-project-row[data-project-index="${APP.ganttDragData.projectIndex}"]`);
-            if (row) {
-                const ganttContainer = row.querySelector('.timeline-gantt-container');
-                if (ganttContainer) {
-                    const project = APP.projects.find(p => p.id === timelineProject.projectId);
-                    const currentYear = APP.timelineStartDate.getFullYear();
-                    const currentMonth = APP.timelineStartDate.getMonth();
-                    
-                    const timelineStartMs = new Date(currentYear, currentMonth, 1).getTime();
-                    const msPerMonth = 30.44 * 24 * 60 * 60 * 1000;
-                    
-                    const startOffsetMonths = (newStartDate.getTime() - timelineStartMs) / msPerMonth;
-                    const durationMonths = (newEndDate.getTime() - newStartDate.getTime()) / msPerMonth;
-                    
-                    const leftPercent = (startOffsetMonths / APP.timelineMonthsToShow) * 100;
-                    const widthPercent = (durationMonths / APP.timelineMonthsToShow) * 100;
-                    
-                    const clampedLeft = Math.max(0, leftPercent);
-                    const clampedWidth = Math.min(100 - clampedLeft, widthPercent + Math.min(0, leftPercent));
-                    
-                    const bar = ganttContainer.querySelector('.timeline-gantt-bar');
-                    if (bar) {
-                        bar.style.left = `${clampedLeft}%`;
-                        bar.style.width = `${clampedWidth}%`;
-                    }
+            const startOffset = startMs - timelineStartMs;
+            const duration = endMs - startMs;
+            
+            const leftPercent = (startOffset / totalTimelineMs) * 100;
+            const widthPercent = (duration / totalTimelineMs) * 100;
+            
+            const clampedLeft = Math.max(0, leftPercent);
+            const clampedWidth = Math.min(100 - clampedLeft, widthPercent + Math.min(0, leftPercent));
+            
+            const bar = ganttContainer.querySelector('.timeline-gantt-bar');
+            if (bar) {
+                bar.style.left = `${clampedLeft}%`;
+                bar.style.width = `${clampedWidth}%`;
+                
+                const startFormatted = newStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endFormatted = newEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                const barBody = bar.querySelector('.timeline-gantt-bar-body');
+                if (barBody) {
+                    barBody.textContent = `${startFormatted} - ${endFormatted}`;
                 }
             }
+            
+            timelineProject.startDate = newStartDate.toISOString();
+            timelineProject.endDate = newEndDate.toISOString();
         }
 
         function stopGanttDrag(event) {
@@ -2185,9 +2279,17 @@
                 });
             }
             
+            const currentDate = new Date(APP.timelineStartDate);
+            currentDate.setDate(1);
+            const startDate = new Date(currentDate);
+            const endDate = new Date(currentDate);
+            endDate.setMonth(endDate.getMonth() + 1);
+            
             APP.timelineProjects.push({
                 projectId: projectId,
-                allocations: allocations
+                allocations: allocations,
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString()
             });
             
             saveToLocalStorage();
