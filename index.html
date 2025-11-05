@@ -2148,14 +2148,25 @@
             timelineProject.startDate = newStartDate.toISOString();
             timelineProject.endDate = newEndDate.toISOString();
             
-            // Update the bar visually
+            // Update the bar visually (use percent left/width since bars are positioned absolutely)
             const startCol = getColumnFromDate(newStartDate, timelineStart);
             const endCol = getEndColumnFromDate(newEndDate, timelineStart);
             const label = formatDateRangeLabel(newStartDate, newEndDate);
-            
+
+            const startQuarterIndex = Math.max(0, startCol - 1);
+            const endQuarterIndex = Math.max(startQuarterIndex + 1, endCol - 1);
+
+            let leftPercent = (startQuarterIndex / totalQuarters) * 100;
+            let widthPercent = ((endQuarterIndex - startQuarterIndex) / totalQuarters) * 100;
+
+            // Clamp values so bar stays inside container
+            leftPercent = Math.max(0, Math.min(100, leftPercent));
+            widthPercent = Math.max((1 / totalQuarters) * 100, Math.min(100 - leftPercent, widthPercent));
+
             const bar = ganttContainer.querySelector('.timeline-gantt-bar');
             if (bar) {
-                bar.style.gridColumn = `${startCol} / ${endCol}`;
+                bar.style.left = `${leftPercent}%`;
+                bar.style.width = `${widthPercent}%`;
                 const barBody = bar.querySelector('.timeline-gantt-bar-body');
                 if (barBody) {
                     barBody.textContent = label;
@@ -2180,6 +2191,39 @@
             else if (quarterInMonth === 3) date.setDate(23);
             
             return date;
+        }
+
+        function getColumnFromDate(date, timelineStart) {
+            // Convert a date to a 1-based quarter column index relative to timelineStart.
+            // Quarter mapping: 1st -> quarter 0, 8th -> quarter 1, 15th -> quarter 2, 23rd -> quarter 3
+            const yearDiff = date.getFullYear() - timelineStart.getFullYear();
+            const monthDiff = date.getMonth() - timelineStart.getMonth();
+            let monthsFromTimeline = yearDiff * 12 + monthDiff;
+
+            let day = date.getDate();
+            let quarter = 0;
+            if (day <= 5) {
+                quarter = 0;
+            } else if (day <= 13) {
+                quarter = 1;
+            } else if (day <= 21) {
+                quarter = 2;
+            } else if (day <= 28) {
+                quarter = 3;
+            } else {
+                // treat end-of-month as next month's first quarter
+                quarter = 0;
+                monthsFromTimeline += 1;
+            }
+
+            return monthsFromTimeline * 4 + quarter + 1;
+        }
+
+        function getEndColumnFromDate(date, timelineStart) {
+            // For end column we use the same mapping as getColumnFromDate so that
+            // getDateFromColumn(getEndColumnFromDate(d)) returns the quarter-start
+            // that corresponds to the end boundary.
+            return getColumnFromDate(date, timelineStart);
         }
 
         function monthPositionToDate(timelineStart, monthPosition) {
