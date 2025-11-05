@@ -2089,8 +2089,10 @@
             const currentMonth = APP.timelineStartDate.getMonth();
             const timelineStart = new Date(currentYear, currentMonth, 1);
             
-            const monthWidth = containerWidth / APP.timelineMonthsToShow;
-            const deltaMonths = deltaX / monthWidth;
+            const totalQuarters = APP.timelineMonthsToShow * 4;
+            const quarterWidth = containerWidth / totalQuarters;
+            const deltaQuarters = deltaX / quarterWidth;
+            const deltaMonths = deltaQuarters / 4;
             
             const timelineProject = APP.timelineProjects[APP.ganttDragData.projectIndex];
             if (!timelineProject) return;
@@ -2138,7 +2140,6 @@
                 newStartDate = monthPositionToDate(timelineStart, newStartPos);
                 newEndDate = new Date(APP.ganttDragData.originalEndDate);
                 
-                // Ensure minimum duration of 0.25 months
                 const newStartPos2 = dateToMonthPosition(newStartDate, timelineStart);
                 const endPos = getEndPosition(newEndDate, timelineStart);
                 if (endPos - newStartPos2 < 0.25) {
@@ -2152,7 +2153,6 @@
                 newStartDate = new Date(APP.ganttDragData.originalStartDate);
                 newEndDate = monthPositionToDate(timelineStart, newEndPos);
                 
-                // Ensure minimum duration of 0.25 months
                 const startPos = dateToMonthPosition(newStartDate, timelineStart);
                 const newEndPos2 = getEndPosition(newEndDate, timelineStart);
                 if (newEndPos2 - startPos < 0.25) {
@@ -2166,16 +2166,12 @@
             const startPosition = dateToMonthPosition(newStartDate, timelineStart);
             const endPosition = getEndPosition(newEndDate, timelineStart);
             
-            const leftPercent = (startPosition / APP.timelineMonthsToShow) * 100;
-            const widthPercent = ((endPosition - startPosition) / APP.timelineMonthsToShow) * 100;
-            
-            const clampedLeft = Math.max(0, leftPercent);
-            const clampedWidth = Math.min(100 - clampedLeft, widthPercent + Math.min(0, leftPercent));
+            const startColumn = Math.floor(startPosition * 4) + 1;
+            const endColumn = Math.floor(endPosition * 4) + 1;
             
             const bar = ganttContainer.querySelector('.timeline-gantt-bar');
             if (bar) {
-                bar.style.left = `${clampedLeft}%`;
-                bar.style.width = `${clampedWidth}%`;
+                bar.style.gridColumn = `${startColumn} / ${endColumn}`;
                 
                 const label = formatDateRangeLabel(newStartDate, newEndDate);
                 
