@@ -1821,28 +1821,8 @@
                 
                 const timelineStart = new Date(currentYear, currentMonth, 1);
                 
-                const startYear = startDateObj.getFullYear();
-                const startMonthIndex = startDateObj.getMonth();
-                const startDay = startDateObj.getDate();
-                
-                const endYear = endDateObj.getFullYear();
-                const endMonthIndex = endDateObj.getMonth();
-                const endDay = endDateObj.getDate();
-                
-                const startMonthsFromTimeline = (startYear - timelineStart.getFullYear()) * 12 + (startMonthIndex - timelineStart.getMonth());
-                const endMonthsFromTimeline = (endYear - timelineStart.getFullYear()) * 12 + (endMonthIndex - timelineStart.getMonth());
-                
-                let startPosition = startMonthsFromTimeline;
-                if (startDay === 15) {
-                    startPosition += 0.5;
-                }
-                
-                let endPosition = endMonthsFromTimeline;
-                if (endDay === 15) {
-                    endPosition += 0.5;
-                } else {
-                    endPosition += 1;
-                }
+                const startPosition = dateToMonthPosition(startDateObj, timelineStart);
+                const endPosition = dateToMonthPosition(endDateObj, timelineStart);
                 
                 const leftPercent = (startPosition / APP.timelineMonthsToShow) * 100;
                 const widthPercent = ((endPosition - startPosition) / APP.timelineMonthsToShow) * 100;
@@ -1886,55 +1866,72 @@
             `;
         }
 
+        function dateToMonthPosition(date, timelineStart) {
+            const year = date.getFullYear();
+            const monthIndex = date.getMonth();
+            const day = date.getDate();
+            
+            const monthsFromTimeline = (year - timelineStart.getFullYear()) * 12 + (monthIndex - timelineStart.getMonth());
+            
+            let quarterPosition = 0;
+            if (day === 1) {
+                quarterPosition = 0;
+            } else if (day === 8) {
+                quarterPosition = 0.25;
+            } else if (day === 15) {
+                quarterPosition = 0.5;
+            } else if (day === 23) {
+                quarterPosition = 0.75;
+            } else {
+                quarterPosition = 1;
+            }
+            
+            return monthsFromTimeline + quarterPosition;
+        }
+
         function formatDateRangeLabel(startDate, endDate) {
             const startMonth = startDate.toLocaleDateString('en-US', { month: 'short' });
             const startDay = startDate.getDate();
             const endMonth = endDate.toLocaleDateString('en-US', { month: 'short' });
             const endDay = endDate.getDate();
             
-            const startIsMid = startDay === 15;
-            const endIsMid = endDay === 15;
-            
             const startYear = startDate.getFullYear();
             const endYear = endDate.getFullYear();
             const startMonthIndex = startDate.getMonth();
             const endMonthIndex = endDate.getMonth();
             
+            const getQuarterLabel = (monthName, day) => {
+                if (day === 1) return monthName;
+                if (day === 8) return `Early ${monthName}`;
+                if (day === 15) return `Mid ${monthName}`;
+                if (day === 23) return `Late ${monthName}`;
+                return monthName;
+            };
+            
             // Calculate the actual end position (endDate with day 1 means end of previous month)
-            const actualEndMonth = endDay === 1 ? endMonthIndex - 1 : endMonthIndex;
+            let actualEndMonth = endMonthIndex;
+            let actualEndDay = endDay;
+            
+            if (endDay === 1) {
+                actualEndMonth = endMonthIndex - 1;
+                if (actualEndMonth < 0) {
+                    actualEndMonth = 11;
+                }
+                actualEndDay = 1;
+            }
+            
             const actualEndDate = endDay === 1 ? new Date(endYear, actualEndMonth, 1) : endDate;
             const actualEndMonthName = actualEndDate.toLocaleDateString('en-US', { month: 'short' });
-            const actualEndYear = actualEndDate.getFullYear();
-            const actualEndIsMid = endDay === 15;
             
             // Same month scenarios
             if (startYear === endYear && startMonthIndex === actualEndMonth) {
-                // Mid Jan (15th) to Feb 1 = "Jan"
-                if (startIsMid && endDay === 1 && endMonthIndex === startMonthIndex + 1) {
-                    return startMonth;
-                }
-                // Jan 1 to Jan 15 = "Jan"
-                if (startDay === 1 && actualEndIsMid) {
-                    return startMonth;
-                }
-                // Jan 1 to Feb 1 (entire month) = "Jan"
-                if (startDay === 1 && endDay === 1 && endMonthIndex === startMonthIndex + 1) {
-                    return startMonth;
-                }
+                // If within same month, just show the month name
+                return startMonth;
             }
             
-            // Adjacent month scenarios
-            if (startYear === endYear && startMonthIndex + 1 === actualEndMonth) {
-                // Jan 1 to Feb end
-                if (startDay === 1 && !actualEndIsMid && endDay !== 1) {
-                    const endLabel = actualEndIsMid ? `Mid ${actualEndMonthName}` : actualEndMonthName;
-                    return `${startMonth} - ${endLabel}`;
-                }
-            }
-            
-            // Multi-month spans
-            const startLabel = startIsMid ? `Mid ${startMonth}` : startMonth;
-            const endLabel = actualEndIsMid ? `Mid ${actualEndMonthName}` : actualEndMonthName;
+            // Different months - show range
+            const startLabel = getQuarterLabel(startMonth, startDay);
+            const endLabel = getQuarterLabel(actualEndMonthName, actualEndDay);
             
             // Don't show range if start and end are the same
             if (startLabel === endLabel) {
@@ -2100,78 +2097,53 @@
             let newStartDate, newEndDate;
             
             if (APP.ganttDragData.dragType === 'move') {
-                const originalStartMonths = (originalStart.getFullYear() - timelineStart.getFullYear()) * 12 + 
-                                           (originalStart.getMonth() - timelineStart.getMonth()) + 
-                                           (originalStart.getDate() === 15 ? 0.5 : 0);
+                const originalStartPos = dateToMonthPosition(originalStart, timelineStart);
+                const originalEndPos = dateToMonthPosition(originalEnd, timelineStart);
+                const duration = originalEndPos - originalStartPos;
                 
-                const originalEndMonths = (originalEnd.getFullYear() - timelineStart.getFullYear()) * 12 + 
-                                         (originalEnd.getMonth() - timelineStart.getMonth()) + 
-                                         (originalEnd.getDate() === 15 ? 0.5 : (originalEnd.getDate() === 1 ? 0 : 1));
+                const newStartPos = originalStartPos + deltaMonths;
+                const newEndPos = newStartPos + duration;
                 
-                const duration = originalEndMonths - originalStartMonths;
-                
-                const newStartMonths = originalStartMonths + deltaMonths;
-                const newEndMonths = newStartMonths + duration;
-                
-                newStartDate = monthPositionToDate(timelineStart, newStartMonths);
-                newEndDate = monthPositionToDate(timelineStart, newEndMonths);
+                newStartDate = monthPositionToDate(timelineStart, newStartPos);
+                newEndDate = monthPositionToDate(timelineStart, newEndPos);
                 
             } else if (APP.ganttDragData.dragType === 'resize-left') {
-                const originalStartMonths = (originalStart.getFullYear() - timelineStart.getFullYear()) * 12 + 
-                                           (originalStart.getMonth() - timelineStart.getMonth()) + 
-                                           (originalStart.getDate() === 15 ? 0.5 : 0);
+                const originalStartPos = dateToMonthPosition(originalStart, timelineStart);
+                const newStartPos = originalStartPos + deltaMonths;
                 
-                const newStartMonths = originalStartMonths + deltaMonths;
-                
-                newStartDate = monthPositionToDate(timelineStart, newStartMonths);
+                newStartDate = monthPositionToDate(timelineStart, newStartPos);
                 newEndDate = new Date(APP.ganttDragData.originalEndDate);
                 
-                if (newStartDate >= newEndDate) {
-                    newStartDate = new Date(newEndDate);
-                    newStartDate.setDate(newStartDate.getDate() === 1 ? 15 : 1);
-                    if (newStartDate >= newEndDate) {
-                        newStartDate.setMonth(newStartDate.getMonth() - 1);
-                        newStartDate.setDate(15);
-                    }
+                // Ensure minimum duration of 0.25 months
+                const newStartPos2 = dateToMonthPosition(newStartDate, timelineStart);
+                const endPos = dateToMonthPosition(newEndDate, timelineStart);
+                if (endPos - newStartPos2 < 0.25) {
+                    newStartDate = monthPositionToDate(timelineStart, endPos - 0.25);
                 }
                 
             } else if (APP.ganttDragData.dragType === 'resize-right') {
-                const originalEndMonths = (originalEnd.getFullYear() - timelineStart.getFullYear()) * 12 + 
-                                         (originalEnd.getMonth() - timelineStart.getMonth()) + 
-                                         (originalEnd.getDate() === 15 ? 0.5 : (originalEnd.getDate() === 1 ? 0 : 1));
-                
-                const newEndMonths = originalEndMonths + deltaMonths;
+                const originalEndPos = dateToMonthPosition(originalEnd, timelineStart);
+                const newEndPos = originalEndPos + deltaMonths;
                 
                 newStartDate = new Date(APP.ganttDragData.originalStartDate);
-                newEndDate = monthPositionToDate(timelineStart, newEndMonths);
+                newEndDate = monthPositionToDate(timelineStart, newEndPos);
                 
-                if (newEndDate <= newStartDate) {
-                    newEndDate = new Date(newStartDate);
-                    newEndDate.setDate(newEndDate.getDate() === 15 ? 1 : 15);
-                    if (newEndDate.getDate() === 1) {
-                        newEndDate.setMonth(newEndDate.getMonth() + 1);
-                    }
-                    if (newEndDate <= newStartDate) {
-                        newEndDate = new Date(newStartDate);
-                        newEndDate.setMonth(newEndDate.getMonth() + 1);
-                        newEndDate.setDate(1);
-                    }
+                // Ensure minimum duration of 0.25 months
+                const startPos = dateToMonthPosition(newStartDate, timelineStart);
+                const newEndPos2 = dateToMonthPosition(newEndDate, timelineStart);
+                if (newEndPos2 - startPos < 0.25) {
+                    newEndDate = monthPositionToDate(timelineStart, startPos + 0.25);
                 }
             }
             
             newStartDate = snapToHalfMonth(newStartDate);
             newEndDate = snapToHalfMonth(newEndDate);
             
-            const startMonthsFromTimeline = (newStartDate.getFullYear() - timelineStart.getFullYear()) * 12 + 
-                                           (newStartDate.getMonth() - timelineStart.getMonth()) + 
-                                           (newStartDate.getDate() === 15 ? 0.5 : 0);
+            const startPosition = dateToMonthPosition(newStartDate, timelineStart);
+            const endPosition = dateToMonthPosition(newEndDate, timelineStart);
             
-            const endMonthsFromTimeline = (newEndDate.getFullYear() - timelineStart.getFullYear()) * 12 + 
-                                         (newEndDate.getMonth() - timelineStart.getMonth()) + 
-                                         (newEndDate.getDate() === 15 ? 0.5 : (newEndDate.getDate() === 1 ? 0 : 1));
-            
-            const leftPercent = (startMonthsFromTimeline / APP.timelineMonthsToShow) * 100;
-            const widthPercent = ((endMonthsFromTimeline - startMonthsFromTimeline) / APP.timelineMonthsToShow) * 100;
+            const leftPercent = (startPosition / APP.timelineMonthsToShow) * 100;
+            const widthPercent = ((endPosition - startPosition) / APP.timelineMonthsToShow) * 100;
             
             const clampedLeft = Math.max(0, leftPercent);
             const clampedWidth = Math.min(100 - clampedLeft, widthPercent + Math.min(0, leftPercent));
@@ -2200,13 +2172,18 @@
             const date = new Date(timelineStart);
             date.setMonth(date.getMonth() + wholeMonths);
             
-            if (fraction >= 0.5) {
-                date.setDate(15);
-            } else if (fraction > 0) {
+            // Map fraction to quarter positions
+            if (fraction < 0.125) {
                 date.setDate(1);
-                date.setMonth(date.getMonth() + 1);
+            } else if (fraction < 0.375) {
+                date.setDate(8);
+            } else if (fraction < 0.625) {
+                date.setDate(15);
+            } else if (fraction < 0.875) {
+                date.setDate(23);
             } else {
                 date.setDate(1);
+                date.setMonth(date.getMonth() + 1);
             }
             
             return date;
