@@ -2075,6 +2075,8 @@
         function handleGanttDrag(event) {
             if (!APP.isDraggingGantt || !APP.ganttDragData) return;
             
+            event.preventDefault();
+            
             const deltaX = event.clientX - APP.ganttDragData.startX;
             
             const row = document.querySelector(`.timeline-project-row[data-project-index="${APP.ganttDragData.projectIndex}"]`);
@@ -2084,15 +2086,15 @@
             if (!ganttContainer) return;
             
             const containerWidth = ganttContainer.offsetWidth;
+            const totalQuarters = APP.timelineMonthsToShow * 4;
+            const quarterWidth = containerWidth / totalQuarters;
+            
+            // Calculate how many quarters we've moved
+            const quartersMove = Math.round(deltaX / quarterWidth);
             
             const currentYear = APP.timelineStartDate.getFullYear();
             const currentMonth = APP.timelineStartDate.getMonth();
             const timelineStart = new Date(currentYear, currentMonth, 1);
-            
-            const totalQuarters = APP.timelineMonthsToShow * 4;
-            const quarterWidth = containerWidth / totalQuarters;
-            const deltaQuarters = deltaX / quarterWidth;
-            const deltaMonths = deltaQuarters / 4;
             
             const timelineProject = APP.timelineProjects[APP.ganttDragData.projectIndex];
             if (!timelineProject) return;
@@ -2102,87 +2104,82 @@
             
             let newStartDate, newEndDate;
             
-            // Helper function to get end position properly
-            const getEndPosition = (date, timelineStart) => {
-                const year = date.getFullYear();
-                const monthIndex = date.getMonth();
-                const day = date.getDate();
-                const monthsFromTimeline = (year - timelineStart.getFullYear()) * 12 + (monthIndex - timelineStart.getMonth());
-                
-                if (day === 1) {
-                    return monthsFromTimeline;
-                } else if (day === 8) {
-                    return monthsFromTimeline + 0.25;
-                } else if (day === 15) {
-                    return monthsFromTimeline + 0.5;
-                } else if (day === 23) {
-                    return monthsFromTimeline + 0.75;
-                } else {
-                    return monthsFromTimeline + 1;
-                }
-            };
-            
             if (APP.ganttDragData.dragType === 'move') {
-                const originalStartPos = dateToMonthPosition(originalStart, timelineStart);
-                const originalEndPos = getEndPosition(originalEnd, timelineStart);
-                const duration = originalEndPos - originalStartPos;
+                // Move both start and end by the same amount
+                const originalStartCol = getColumnFromDate(originalStart, timelineStart);
+                const originalEndCol = getEndColumnFromDate(originalEnd, timelineStart);
                 
-                const newStartPos = originalStartPos + deltaMonths;
-                const newEndPos = newStartPos + duration;
+                const newStartCol = originalStartCol + quartersMove;
+                const newEndCol = originalEndCol + quartersMove;
                 
-                newStartDate = monthPositionToDate(timelineStart, newStartPos);
-                newEndDate = monthPositionToDate(timelineStart, newEndPos);
+                newStartDate = getDateFromColumn(newStartCol, timelineStart);
+                newEndDate = getDateFromColumn(newEndCol, timelineStart);
                 
             } else if (APP.ganttDragData.dragType === 'resize-left') {
-                const originalStartPos = dateToMonthPosition(originalStart, timelineStart);
-                const newStartPos = originalStartPos + deltaMonths;
+                const originalStartCol = getColumnFromDate(originalStart, timelineStart);
+                const newStartCol = originalStartCol + quartersMove;
                 
-                newStartDate = monthPositionToDate(timelineStart, newStartPos);
-                newEndDate = new Date(APP.ganttDragData.originalEndDate);
+                newStartDate = getDateFromColumn(newStartCol, timelineStart);
+                newEndDate = new Date(originalEnd);
                 
-                const newStartPos2 = dateToMonthPosition(newStartDate, timelineStart);
-                const endPos = getEndPosition(newEndDate, timelineStart);
-                if (endPos - newStartPos2 < 0.25) {
-                    newStartDate = monthPositionToDate(timelineStart, endPos - 0.25);
+                // Ensure minimum width of 1 quarter
+                const startCol = getColumnFromDate(newStartDate, timelineStart);
+                const endCol = getEndColumnFromDate(newEndDate, timelineStart);
+                if (endCol - startCol < 1) {
+                    newStartDate = getDateFromColumn(endCol - 1, timelineStart);
                 }
                 
             } else if (APP.ganttDragData.dragType === 'resize-right') {
-                const originalEndPos = getEndPosition(originalEnd, timelineStart);
-                const newEndPos = originalEndPos + deltaMonths;
+                const originalEndCol = getEndColumnFromDate(originalEnd, timelineStart);
+                const newEndCol = originalEndCol + quartersMove;
                 
-                newStartDate = new Date(APP.ganttDragData.originalStartDate);
-                newEndDate = monthPositionToDate(timelineStart, newEndPos);
+                newStartDate = new Date(originalStart);
+                newEndDate = getDateFromColumn(newEndCol, timelineStart);
                 
-                const startPos = dateToMonthPosition(newStartDate, timelineStart);
-                const newEndPos2 = getEndPosition(newEndDate, timelineStart);
-                if (newEndPos2 - startPos < 0.25) {
-                    newEndDate = monthPositionToDate(timelineStart, startPos + 0.25);
+                // Ensure minimum width of 1 quarter
+                const startCol = getColumnFromDate(newStartDate, timelineStart);
+                const endCol = getEndColumnFromDate(newEndDate, timelineStart);
+                if (endCol - startCol < 1) {
+                    newEndDate = getDateFromColumn(startCol + 1, timelineStart);
                 }
             }
             
-            newStartDate = snapToHalfMonth(newStartDate);
-            newEndDate = snapToHalfMonth(newEndDate);
+            // Update the data
+            timelineProject.startDate = newStartDate.toISOString();
+            timelineProject.endDate = newEndDate.toISOString();
             
-            const startPosition = dateToMonthPosition(newStartDate, timelineStart);
-            const endPosition = getEndPosition(newEndDate, timelineStart);
-            
-            const startColumn = Math.floor(startPosition * 4) + 1;
-            const endColumn = Math.floor(endPosition * 4) + 1;
+            // Update the bar visually
+            const startCol = getColumnFromDate(newStartDate, timelineStart);
+            const endCol = getEndColumnFromDate(newEndDate, timelineStart);
+            const label = formatDateRangeLabel(newStartDate, newEndDate);
             
             const bar = ganttContainer.querySelector('.timeline-gantt-bar');
             if (bar) {
-                bar.style.gridColumn = `${startColumn} / ${endColumn}`;
-                
-                const label = formatDateRangeLabel(newStartDate, newEndDate);
-                
+                bar.style.gridColumn = `${startCol} / ${endCol}`;
                 const barBody = bar.querySelector('.timeline-gantt-bar-body');
                 if (barBody) {
                     barBody.textContent = label;
                 }
             }
+        }
+
+        function getDateFromColumn(column, timelineStart) {
+            // Column 1 = month 0, quarter 0 (1st of first month)
+            // Column 2 = month 0, quarter 1 (8th of first month)
+            // etc.
+            const quarterIndex = column - 1;
+            const monthOffset = Math.floor(quarterIndex / 4);
+            const quarterInMonth = quarterIndex % 4;
             
-            timelineProject.startDate = newStartDate.toISOString();
-            timelineProject.endDate = newEndDate.toISOString();
+            const date = new Date(timelineStart);
+            date.setMonth(date.getMonth() + monthOffset);
+            
+            if (quarterInMonth === 0) date.setDate(1);
+            else if (quarterInMonth === 1) date.setDate(8);
+            else if (quarterInMonth === 2) date.setDate(15);
+            else if (quarterInMonth === 3) date.setDate(23);
+            
+            return date;
         }
 
         function monthPositionToDate(timelineStart, monthPosition) {
