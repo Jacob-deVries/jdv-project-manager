@@ -693,12 +693,13 @@
             height: 40px;
             background: rgba(255, 255, 255, 0.02);
             border-radius: 4px;
+            box-sizing: border-box;
+            display: grid;
         }
 
         .timeline-gantt-bar {
-            position: absolute;
             height: 32px;
-            top: 4px;
+            margin-top: 4px;
             background: linear-gradient(135deg, var(--pastel-blue), var(--pastel-purple));
             border-radius: 6px;
             display: flex;
@@ -715,6 +716,7 @@
             text-overflow: ellipsis;
             padding: 0;
             box-sizing: border-box;
+            position: relative;
         }
 
         .timeline-gantt-bar:hover {
@@ -735,6 +737,7 @@
             align-items: center;
             justify-content: center;
             height: 100%;
+            padding: 0 8px;
         }
 
         .timeline-gantt-handle {
