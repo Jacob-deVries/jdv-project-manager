@@ -2096,9 +2096,29 @@
             
             let newStartDate, newEndDate;
             
+            // Helper function to get end position properly
+            const getEndPosition = (date, timelineStart) => {
+                const year = date.getFullYear();
+                const monthIndex = date.getMonth();
+                const day = date.getDate();
+                const monthsFromTimeline = (year - timelineStart.getFullYear()) * 12 + (monthIndex - timelineStart.getMonth());
+                
+                if (day === 1) {
+                    return monthsFromTimeline;
+                } else if (day === 8) {
+                    return monthsFromTimeline + 0.25;
+                } else if (day === 15) {
+                    return monthsFromTimeline + 0.5;
+                } else if (day === 23) {
+                    return monthsFromTimeline + 0.75;
+                } else {
+                    return monthsFromTimeline + 1;
+                }
+            };
+            
             if (APP.ganttDragData.dragType === 'move') {
                 const originalStartPos = dateToMonthPosition(originalStart, timelineStart);
-                const originalEndPos = dateToMonthPosition(originalEnd, timelineStart);
+                const originalEndPos = getEndPosition(originalEnd, timelineStart);
                 const duration = originalEndPos - originalStartPos;
                 
                 const newStartPos = originalStartPos + deltaMonths;
@@ -2116,13 +2136,13 @@
                 
                 // Ensure minimum duration of 0.25 months
                 const newStartPos2 = dateToMonthPosition(newStartDate, timelineStart);
-                const endPos = dateToMonthPosition(newEndDate, timelineStart);
+                const endPos = getEndPosition(newEndDate, timelineStart);
                 if (endPos - newStartPos2 < 0.25) {
                     newStartDate = monthPositionToDate(timelineStart, endPos - 0.25);
                 }
                 
             } else if (APP.ganttDragData.dragType === 'resize-right') {
-                const originalEndPos = dateToMonthPosition(originalEnd, timelineStart);
+                const originalEndPos = getEndPosition(originalEnd, timelineStart);
                 const newEndPos = originalEndPos + deltaMonths;
                 
                 newStartDate = new Date(APP.ganttDragData.originalStartDate);
@@ -2130,7 +2150,7 @@
                 
                 // Ensure minimum duration of 0.25 months
                 const startPos = dateToMonthPosition(newStartDate, timelineStart);
-                const newEndPos2 = dateToMonthPosition(newEndDate, timelineStart);
+                const newEndPos2 = getEndPosition(newEndDate, timelineStart);
                 if (newEndPos2 - startPos < 0.25) {
                     newEndDate = monthPositionToDate(timelineStart, startPos + 0.25);
                 }
@@ -2140,7 +2160,7 @@
             newEndDate = snapToHalfMonth(newEndDate);
             
             const startPosition = dateToMonthPosition(newStartDate, timelineStart);
-            const endPosition = dateToMonthPosition(newEndDate, timelineStart);
+            const endPosition = getEndPosition(newEndDate, timelineStart);
             
             const leftPercent = (startPosition / APP.timelineMonthsToShow) * 100;
             const widthPercent = ((endPosition - startPosition) / APP.timelineMonthsToShow) * 100;
