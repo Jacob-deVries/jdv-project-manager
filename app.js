@@ -1,328 +1,281 @@
-// PKD Dashboard Application
-
 const APP = {
     projects: [],
-    categories: ['ABL', 'Healthcare', 'Liquid Inventory', 'IT / Infrastructure', 'Flagged'],
-    statuses: ['idea', 'flagged', 'in-progress', 'on-hold', 'moving', 'stable', 'person', 'completed', 'scrapped'],
-    users: ['Ben', 'Jacob', 'Sam', 'Jonathan', 'Charlie', 'Jen', 'Holly', 'Grant', 'Benat', 'Nymbl'],
-    filters: {
-        status: [],
-        category: [],
-        user: [],
-        search: ''
-    },
+    categories: [],
+    statuses: [],
+    users: [],
+    selectedCategories: [],
+    selectedStatuses: [],
+    selectedUsers: [],
+    showCompleted: false,
     lastUpdated: 'Never',
-    notes: {},
-    noteTypes: ['Nymbl Notes', 'Cindy Notes', 'Personal Notes', 'Setpoint Notes'],
-    currentNoteType: 'Nymbl Notes'
+    currentEditingProject: null,
+    currentProjectLinks: [],
+    notes: {
+        nymbl: '',
+        cindy: '',
+        me: ''
+    },
+    currentNoteName: 'Nymbl',
+    PASSWORD_HASH: 2147093827
 };
 
-const PASSWORD_HASH = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'; // 'password'
+function hashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash;
+}
 
-// Password Check
 function checkPassword() {
-    const input = document.getElementById('passwordInput').value;
-    const hash = sha256(input);
+    const input = document.getElementById('passwordInput');
+    const error = document.getElementById('passwordError');
+    const password = input.value;
     
-    if (hash === PASSWORD_HASH) {
+    if (hashCode(password) === APP.PASSWORD_HASH) {
         document.getElementById('passwordScreen').style.display = 'none';
         document.getElementById('dashboardWrapper').style.display = 'block';
-        renderProjects();
+        initializeDashboard();
     } else {
-        document.getElementById('passwordError').style.display = 'block';
-        document.getElementById('passwordInput').value = '';
+        input.classList.add('error');
+        error.classList.add('show');
+        setTimeout(() => {
+            input.classList.remove('error');
+            error.classList.remove('show');
+        }, 2000);
     }
 }
 
-// Simple SHA-256 implementation
-function sha256(ascii) {
-    function rightRotate(value, amount) {
-        return (value >>> amount) | (value << (32 - amount));
-    }
+function initializeDashboard() {
+    updateStats();
+    updateFilterDropdowns();
+    loadNotes();
     
-    const mathPow = Math.pow;
-    const maxWord = mathPow(2, 32);
-    const lengthProperty = 'length';
-    let i, j;
-    let result = '';
+    const grid = document.getElementById('projectsGrid');
+    grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;"><h3>Welcome to PKD Dashboard</h3><p style="margin-top: 1rem;">Upload a PKD file to get started, or create your first project.</p></div>';
     
-    const words = [];
-    const asciiBitLength = ascii[lengthProperty] * 8;
-    
-    let hash = sha256.h = sha256.h || [];
-    const k = sha256.k = sha256.k || [];
-    let primeCounter = k[lengthProperty];
-    
-    const isComposite = {};
-    for (let candidate = 2; primeCounter < 64; candidate++) {
-        if (!isComposite[candidate]) {
-            for (i = 0; i < 313; i += candidate) {
-                isComposite[i] = candidate;
-            }
-            hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
-            k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
-        }
-    }
-    
-    ascii += '\x80';
-    while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
-    for (i = 0; i < ascii[lengthProperty]; i++) {
-        j = ascii.charCodeAt(i);
-        if (j >> 8) return;
-        words[i >> 2] |= j << ((3 - i) % 4) * 8;
-    }
-    words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
-    words[words[lengthProperty]] = (asciiBitLength);
-    
-    for (j = 0; j < words[lengthProperty];) {
-        const w = words.slice(j, j += 16);
-        const oldHash = hash;
-        hash = hash.slice(0, 8);
-        
-        for (i = 0; i < 64; i++) {
-            const w15 = w[i - 15], w2 = w[i - 2];
-            
-            const a = hash[0], e = hash[4];
-            const temp1 = hash[7]
-                + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
-                + ((e & hash[5]) ^ ((~e) & hash[6]))
-                + k[i]
-                + (w[i] = (i < 16) ? w[i] : (
-                    w[i - 16]
-                    + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
-                    + w[i - 7]
-                    + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
-                ) | 0
-                );
-            const temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
-                + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
-            
-            hash = [(temp1 + temp2) | 0].concat(hash);
-            hash[4] = (hash[4] + temp1) | 0;
-        }
-        
-        for (i = 0; i < 8; i++) {
-            hash[i] = (hash[i] + oldHash[i]) | 0;
-        }
-    }
-    
-    for (i = 0; i < 8; i++) {
-        for (j = 3; j + 1; j--) {
-            const b = (hash[i] >> (j * 8)) & 255;
-            result += ((b < 16) ? 0 : '') + b.toString(16);
-        }
-    }
-    return result;
+    document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
 }
 
-// Page Navigation
-function showPage(page) {
-    document.querySelectorAll('.page-container').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    
-    if (page === 'projects') {
-        document.getElementById('projectsPage').classList.add('active');
-        document.querySelector('.nav-btn:first-child').classList.add('active');
-        document.getElementById('projectsOnlyBtn').style.display = 'inline-block';
-        document.getElementById('manageBtn').style.display = 'inline-block';
-    } else if (page === 'timeline') {
-        document.getElementById('timelinePage').classList.add('active');
-        document.querySelector('.nav-btn:last-child').classList.add('active');
-        document.getElementById('projectsOnlyBtn').style.display = 'none';
-        document.getElementById('manageBtn').style.display = 'none';
+function saveToLocalStorage() {
+    if (typeof localStorage !== 'undefined') {
+        const data = {
+            projects: APP.projects,
+            categories: APP.categories,
+            statuses: APP.statuses,
+            users: APP.users,
+            lastUpdated: APP.lastUpdated,
+            notes: APP.notes
+        };
+        try {
+            localStorage.setItem('pkdDashboardData', JSON.stringify(data));
+        } catch (e) {
+            console.error('Error saving to localStorage:', e);
+        }
     }
 }
 
-// Notifications
-function showNotification(message, type = 'success') {
-    const container = document.getElementById('notificationContainer');
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
+function updateStats() {
+    const active = APP.projects.filter(p => p.status !== 'complete').length;
+    const complete = APP.projects.filter(p => p.status === 'complete').length;
     
-    container.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-
-// Dropdown Filters
-function toggleDropdown(dropdownId) {
-    const dropdown = document.getElementById(dropdownId);
-    const isOpen = dropdown.classList.contains('open');
-    
-    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        menu.classList.remove('open');
-    });
-    
-    if (!isOpen) {
-        dropdown.classList.add('open');
-    }
+    document.getElementById('activeCount').textContent = active;
+    document.getElementById('completeCount').textContent = complete;
 }
 
 function updateFilterDropdowns() {
-    const statusDropdown = document.getElementById('statusDropdown');
-    const categoryDropdown = document.getElementById('categoryDropdown');
-    const userDropdown = document.getElementById('userDropdown');
+    if (APP.selectedCategories.length === 0 && APP.categories.length > 0) {
+        APP.selectedCategories = [...APP.categories];
+    }
+    if (APP.selectedStatuses.length === 0 && APP.statuses.length > 0) {
+        APP.selectedStatuses = [...APP.statuses];
+    }
+    if (APP.selectedUsers.length === 0 && APP.users.length > 0) {
+        APP.selectedUsers = [...APP.users];
+    }
     
-    statusDropdown.innerHTML = '';
+    const categoryMenu = document.getElementById('categoryMenu');
+    categoryMenu.innerHTML = '';
+    APP.categories.forEach(cat => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        const isChecked = APP.selectedCategories.includes(cat) ? 'checked' : '';
+        item.innerHTML = `
+            <input type="checkbox" id="cat-${cat}" onchange="toggleCategory('${cat}')" ${isChecked}>
+            <label for="cat-${cat}">${cat}</label>
+        `;
+        categoryMenu.appendChild(item);
+    });
+
+    const statusMenu = document.getElementById('statusMenu');
+    statusMenu.innerHTML = '';
     APP.statuses.forEach(status => {
         const item = document.createElement('div');
         item.className = 'dropdown-item';
+        const isChecked = APP.selectedStatuses.includes(status) ? 'checked' : '';
         item.innerHTML = `
-            <input type="checkbox" id="status-${status}" value="${status}" 
-                ${APP.filters.status.includes(status) ? 'checked' : ''} 
-                onchange="updateFilter('status', '${status}', this.checked)">
+            <input type="checkbox" id="status-${status}" onchange="toggleStatus('${status}')" ${isChecked}>
             <label for="status-${status}">${status}</label>
         `;
-        statusDropdown.appendChild(item);
+        statusMenu.appendChild(item);
     });
-    
-    categoryDropdown.innerHTML = '';
-    APP.categories.forEach(category => {
-        const item = document.createElement('div');
-        item.className = 'dropdown-item';
-        item.innerHTML = `
-            <input type="checkbox" id="category-${category}" value="${category}" 
-                ${APP.filters.category.includes(category) ? 'checked' : ''} 
-                onchange="updateFilter('category', '${category}', this.checked)">
-            <label for="category-${category}">${category}</label>
-        `;
-        categoryDropdown.appendChild(item);
-    });
-    
-    userDropdown.innerHTML = '';
+
+    const userMenu = document.getElementById('userMenu');
+    userMenu.innerHTML = '';
     APP.users.forEach(user => {
         const item = document.createElement('div');
         item.className = 'dropdown-item';
+        const isChecked = APP.selectedUsers.includes(user) ? 'checked' : '';
         item.innerHTML = `
-            <input type="checkbox" id="user-${user}" value="${user}" 
-                ${APP.filters.user.includes(user) ? 'checked' : ''} 
-                onchange="updateFilter('user', '${user}', this.checked)">
+            <input type="checkbox" id="user-${user}" onchange="toggleUser('${user}')" ${isChecked}>
             <label for="user-${user}">${user}</label>
         `;
-        userDropdown.appendChild(item);
+        userMenu.appendChild(item);
     });
+    
+    updateFilterCounts();
 }
 
-function updateFilter(filterType, value, checked) {
-    if (checked) {
-        if (!APP.filters[filterType].includes(value)) {
-            APP.filters[filterType].push(value);
-        }
+function toggleDropdown(menuId) {
+    const menu = document.getElementById(menuId);
+    menu.classList.toggle('open');
+}
+
+function toggleCategory(category) {
+    const index = APP.selectedCategories.indexOf(category);
+    if (index > -1) {
+        APP.selectedCategories.splice(index, 1);
     } else {
-        APP.filters[filterType] = APP.filters[filterType].filter(v => v !== value);
+        APP.selectedCategories.push(category);
     }
-    applyFilters();
-}
-
-function applyFilters() {
-    APP.filters.search = document.getElementById('searchInput').value.toLowerCase();
+    updateFilterCounts();
     renderProjects();
 }
 
-// Project Rendering
+function toggleStatus(status) {
+    const index = APP.selectedStatuses.indexOf(status);
+    if (index > -1) {
+        APP.selectedStatuses.splice(index, 1);
+    } else {
+        APP.selectedStatuses.push(status);
+    }
+    updateFilterCounts();
+    renderProjects();
+}
+
+function toggleUser(user) {
+    const index = APP.selectedUsers.indexOf(user);
+    if (index > -1) {
+        APP.selectedUsers.splice(index, 1);
+    } else {
+        APP.selectedUsers.push(user);
+    }
+    updateFilterCounts();
+    renderProjects();
+}
+
+function updateFilterCounts() {
+    document.getElementById('categoryCount').textContent = APP.selectedCategories.length > 0 ? `(${APP.selectedCategories.length})` : '';
+    document.getElementById('statusCount').textContent = APP.selectedStatuses.length > 0 ? `(${APP.selectedStatuses.length})` : '';
+    document.getElementById('userCount').textContent = APP.selectedUsers.length > 0 ? `(${APP.selectedUsers.length})` : '';
+}
+
+function toggleCompleted() {
+    APP.showCompleted = !APP.showCompleted;
+    document.getElementById('showCompletedToggle').classList.toggle('active');
+    renderProjects();
+}
+
 function renderProjects() {
-    const projectsList = document.getElementById('projectsList');
-    projectsList.innerHTML = '';
+    const grid = document.getElementById('projectsGrid');
+    const search = document.getElementById('searchInput').value.toLowerCase();
     
-    let filteredProjects = APP.projects.filter(project => {
-        if (APP.filters.status.length > 0 && !APP.filters.status.includes(project.status)) {
-            return false;
-        }
+    let filtered = APP.projects.filter(project => {
+        if (!APP.showCompleted && project.status === 'complete') return false;
         
-        if (APP.filters.category.length > 0) {
-            const hasCategory = project.categories && project.categories.some(cat => 
-                APP.filters.category.includes(cat)
-            );
+        if (APP.selectedCategories.length > 0) {
+            const hasCategory = project.categories && 
+                project.categories.some(cat => APP.selectedCategories.includes(cat));
             if (!hasCategory) return false;
         }
         
-        if (APP.filters.user.length > 0) {
-            const hasUser = project.users && project.users.some(user => 
-                APP.filters.user.includes(user)
-            );
+        if (APP.selectedStatuses.length > 0) {
+            if (!APP.selectedStatuses.includes(project.status)) return false;
+        }
+
+        if (APP.selectedUsers.length > 0) {
+            const hasUser = project.users && project.users.length > 0 &&
+                project.users.some(user => APP.selectedUsers.includes(user));
             if (!hasUser) return false;
         }
         
-        if (APP.filters.search) {
-            const searchTerm = APP.filters.search;
-            const matchesTitle = project.title.toLowerCase().includes(searchTerm);
-            const matchesDetails = project.keyDetails && project.keyDetails.toLowerCase().includes(searchTerm);
-            const matchesNextSteps = project.nextSteps && project.nextSteps.toLowerCase().includes(searchTerm);
-            
-            if (!matchesTitle && !matchesDetails && !matchesNextSteps) {
-                return false;
-            }
+        if (search) {
+            const searchInProject = 
+                project.title.toLowerCase().includes(search) ||
+                (project.keyDetails && project.keyDetails.toLowerCase().includes(search)) ||
+                (project.nextSteps && project.nextSteps.toLowerCase().includes(search));
+            if (!searchInProject) return false;
         }
         
         return true;
     });
     
-    filteredProjects.sort((a, b) => a.priority - b.priority);
-    
-    filteredProjects.forEach(project => {
-        const card = createProjectCard(project);
-        projectsList.appendChild(card);
+    filtered.sort((a, b) => {
+        const priorityA = a.priority || 999;
+        const priorityB = b.priority || 999;
+        return priorityA - priorityB;
     });
     
-    updateStats();
-    updateFilterDropdowns();
+    grid.innerHTML = '';
+    
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;">No projects found. Upload a PKD file to get started.</div>';
+        return;
+    }
+    
+    filtered.forEach(project => {
+        const card = createProjectCard(project);
+        grid.appendChild(card);
+    });
 }
 
 function createProjectCard(project) {
     const card = document.createElement('div');
     card.className = 'project-card';
     
-    const categoriesHTML = project.categories && project.categories.length > 0
-        ? `<div class="project-categories">${project.categories.map(cat => 
-            `<span class="category-badge">${cat}</span>`
-        ).join('')}</div>`
-        : '';
-    
-    const usersHTML = project.users && project.users.length > 0
-        ? `<div class="project-users">${project.users.map(user => 
-            `<span class="user-badge">${user}</span>`
-        ).join('')}</div>`
-        : '';
-    
-    const detailsHTML = project.keyDetails
-        ? `<div class="project-details">
-            <div class="project-details-title">Key Details</div>
-            <div class="project-details-content">${escapeHtml(project.keyDetails)}</div>
-        </div>`
-        : '';
-    
-    const nextStepsHTML = project.nextSteps
-        ? `<div class="project-next-steps">
-            <div class="project-next-steps-title">Next Steps</div>
-            <div class="project-next-steps-content">${escapeHtml(project.nextSteps)}</div>
-        </div>`
-        : '';
-    
-    const linksHTML = project.links && project.links.length > 0
-        ? `<div class="project-links">${project.links.map(link => 
-            `<a href="${link.url}" target="_blank">${link.title}</a>`
-        ).join('')}</div>`
-        : '';
+    let statusColor = '--pastel-blue';
+    if (project.status === 'complete') statusColor = '--text-secondary';
+    else if (project.status === 'on-hold') statusColor = '--pastel-red';
+    else if (project.status === 'moving') statusColor = '--pastel-green';
+    else if (project.status === 'stable') statusColor = '--pastel-purple';
+    else if (project.status === 'in-progress') statusColor = '--pastel-blue';
+    else if (project.status === 'idea') statusColor = '--accent-orange';
     
     card.innerHTML = `
         <div class="project-header">
-            <div class="project-title" onclick="openEditModal(${project.id})">${project.id}. ${escapeHtml(project.title)}</div>
-            <span class="status-badge ${project.status}">${project.status}</span>
+            <div>
+                <div class="project-title" onclick="openProjectModal(${project.id})">${project.title}</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">ID: ${project.id} | Priority: ${project.priority || 999}</div>
+            </div>
+            <span class="status-badge" style="background: var(${statusColor}); color: ${statusColor.includes('text-secondary') ? 'var(--text-secondary)' : 'var(--bg-primary)'};">${project.status}</span>
         </div>
-        ${categoriesHTML}
-        ${usersHTML}
-        ${detailsHTML}
-        ${nextStepsHTML}
-        ${linksHTML}
+        ${project.users && project.users.length > 0 ? `<div style="margin-bottom: 0.5rem; color: var(--pastel-purple); font-size: 0.875rem;">Users: ${project.users.join(', ')}</div>` : ''}
+        <div style="margin: 1rem 0; color: var(--text-secondary); font-size: 0.875rem;">
+            ${project.keyDetails ? project.keyDetails.substring(0, 100) + (project.keyDetails.length > 100 ? '...' : '') : 'No details'}
+        </div>
         <div class="project-footer">
-            <div style="font-size: 0.75rem; color: var(--text-secondary);">Priority: ${project.priority}</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                ${project.categories && project.categories.length > 0 ? project.categories.map(cat => 
+                    `<span style="padding: 0.25rem 0.5rem; background: rgba(147, 197, 253, 0.15); border-radius: 6px; font-size: 0.75rem; color: var(--pastel-blue);">${cat}</span>`
+                ).join('') : ''}
+            </div>
             <div class="project-actions">
-                <button class="edit-btn" onclick="openEditModal(${project.id})">Edit</button>
-                <button class="complete-btn" onclick="toggleComplete(${project.id})">${project.status === 'completed' ? 'Reopen' : 'Complete'}</button>
-                <button class="delete-btn" onclick="deleteProject(${project.id})">Delete</button>
+                <button class="edit-btn" style="background: var(--pastel-purple); color: var(--bg-primary); font-weight: 500;" onclick="openEditModal(${project.id})">Edit</button>
+                ${project.status !== 'complete' ? 
+                    `<button class="complete-btn" style="background: var(--pastel-green); color: var(--bg-primary); font-weight: 500;" onclick="markComplete(${project.id})">Complete</button>` : ''}
+                <button class="delete-btn" style="background: var(--pastel-red); color: var(--bg-primary); font-weight: 500;" onclick="deleteProject(${project.id})">Delete</button>
             </div>
         </div>
     `;
@@ -330,491 +283,739 @@ function createProjectCard(project) {
     return card;
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+function switchNote() {
+    saveCurrentNote();
+    const selector = document.getElementById('notesSelector');
+    APP.currentNoteName = selector.value;
+    loadNotes();
 }
 
-function updateStats() {
-    const activeCount = APP.projects.filter(p => ['in-progress', 'moving', 'idea'].includes(p.status)).length;
-    const stableCount = APP.projects.filter(p => p.status === 'stable').length;
-    const flaggedCount = APP.projects.filter(p => p.status === 'flagged').length;
-    
-    document.getElementById('activeCount').textContent = activeCount;
-    document.getElementById('stableCount').textContent = stableCount;
-    document.getElementById('flaggedCount').textContent = flaggedCount;
+function saveCurrentNote() {
+    const textarea = document.getElementById('notesTextarea');
+    const noteName = APP.currentNoteName;
+    const noteKey = noteName.toLowerCase().replace(/\s+/g, '_');
+    APP.notes[noteKey] = textarea.value;
+    saveToLocalStorage();
 }
 
-// Project CRUD Operations
-function openCreateModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'block';
+function loadNotes() {
+    const textarea = document.getElementById('notesTextarea');
+    const selector = document.getElementById('notesSelector');
     
-    const nextId = APP.projects.length > 0 ? Math.max(...APP.projects.map(p => p.id)) + 1 : 1;
+    if (!textarea || !selector) return;
     
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Create New Project</h2>
-                <button class="close-btn" onclick="this.closest('.modal').remove()">×</button>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Project ID</label>
-                <input type="number" class="form-input" id="newProjectId" value="${nextId}" readonly>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Title *</label>
-                <input type="text" class="form-input" id="newProjectTitle" required>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Status *</label>
-                <select class="form-select" id="newProjectStatus">
-                    ${APP.statuses.map(s => `<option value="${s}">${s}</option>`).join('')}
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Priority</label>
-                <input type="number" class="form-input" id="newProjectPriority" value="999">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Categories</label>
-                <div class="checkbox-group">
-                    ${APP.categories.map(cat => `
-                        <label class="checkbox-label">
-                            <input type="checkbox" value="${cat}" class="category-checkbox">
-                            ${cat}
-                        </label>
-                    `).join('')}
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Users</label>
-                <div class="checkbox-group">
-                    ${APP.users.map(user => `
-                        <label class="checkbox-label">
-                            <input type="checkbox" value="${user}" class="user-checkbox">
-                            ${user}
-                        </label>
-                    `).join('')}
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Key Details</label>
-                <textarea class="form-textarea" id="newProjectDetails"></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Next Steps</label>
-                <textarea class="form-textarea" id="newProjectNextSteps"></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Links (one per line, format: Title | URL)</label>
-                <textarea class="form-textarea" id="newProjectLinks" placeholder="Example: Documentation | https://example.com"></textarea>
-            </div>
-            
-            <div class="modal-actions">
-                <button style="background: var(--bg-secondary); color: var(--text-primary);" onclick="this.closest('.modal').remove()">Cancel</button>
-                <button style="background: var(--pastel-blue); color: var(--bg-primary);" onclick="createProject()">Create Project</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
+    const noteName = APP.currentNoteName;
+    const noteKey = noteName.toLowerCase().replace(/\s+/g, '_');
+    textarea.value = APP.notes[noteKey] || '';
+    selector.value = noteName;
 }
 
-function createProject() {
-    const title = document.getElementById('newProjectTitle').value.trim();
-    if (!title) {
-        showNotification('Please enter a project title', 'error');
+function addNewNote() {
+    const noteName = prompt('Enter note name:');
+    if (!noteName || !noteName.trim()) return;
+    
+    const trimmedName = noteName.trim();
+    const noteKey = trimmedName.toLowerCase().replace(/\s+/g, '_');
+    
+    if (APP.notes[noteKey] !== undefined) {
+        showNotification('A note with this name already exists', 'error');
         return;
     }
     
-    const categories = Array.from(document.querySelectorAll('.category-checkbox:checked')).map(cb => cb.value);
-    const users = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
+    APP.notes[noteKey] = '';
     
-    const linksText = document.getElementById('newProjectLinks').value.trim();
-    const links = linksText ? linksText.split('\n').map(line => {
-        const parts = line.split('|').map(p => p.trim());
-        return parts.length === 2 ? { title: parts[0], url: parts[1] } : null;
-    }).filter(l => l) : [];
+    const selector = document.getElementById('notesSelector');
+    const option = document.createElement('option');
+    option.value = trimmedName;
+    option.textContent = trimmedName;
+    selector.appendChild(option);
     
-    const project = {
-        id: parseInt(document.getElementById('newProjectId').value),
-        title: title,
-        status: document.getElementById('newProjectStatus').value,
-        priority: parseInt(document.getElementById('newProjectPriority').value),
-        categories: categories,
-        users: users,
-        keyDetails: document.getElementById('newProjectDetails').value.trim(),
-        nextSteps: document.getElementById('newProjectNextSteps').value.trim(),
-        links: links
+    APP.currentNoteName = trimmedName;
+    selector.value = trimmedName;
+    loadNotes();
+    
+    saveToLocalStorage();
+    showNotification(`Note "${trimmedName}" created`, 'success');
+}
+
+function deleteCurrentNote() {
+    const selector = document.getElementById('notesSelector');
+    const currentNoteName = selector.value;
+    const noteKey = currentNoteName.toLowerCase().replace(/\s+/g, '_');
+
+    const defaultNotes = ['Nymbl', 'Cindy', 'Me'];
+    if (defaultNotes.includes(currentNoteName)) {
+        showNotification('Cannot delete default notes', 'error');
+        return;
+    }
+
+    showConfirm(`Delete note "${currentNoteName}"? This action cannot be undone.`, function() {
+        delete APP.notes[noteKey];
+
+        const optionToRemove = Array.from(selector.options).find(opt => opt.value === currentNoteName);
+        if (optionToRemove) {
+            selector.removeChild(optionToRemove);
+        }
+
+        APP.currentNoteName = 'Nymbl';
+        selector.value = 'Nymbl';
+        loadNotes();
+
+        saveToLocalStorage();
+        showNotification('Note deleted successfully', 'success');
+    });
+}
+
+function handleNotesInput(e) {
+    const textarea = e.target;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    
+    let value = textarea.value;
+    let newValue = value.replace(/^-\s/gm, '• ');
+    
+    if (value !== newValue) {
+        const beforeCursor = value.substring(0, start);
+        const beforeCursorNew = beforeCursor.replace(/^-\s/gm, '• ');
+        const diff = beforeCursorNew.length - beforeCursor.length;
+        
+        textarea.value = newValue;
+        textarea.selectionStart = start + diff;
+        textarea.selectionEnd = end + diff;
+    }
+    
+    saveCurrentNote();
+}
+
+function showNotification(message, type = 'info') {
+    const container = document.getElementById('notificationContainer');
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    container.appendChild(notification);
+    
+    setTimeout(() => {
+        if (container.contains(notification)) {
+            container.removeChild(notification);
+        }
+    }, 3000);
+}
+
+function showConfirm(message, onConfirm) {
+    const confirmDiv = document.createElement('div');
+    confirmDiv.id = 'confirmDialog';
+    confirmDiv.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 9999;';
+    confirmDiv.innerHTML = `
+        <div style="background: rgba(35, 35, 38, 0.98); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; max-width: 400px; box-shadow: var(--shadow);">
+            <p style="margin-bottom: 1.5rem; color: var(--text-primary);">${message}</p>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button onclick="cancelConfirm()" style="padding: 0.5rem 1.5rem; background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); border-radius: 6px; cursor: pointer; font-weight: 500;">Cancel</button>
+                <button onclick="acceptConfirm()" style="padding: 0.5rem 1.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Confirm</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(confirmDiv);
+    
+    window.acceptConfirm = function() {
+        confirmDiv.remove();
+        if (onConfirm) onConfirm();
     };
     
-    APP.projects.push(project);
-    APP.lastUpdated = new Date().toLocaleDateString();
-    document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
-    
-    renderProjects();
-    document.querySelector('.modal').remove();
-    showNotification('Project created successfully');
+    window.cancelConfirm = function() {
+        confirmDiv.remove();
+    };
 }
 
-function openEditModal(projectId) {
-    const project = APP.projects.find(p => p.id === projectId);
+function markComplete(id) {
+    const project = APP.projects.find(p => p.id === id);
     if (!project) return;
     
-    const modal = document.createElement('div');
-    modal.className = 'modal';
+    showConfirm(`Mark "${project.title}" as complete?`, function() {
+        project.status = 'complete';
+        
+        saveToLocalStorage();
+        updateStats();
+        renderProjects();
+        showNotification('Project marked as complete', 'success');
+    });
+}
+
+function deleteProject(id) {
+    const project = APP.projects.find(p => p.id === id);
+    if (!project) return;
+    
+    showConfirm(`Delete project "${project.title}"? This action cannot be undone.`, function() {
+        APP.projects = APP.projects.filter(p => p.id !== id);
+        
+        saveToLocalStorage();
+        updateStats();
+        renderProjects();
+        showNotification('Project deleted successfully', 'success');
+    });
+}
+
+function openCreateModal() {
+    if (APP.categories.length === 0) {
+        showNotification('Please upload a PKD file first or add categories in Manage Settings', 'error');
+        return;
+    }
+    
+    APP.currentEditingProject = null;
+    APP.currentProjectLinks = [];
+    
+    const modal = createEditModal();
+    document.body.appendChild(modal);
+    
+    const maxId = APP.projects.length > 0 ? Math.max(...APP.projects.map(p => p.id)) + 1 : 1;
+    document.getElementById('projectIdInput').value = maxId;
+    
+    const maxPriority = APP.projects.length > 0 ? Math.max(...APP.projects.map(p => p.priority || 999)) + 1 : 1;
+    document.getElementById('projectPriorityInput').value = maxPriority;
+    
+    const statusSelect = document.getElementById('projectStatusSelect');
+    if (APP.statuses.includes('idea')) {
+        statusSelect.value = 'idea';
+    } else if (APP.statuses.length > 0) {
+        statusSelect.value = APP.statuses[0];
+    }
+    
     modal.style.display = 'block';
+}
+
+function openEditModal(id) {
+    APP.currentEditingProject = id;
+    const project = APP.projects.find(p => p.id === id);
+    if (!project) return;
     
-    const linksText = project.links ? project.links.map(l => `${l.title} | ${l.url}`).join('\n') : '';
+    APP.currentProjectLinks = project.links ? [...project.links] : [];
     
+    const modal = createEditModal();
+    document.body.appendChild(modal);
+    
+    document.getElementById('projectIdInput').value = project.id;
+    document.getElementById('projectTitleInput').value = project.title;
+    document.getElementById('projectStatusSelect').value = project.status;
+    document.getElementById('projectPriorityInput').value = project.priority || 999;
+    document.getElementById('projectDetailsInput').value = project.keyDetails || '';
+    document.getElementById('projectNextStepsInput').value = project.nextSteps || '';
+    
+    if (project.categories) {
+        project.categories.forEach(cat => {
+            const checkbox = document.getElementById(`cat-check-${cat}`);
+            if (checkbox) checkbox.checked = true;
+        });
+    }
+    
+    if (project.users && project.users.length > 0) {
+        project.users.forEach(user => {
+            const checkbox = document.getElementById(`user-check-${user}`);
+            if (checkbox) checkbox.checked = true;
+        });
+    }
+    
+    updateLinksDisplay();
+    modal.style.display = 'block';
+}
+
+function createEditModal() {
+    const existing = document.getElementById('editModal');
+    if (existing) existing.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'editModal';
+    modal.className = 'modal';
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Edit Project #${project.id}</h2>
-                <button class="close-btn" onclick="this.closest('.modal').remove()">×</button>
+                <h2>${APP.currentEditingProject ? 'Edit Project' : 'Create New Project'}</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
             </div>
-            
+            <div class="form-group">
+                <label class="form-label">Project ID</label>
+                <input type="text" class="form-input" id="projectIdInput" disabled>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority (lower numbers appear first)</label>
+                <input type="number" class="form-input" id="projectPriorityInput" placeholder="1" min="1">
+            </div>
             <div class="form-group">
                 <label class="form-label">Title *</label>
-                <input type="text" class="form-input" id="editProjectTitle" value="${escapeHtml(project.title)}" required>
+                <input type="text" class="form-input" id="projectTitleInput" placeholder="Enter project title">
             </div>
-            
             <div class="form-group">
-                <label class="form-label">Status *</label>
-                <select class="form-select" id="editProjectStatus">
-                    ${APP.statuses.map(s => `<option value="${s}" ${s === project.status ? 'selected' : ''}>${s}</option>`).join('')}
+                <label class="form-label">Status</label>
+                <select class="form-select" id="projectStatusSelect">
+                    ${APP.statuses.length > 0 ? 
+                        APP.statuses.map(s => `<option value="${s}">${s}</option>`).join('') :
+                        '<option value="idea">idea</option>'}
                 </select>
             </div>
-            
-            <div class="form-group">
-                <label class="form-label">Priority</label>
-                <input type="number" class="form-input" id="editProjectPriority" value="${project.priority}">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Categories</label>
-                <div class="checkbox-group">
-                    ${APP.categories.map(cat => `
-                        <label class="checkbox-label">
-                            <input type="checkbox" value="${cat}" class="category-checkbox" ${project.categories && project.categories.includes(cat) ? 'checked' : ''}>
-                            ${cat}
-                        </label>
-                    `).join('')}
-                </div>
-            </div>
-            
             <div class="form-group">
                 <label class="form-label">Users</label>
-                <div class="checkbox-group">
-                    ${APP.users.map(user => `
-                        <label class="checkbox-label">
-                            <input type="checkbox" value="${user}" class="user-checkbox" ${project.users && project.users.includes(user) ? 'checked' : ''}>
-                            ${user}
-                        </label>
-                    `).join('')}
+                <div id="userCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    ${APP.users.length > 0 ? 
+                        APP.users.map(user => `
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" id="user-check-${user}" value="${user}">
+                                ${user}
+                            </label>
+                        `).join('') :
+                        '<span style="color: var(--text-secondary);">No users available</span>'}
                 </div>
             </div>
-            
+            <div class="form-group">
+                <label class="form-label">Categories ${APP.categories.length === 0 ? '(Add categories in Manage Settings)' : '*'}</label>
+                <div id="categoryCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    ${APP.categories.length > 0 ? 
+                        APP.categories.map(cat => `
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" id="cat-check-${cat}" value="${cat}">
+                                ${cat}
+                            </label>
+                        `).join('') :
+                        '<span style="color: var(--text-secondary);">No categories available</span>'}
+                </div>
+            </div>
             <div class="form-group">
                 <label class="form-label">Key Details</label>
-                <textarea class="form-textarea" id="editProjectDetails">${project.keyDetails || ''}</textarea>
+                <textarea class="form-textarea" id="projectDetailsInput" placeholder="Enter key details..."></textarea>
             </div>
-            
             <div class="form-group">
                 <label class="form-label">Next Steps</label>
-                <textarea class="form-textarea" id="editProjectNextSteps">${project.nextSteps || ''}</textarea>
+                <textarea class="form-textarea" id="projectNextStepsInput" placeholder="Enter next steps..."></textarea>
             </div>
-            
             <div class="form-group">
-                <label class="form-label">Links (one per line, format: Title | URL)</label>
-                <textarea class="form-textarea" id="editProjectLinks">${linksText}</textarea>
+                <label class="form-label">Links</label>
+                <div id="projectLinksDisplay" style="margin-bottom: 1rem;"></div>
+                <button class="btn-primary" onclick="addLink()" style="font-size: 0.875rem; padding: 0.5rem 1rem;">Add Link</button>
             </div>
-            
-            <div class="modal-actions">
-                <button style="background: var(--bg-secondary); color: var(--text-primary);" onclick="this.closest('.modal').remove()">Cancel</button>
-                <button style="background: var(--pastel-blue); color: var(--bg-primary);" onclick="saveProject(${projectId})">Save Changes</button>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn-primary" onclick="closeEditModal()" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); font-weight: 500;">Cancel</button>
+                <button class="btn-save" onclick="saveProject()">Save Project</button>
             </div>
         </div>
     `;
     
-    document.body.appendChild(modal);
+    updateLinksDisplay();
+    return modal;
 }
 
-function saveProject(projectId) {
-    const project = APP.projects.find(p => p.id === projectId);
-    if (!project) return;
+function updateLinksDisplay() {
+    const container = document.getElementById('projectLinksDisplay');
+    if (!container) return;
     
-    const title = document.getElementById('editProjectTitle').value.trim();
+    if (APP.currentProjectLinks.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.875rem;">No links added</div>';
+    } else {
+        container.innerHTML = APP.currentProjectLinks.map((link, idx) => `
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a>
+                <button onclick="removeLink(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Remove</button>
+            </div>
+        `).join('');
+    }
+}
+
+function addLink() {
+    const container = document.getElementById('projectLinksDisplay');
+    if (!container) return;
+    
+    if (document.getElementById('linkAddForm')) return;
+    
+    const formDiv = document.createElement('div');
+    formDiv.id = 'linkAddForm';
+    formDiv.style.cssText = 'padding: 1rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 1rem;';
+    formDiv.innerHTML = `
+        <div style="margin-bottom: 0.5rem;">
+            <input type="text" id="linkAliasInput" placeholder="Display text" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); margin-bottom: 0.5rem;">
+            <input type="url" id="linkUrlInput" placeholder="https://example.com" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button onclick="saveLinkFromForm()" style="padding: 0.5rem 1rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Save</button>
+            <button onclick="cancelLinkForm()" style="padding: 0.5rem 1rem; background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); border-radius: 4px; cursor: pointer; font-weight: 500;">Cancel</button>
+        </div>
+    `;
+    
+    container.parentNode.insertBefore(formDiv, container);
+}
+
+function saveLinkFromForm() {
+    const aliasInput = document.getElementById('linkAliasInput');
+    const urlInput = document.getElementById('linkUrlInput');
+    
+    if (!aliasInput || !urlInput) return;
+    
+    const alias = aliasInput.value.trim();
+    const url = urlInput.value.trim();
+    
+    if (!alias || !url) {
+        showNotification('Please enter both display text and URL', 'error');
+        return;
+    }
+    
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        showNotification('URL must start with http:// or https://', 'error');
+        return;
+    }
+    
+    APP.currentProjectLinks.push({ alias, url });
+    updateLinksDisplay();
+    
+    const form = document.getElementById('linkAddForm');
+    if (form) form.remove();
+    
+    showNotification('Link added successfully', 'success');
+}
+
+function cancelLinkForm() {
+    const form = document.getElementById('linkAddForm');
+    if (form) form.remove();
+}
+
+function removeLink(index) {
+    APP.currentProjectLinks.splice(index, 1);
+    updateLinksDisplay();
+    showNotification('Link removed', 'success');
+}
+
+function saveProject() {
+    const id = parseInt(document.getElementById('projectIdInput').value);
+    const priority = parseInt(document.getElementById('projectPriorityInput').value) || 999;
+    const title = document.getElementById('projectTitleInput').value.trim();
+    const status = document.getElementById('projectStatusSelect').value;
+    const keyDetails = document.getElementById('projectDetailsInput').value.trim();
+    const nextSteps = document.getElementById('projectNextStepsInput').value.trim();
+    
+    const categories = [];
+    document.querySelectorAll('#categoryCheckboxes input:checked').forEach(cb => {
+        categories.push(cb.value);
+    });
+    
+    const users = [];
+    document.querySelectorAll('#userCheckboxes input:checked').forEach(cb => {
+        users.push(cb.value);
+    });
+    
     if (!title) {
         showNotification('Please enter a project title', 'error');
         return;
     }
     
-    const categories = Array.from(document.querySelectorAll('.category-checkbox:checked')).map(cb => cb.value);
-    const users = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
+    if (categories.length === 0) {
+        showNotification('Please select at least one category', 'error');
+        return;
+    }
     
-    const linksText = document.getElementById('editProjectLinks').value.trim();
-    const links = linksText ? linksText.split('\n').map(line => {
-        const parts = line.split('|').map(p => p.trim());
-        return parts.length === 2 ? { title: parts[0], url: parts[1] } : null;
-    }).filter(l => l) : [];
+    const projectData = {
+        id,
+        priority,
+        title,
+        status,
+        users: users,
+        categories,
+        keyDetails,
+        nextSteps,
+        links: APP.currentProjectLinks
+    };
     
-    project.title = title;
-    project.status = document.getElementById('editProjectStatus').value;
-    project.priority = parseInt(document.getElementById('editProjectPriority').value);
-    project.categories = categories;
-    project.users = users;
-    project.keyDetails = document.getElementById('editProjectDetails').value.trim();
-    project.nextSteps = document.getElementById('editProjectNextSteps').value.trim();
-    project.links = links;
+    if (APP.currentEditingProject) {
+        const index = APP.projects.findIndex(p => p.id === APP.currentEditingProject);
+        if (index !== -1) {
+            APP.projects[index] = projectData;
+            showNotification('Project updated successfully', 'success');
+        }
+    } else {
+        APP.projects.push(projectData);
+        showNotification('Project created successfully', 'success');
+    }
     
-    APP.lastUpdated = new Date().toLocaleDateString();
+    const now = new Date();
+    APP.lastUpdated = now.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
     document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
     
+    saveToLocalStorage();
+    updateStats();
     renderProjects();
-    document.querySelector('.modal').remove();
-    showNotification('Project updated successfully');
+    closeEditModal();
 }
 
-function toggleComplete(projectId) {
-    const project = APP.projects.find(p => p.id === projectId);
+function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    if (modal) modal.remove();
+}
+
+function openProjectModal(id) {
+    const project = APP.projects.find(p => p.id === id);
     if (!project) return;
     
-    project.status = project.status === 'completed' ? 'in-progress' : 'completed';
-    
-    APP.lastUpdated = new Date().toLocaleDateString();
-    document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
-    
-    renderProjects();
-    showNotification(`Project ${project.status === 'completed' ? 'completed' : 'reopened'}`);
+    const modal = document.createElement('div');
+    modal.id = 'projectModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>${project.title}</h2>
+                <button class="close-btn" onclick="closeProjectModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Project ID</label>
+                <div>${project.id}</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority</label>
+                <div>${project.priority || 999}</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <div><span style="background: var(--pastel-blue); color: var(--bg-primary); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.875rem; font-weight: 500;">${project.status}</span></div>
+            </div>
+            ${project.users && project.users.length > 0 ? `
+            <div class="form-group">
+                <label class="form-label">Assigned Users</label>
+                <div>${project.users.join(', ')}</div>
+            </div>
+            ` : ''}
+            <div class="form-group">
+                <label class="form-label">Categories</label>
+                <div>${project.categories ? project.categories.join(', ') : 'None'}</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Key Details</label>
+                <div style="white-space: pre-wrap; line-height: 1.5;">${project.keyDetails || 'No details provided'}</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Next Steps</label>
+                <div style="white-space: pre-wrap; line-height: 1.5;">${project.nextSteps || 'No next steps defined'}</div>
+            </div>
+            ${project.links && project.links.length > 0 ? `
+                <div class="form-group">
+                    <label class="form-label">Links</label>
+                    <div>
+                        ${project.links.map(link => 
+                            `<div style="margin-bottom: 0.5rem;"><a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a></div>`
+                        ).join('')}
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.style.display = 'block';
 }
 
-function deleteProject(projectId) {
-    const project = APP.projects.find(p => p.id === projectId);
-    if (!project) return;
-    
-    const confirmDelete = confirm(`Are you sure you want to delete "${project.title}"?`);
-    if (!confirmDelete) return;
-    
-    APP.projects = APP.projects.filter(p => p.id !== projectId);
-    
-    APP.lastUpdated = new Date().toLocaleDateString();
-    document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
-    
-    renderProjects();
-    showNotification('Project deleted successfully');
+function closeProjectModal() {
+    const modal = document.getElementById('projectModal');
+    if (modal) modal.remove();
 }
 
-// Manage Settings Modal
 function openManageModal() {
     const modal = document.createElement('div');
+    modal.id = 'manageModal';
     modal.className = 'modal';
-    modal.style.display = 'block';
-    
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Manage Settings</h2>
-                <button class="close-btn" onclick="this.closest('.modal').remove()">×</button>
+                <button class="close-btn" onclick="closeManageModal()">&times;</button>
             </div>
             
-            <div class="settings-section">
-                <h3>Project Categories</h3>
-                <div class="settings-list" id="categoriesList"></div>
-                <div class="add-item-form">
-                    <input type="text" id="newCategory" placeholder="New category name">
-                    <button onclick="addCategory()">Add</button>
+            <div class="form-group">
+                <label class="form-label">Categories</label>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <input type="text" class="form-input" id="newCategoryInput" placeholder="Enter category name" style="flex: 1;">
+                    <button class="btn-save" onclick="addCategory()">Add</button>
+                </div>
+                <div id="categoriesList">
+                    ${APP.categories.map((cat, idx) => `
+                        <div class="settings-list-item">
+                            <span class="drag-handle">≡</span>
+                            <input type="text" id="cat-edit-${idx}" value="${cat}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                            <button onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
             
-            <div class="settings-section">
-                <h3>Project Statuses</h3>
-                <div class="settings-list" id="statusesList"></div>
-                <div class="add-item-form">
-                    <input type="text" id="newStatus" placeholder="New status name">
-                    <button onclick="addStatus()">Add</button>
+            <div class="form-group">
+                <label class="form-label">Statuses</label>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <input type="text" class="form-input" id="newStatusInput" placeholder="Enter status name" style="flex: 1;">
+                    <button class="btn-save" onclick="addStatus()">Add</button>
+                </div>
+                <div id="statusesList">
+                    ${APP.statuses.map((status, idx) => `
+                        <div class="settings-list-item">
+                            <span class="drag-handle">≡</span>
+                            <input type="text" id="status-edit-${idx}" value="${status}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                            <button onclick="deleteStatus('${status}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
             
-            <div class="settings-section">
-                <h3>Users</h3>
-                <div class="settings-list" id="usersList"></div>
-                <div class="add-item-form">
-                    <input type="text" id="newUser" placeholder="New user name">
-                    <button onclick="addUser()">Add</button>
+            <div class="form-group">
+                <label class="form-label">Users</label>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <input type="text" class="form-input" id="newUserInput" placeholder="Enter user name" style="flex: 1;">
+                    <button class="btn-save" onclick="addUser()">Add</button>
                 </div>
-            </div>
-            
-            <div class="modal-actions">
-                <button style="background: var(--pastel-blue); color: var(--bg-primary);" onclick="this.closest('.modal').remove()">Close</button>
+                <div id="usersList">
+                    ${APP.users.map((user, idx) => `
+                        <div class="settings-list-item">
+                            <span class="drag-handle">≡</span>
+                            <input type="text" id="user-edit-${idx}" value="${user}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                            <button onclick="deleteUser('${user.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         </div>
     `;
-    
     document.body.appendChild(modal);
-    renderSettingsLists();
+    modal.style.display = 'block';
 }
 
-function renderSettingsLists() {
-    const categoriesList = document.getElementById('categoriesList');
-    const statusesList = document.getElementById('statusesList');
-    const usersList = document.getElementById('usersList');
-    
-    categoriesList.innerHTML = APP.categories.map(cat => `
-        <div class="settings-item">
-            <span class="settings-item-name">${cat}</span>
-            <div class="settings-item-actions">
-                <button style="background: var(--pastel-red); color: var(--bg-primary);" onclick="removeCategory('${cat}')">Remove</button>
-            </div>
-        </div>
-    `).join('');
-    
-    statusesList.innerHTML = APP.statuses.map(status => `
-        <div class="settings-item">
-            <span class="settings-item-name">${status}</span>
-            <div class="settings-item-actions">
-                <button style="background: var(--pastel-red); color: var(--bg-primary);" onclick="removeStatus('${status}')">Remove</button>
-            </div>
-        </div>
-    `).join('');
-    
-    usersList.innerHTML = APP.users.map(user => `
-        <div class="settings-item">
-            <span class="settings-item-name">${user}</span>
-            <div class="settings-item-actions">
-                <button style="background: var(--pastel-red); color: var(--bg-primary);" onclick="removeUser('${user}')">Remove</button>
-            </div>
-        </div>
-    `).join('');
+function closeManageModal() {
+    const modal = document.getElementById('manageModal');
+    if (modal) modal.remove();
 }
 
 function addCategory() {
-    const input = document.getElementById('newCategory');
-    const value = input.value.trim();
-    if (!value) return;
+    const input = document.getElementById('newCategoryInput');
+    const category = input.value.trim();
     
-    if (!APP.categories.includes(value)) {
-        APP.categories.push(value);
-        APP.categories.sort();
-        renderSettingsLists();
-        input.value = '';
-        showNotification('Category added');
-    } else {
-        showNotification('Category already exists', 'error');
+    if (!category) {
+        showNotification('Please enter a category name', 'error');
+        return;
     }
+    
+    if (APP.categories.includes(category)) {
+        showNotification('This category already exists', 'error');
+        return;
+    }
+    
+    APP.categories.push(category);
+    saveToLocalStorage();
+    updateFilterDropdowns();
+    closeManageModal();
+    setTimeout(() => openManageModal(), 100);
+    showNotification('Category added successfully', 'success');
 }
 
-function removeCategory(category) {
-    APP.categories = APP.categories.filter(c => c !== category);
-    renderSettingsLists();
-    showNotification('Category removed');
+function deleteCategory(category) {
+    showConfirm(`Delete category "${category}"? This will remove it from all projects.`, function() {
+        APP.categories = APP.categories.filter(c => c !== category);
+        APP.projects.forEach(p => {
+            if (p.categories) {
+                p.categories = p.categories.filter(c => c !== category);
+            }
+        });
+        saveToLocalStorage();
+        updateFilterDropdowns();
+        renderProjects();
+        closeManageModal();
+        setTimeout(() => openManageModal(), 100);
+        showNotification('Category deleted successfully', 'success');
+    });
 }
 
 function addStatus() {
-    const input = document.getElementById('newStatus');
-    const value = input.value.trim().toLowerCase().replace(/\s+/g, '-');
-    if (!value) return;
+    const input = document.getElementById('newStatusInput');
+    const status = input.value.trim().toLowerCase().replace(/\s+/g, '-');
     
-    if (!APP.statuses.includes(value)) {
-        APP.statuses.push(value);
-        renderSettingsLists();
-        input.value = '';
-        showNotification('Status added');
-    } else {
-        showNotification('Status already exists', 'error');
+    if (!status) {
+        showNotification('Please enter a status name', 'error');
+        return;
     }
+    
+    if (APP.statuses.includes(status)) {
+        showNotification('This status already exists', 'error');
+        return;
+    }
+    
+    APP.statuses.push(status);
+    saveToLocalStorage();
+    updateFilterDropdowns();
+    closeManageModal();
+    setTimeout(() => openManageModal(), 100);
+    showNotification('Status added successfully', 'success');
 }
 
-function removeStatus(status) {
-    APP.statuses = APP.statuses.filter(s => s !== status);
-    renderSettingsLists();
-    showNotification('Status removed');
+function deleteStatus(status) {
+    showConfirm(`Delete status "${status}"? Projects with this status will be set to "idea".`, function() {
+        APP.statuses = APP.statuses.filter(s => s !== status);
+        APP.projects.forEach(p => {
+            if (p.status === status) p.status = 'idea';
+        });
+        saveToLocalStorage();
+        updateFilterDropdowns();
+        renderProjects();
+        closeManageModal();
+        setTimeout(() => openManageModal(), 100);
+        showNotification('Status deleted successfully', 'success');
+    });
 }
 
 function addUser() {
-    const input = document.getElementById('newUser');
-    const value = input.value.trim();
-    if (!value) return;
+    const input = document.getElementById('newUserInput');
+    const user = input.value.trim();
     
-    if (!APP.users.includes(value)) {
-        APP.users.push(value);
-        APP.users.sort();
-        renderSettingsLists();
-        input.value = '';
-        showNotification('User added');
-    } else {
-        showNotification('User already exists', 'error');
+    if (!user) {
+        showNotification('Please enter a user name', 'error');
+        return;
     }
-}
-
-function removeUser(user) {
-    APP.users = APP.users.filter(u => u !== user);
-    renderSettingsLists();
-    showNotification('User removed');
-}
-
-// Notes Management
-function switchNoteType() {
-    saveCurrentNote();
-    APP.currentNoteType = document.getElementById('noteTypeSelect').value;
-    document.getElementById('notesTextarea').value = APP.notes[APP.currentNoteType] || '';
-}
-
-function saveCurrentNote() {
-    APP.notes[APP.currentNoteType] = document.getElementById('notesTextarea').value;
-    showNotification('Notes saved');
-}
-
-function clearCurrentNote() {
-    if (confirm('Are you sure you want to clear these notes?')) {
-        APP.notes[APP.currentNoteType] = '';
-        document.getElementById('notesTextarea').value = '';
-        showNotification('Notes cleared');
-    }
-}
-
-// Export PKD
-function exportPKD() {
-    let content = `**PKD Dashboard Export**\n\n`;
-    content += `**Last Updated**: ${APP.lastUpdated}\n\n`;
     
-    // Export Notes
-    content += `**Notes**\n\n`;
-    Object.keys(APP.notes).forEach(noteType => {
-        if (APP.notes[noteType]) {
-            const displayName = noteType.charAt(0).toUpperCase() + noteType.slice(1);
-            content += `**${displayName}**\n\n`;
-            content += `${APP.notes[noteType]}\n\n`;
-        }
+    if (APP.users.includes(user)) {
+        showNotification('This user already exists', 'error');
+        return;
+    }
+    
+    APP.users.push(user);
+    saveToLocalStorage();
+    updateFilterDropdowns();
+    closeManageModal();
+    setTimeout(() => openManageModal(), 100);
+    showNotification('User added successfully', 'success');
+}
+
+function deleteUser(user) {
+    showConfirm(`Delete user "${user}"? This will remove them from all projects.`, function() {
+        APP.users = APP.users.filter(u => u !== user);
+        APP.projects.forEach(p => {
+            if (p.users && p.users.length > 0) {
+                p.users = p.users.filter(u => u !== user);
+            }
+        });
+        saveToLocalStorage();
+        updateFilterDropdowns();
+        renderProjects();
+        closeManageModal();
+        setTimeout(() => openManageModal(), 100);
+        showNotification('User deleted successfully', 'success');
     });
+}
+
+function exportPKD() {
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+
+    let content = `**Project Knowledge Document**\n\n`;
+    content += `*Last Updated: ${dateStr}*\n\n`;
+    content += `**Quick Reference List**\n\n`;
     
-    if (APP.categories.length > 0) {
-        content += `**Project Categories**\n\n`;
-        APP.categories.forEach(cat => {
-            content += `-   ${cat}\n`;
-        });
-        content += `\n`;
-    }
-    
-    if (APP.statuses.length > 0) {
-        content += `**Project Statuses**\n\n`;
-        APP.statuses.forEach(status => {
-            content += `-   ${status}\n`;
-        });
-        content += `\n`;
-    }
+    APP.projects.forEach((project, index) => {
+        content += `${index + 1}.  ${project.title}\n\n`;
+    });
     
     if (APP.users.length > 0) {
         content += `**Users List**\n\n`;
@@ -826,20 +1027,20 @@ function exportPKD() {
     
     content += `**Active Projects**\n\n`;
     
-    APP.projects.forEach(project => {
-        content += `**${project.id}. ${project.title}**\n\n`;
-        content += `-   **Status**: ${project.status}\n\n`;
-        content += `-   **Priority**: ${project.priority || 999}\n\n`;
-        content += `-   **Project Category**: ${project.categories ? project.categories.join(', ') : ''}\n\n`;
-        if (project.users && project.users.length > 0) {
-            content += `-   **Users**: ${project.users.join(', ')}\n\n`;
+    APP.projects.forEach(proj => {
+        content += `**${proj.id}. ${proj.title}**\n\n`;
+        content += `-   **Status**: ${proj.status}\n\n`;
+        content += `-   **Priority**: ${proj.priority || 999}\n\n`;
+        content += `-   **Project Category**: ${proj.categories ? proj.categories.join(', ') : ''}\n\n`;
+        if (proj.users && proj.users.length > 0) {
+            content += `-   **Users**: ${proj.users.join(', ')}\n\n`;
         }
         
         content += `-   **Key Details**: `;
-        if (project.keyDetails && project.keyDetails.trim()) {
-            const detailLines = project.keyDetails.split('\n');
+        if (proj.keyDetails && proj.keyDetails.trim()) {
+            const detailLines = proj.keyDetails.split('\n');
             if (detailLines.length === 1) {
-                content += `${project.keyDetails}\n\n`;
+                content += `${proj.keyDetails}\n\n`;
             } else {
                 content += `\n`;
                 detailLines.forEach((line) => {
@@ -852,10 +1053,10 @@ function exportPKD() {
         }
         
         content += `-   **Next Steps**: `;
-        if (project.nextSteps && project.nextSteps.trim()) {
-            const stepLines = project.nextSteps.split('\n');
+        if (proj.nextSteps && proj.nextSteps.trim()) {
+            const stepLines = proj.nextSteps.split('\n');
             if (stepLines.length === 1) {
-                content += `${project.nextSteps}\n\n`;
+                content += `${proj.nextSteps}\n\n`;
             } else {
                 content += `\n`;
                 stepLines.forEach((line) => {
@@ -867,152 +1068,99 @@ function exportPKD() {
             content += '\n\n';
         }
         
-        if (project.links && project.links.length > 0) {
+        if (proj.links && proj.links.length > 0) {
             content += `-   **Links**: `;
-            project.links.forEach((link, idx) => {
+            proj.links.forEach((link, idx) => {
                 if (idx > 0) content += ', ';
-                content += `[${link.title}](${link.url})`;
+                content += `[${link.alias}](${link.url})`;
             });
             content += '\n\n';
         }
     });
     
+    content += `**Notes**\n\n`;
+    
+    const noteNames = Object.keys(APP.notes);
+    const displayNoteNames = {
+        'nymbl': 'Nymbl',
+        'cindy': 'Cindy',
+        'me': 'Personal'
+    };
+    
+    noteNames.forEach(noteKey => {
+        const displayName = displayNoteNames[noteKey] || 
+            noteKey.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        
+        content += `**${displayName} Notes:**\n`;
+        if (APP.notes[noteKey] && APP.notes[noteKey].trim()) {
+            const noteLines = APP.notes[noteKey].split('\n');
+            noteLines.forEach(line => {
+                content += `${line}\n`;
+            });
+        } else {
+            content += `(No notes)\n`;
+        }
+        content += '\n';
+    });
+    
+    content += `**Weekly Review Checklist**\n\n`;
+    content += `-   [ ] Update project statuses\n\n`;
+    content += `-   [ ] Review blockers and dependencies\n\n`;
+    content += `-   [ ] Check upcoming deadlines\n\n`;
+    content += `-   [ ] Update team member progress\n\n`;
+    content += `-   [ ] Document completed milestones\n\n`;
+    content += `-   [ ] Plan next week's priorities\n\n`;
+    
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `PKD_${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
+    a.download = `PKD_${today.getFullYear()}_${(today.getMonth() + 1).toString().padStart(2, '0')}_${today.getDate().toString().padStart(2, '0')}.txt`;
     a.click();
-    document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    showNotification('PKD exported successfully');
+    APP.lastUpdated = dateStr;
+    document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
+    saveToLocalStorage();
+    showNotification('PKD exported successfully', 'success');
 }
 
-// Import PKD
 function parsePKDContent(content) {
-    const lines = content.split('\n');
     const result = {
         projects: [],
         categories: [],
         statuses: [],
         users: [],
+        lastUpdated: 'Never',
         notes: {
             nymbl: '',
-            ben: '',
             cindy: '',
-            general: ''
-        },
-        lastUpdated: 'Never'
+            me: ''
+        }
     };
     
-    const categoriesSet = new Set(APP.categories);
-    const statusesSet = new Set(APP.statuses);
-    const usersSet = new Set(APP.users);
+    const categoriesSet = new Set();
+    const statusesSet = new Set();
+    const usersSet = new Set();
     
-    let lastUpdatedStart = -1;
-    let notesStart = -1;
-    let categoriesStart = -1;
-    let statusesStart = -1;
-    let usersStart = -1;
-    let projectsStart = -1;
+    const lines = content.split('\n');
     
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (line.includes('**Last Updated**:')) lastUpdatedStart = i;
-        if (line === '**Notes**') notesStart = i;
-        if (line === '**Project Categories**') categoriesStart = i;
-        if (line === '**Project Statuses**') statusesStart = i;
-        if (line === '**Users List**') usersStart = i;
-        if (line === '**Active Projects**') projectsStart = i;
-    }
-    
-    if (lastUpdatedStart !== -1) {
-        const line = lines[lastUpdatedStart];
-        const parts = line.split('**Last Updated**:');
-        if (parts.length > 1) {
-            result.lastUpdated = parts[1].trim();
-        }
-    }
-    
-    if (notesStart !== -1) {
-        const notesEnd = categoriesStart !== -1 ? categoriesStart : 
-                         statusesStart !== -1 ? statusesStart :
-                         usersStart !== -1 ? usersStart :
-                         projectsStart !== -1 ? projectsStart : lines.length;
-        
-        let currentNoteType = null;
-        let currentNoteLines = [];
-        
-        for (let i = notesStart + 1; i < notesEnd; i++) {
-            const line = lines[i];
-            const trimmedLine = line.trim();
-            
-            if (trimmedLine === '**Nymbl**') {
-                if (currentNoteType && currentNoteLines.length > 0) {
-                    result.notes[currentNoteType] = currentNoteLines.join('\n').trim();
-                }
-                currentNoteType = 'nymbl';
-                currentNoteLines = [];
-            } else if (trimmedLine === '**Ben**') {
-                if (currentNoteType && currentNoteLines.length > 0) {
-                    result.notes[currentNoteType] = currentNoteLines.join('\n').trim();
-                }
-                currentNoteType = 'ben';
-                currentNoteLines = [];
-            } else if (trimmedLine === '**Cindy**') {
-                if (currentNoteType && currentNoteLines.length > 0) {
-                    result.notes[currentNoteType] = currentNoteLines.join('\n').trim();
-                }
-                currentNoteType = 'cindy';
-                currentNoteLines = [];
-            } else if (trimmedLine === '**General**') {
-                if (currentNoteType && currentNoteLines.length > 0) {
-                    result.notes[currentNoteType] = currentNoteLines.join('\n').trim();
-                }
-                currentNoteType = 'general';
-                currentNoteLines = [];
-            } else if (currentNoteType && trimmedLine && !trimmedLine.startsWith('**')) {
-                currentNoteLines.push(line);
-            }
-        }
-        
-        if (currentNoteType && currentNoteLines.length > 0) {
-            result.notes[currentNoteType] = currentNoteLines.join('\n').trim();
-        }
-    }
-    
-    if (categoriesStart !== -1) {
-        const categoriesEnd = statusesStart !== -1 ? statusesStart : 
-                             usersStart !== -1 ? usersStart :
-                             projectsStart !== -1 ? projectsStart : lines.length;
-        for (let i = categoriesStart + 1; i < categoriesEnd; i++) {
-            const line = lines[i].trim();
-            if (line.startsWith('-')) {
-                const category = line.replace(/^-\s*/, '').trim();
-                if (category && !line.includes('**')) {
-                    categoriesSet.add(category);
-                }
+    for (let i = 0; i < Math.min(lines.length, 10); i++) {
+        const line = lines[i];
+        if (line.includes('Last Updated:')) {
+            const match = line.match(/\*Last Updated:\s*(.+?)\*/);
+            if (match) {
+                result.lastUpdated = match[1].trim();
+                break;
             }
         }
     }
     
-    if (statusesStart !== -1) {
-        const statusesEnd = usersStart !== -1 ? usersStart :
-                           projectsStart !== -1 ? projectsStart : lines.length;
-        for (let i = statusesStart + 1; i < statusesEnd; i++) {
-            const line = lines[i].trim();
-            if (line.startsWith('-')) {
-                const status = line.replace(/^-\s*/, '').trim();
-                if (status && !line.includes('**')) {
-                    statusesSet.add(status);
-                }
-            }
-        }
-    }
+    const projectsStart = lines.findIndex(line => line.includes('**Active Projects**'));
+    const notesStart = lines.findIndex(line => line.includes('**Notes**'));
+    const usersStart = lines.findIndex(line => line.includes('**Users List**'));
     
-    if (usersStart !== -1) {
+    if (usersStart !== -1 && usersStart < projectsStart) {
         const usersEnd = projectsStart !== -1 ? projectsStart : lines.length;
         for (let i = usersStart + 1; i < usersEnd; i++) {
             const line = lines[i].trim();
@@ -1031,7 +1179,7 @@ function parsePKDContent(content) {
     }
     
     let currentProject = null;
-    const projectsEnd = lines.length;
+    const projectsEnd = notesStart !== -1 ? notesStart : lines.length;
     
     for (let i = projectsStart + 1; i < projectsEnd; i++) {
         const line = lines[i];
@@ -1090,8 +1238,7 @@ function parsePKDContent(content) {
         }
         
         if (line.includes('**User**:') || line.includes('**Users**:')) {
-            const parts = line.includes('**Users**:') ? 
-                line.split('**Users**:') : line.split('**User**:');
+            const parts = line.includes('**Users**:') ? line.split('**Users**:') : line.split('**User**:');
             if (parts.length > 1) {
                 const usersString = parts[1].trim();
                 if (usersString) {
@@ -1140,27 +1287,72 @@ function parsePKDContent(content) {
             const parts = line.split('**Links**:');
             if (parts.length > 1) {
                 const linksText = parts[1].trim();
-                const linkMatches = linksText.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g);
-                currentProject.links = [];
-                for (const match of linkMatches) {
-                    currentProject.links.push({
-                        title: match[1],
-                        url: match[2]
-                    });
-                }
+                const linkMatches = [...linksText.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)];
+                linkMatches.forEach(match => {
+                    currentProject.links.push({ alias: match[1], url: match[2] });
+                });
             }
+        }
+        
+        if (line.includes('**Weekly Review Checklist**')) {
+            if (currentProject) {
+                result.projects.push(currentProject);
+            }
+            break;
         }
     }
     
-    if (currentProject) {
+    if (currentProject && !result.projects.find(p => p.id === currentProject.id)) {
         result.projects.push(currentProject);
     }
     
-    Object.keys(result.notes).forEach(key => {
-        if (result.notes[key]) {
-            result.notes[key] = result.notes[key].split('\n').map(line => line.trim()).join('\n').trim();
+    if (notesStart !== -1) {
+        let currentNote = null;
+        let noteContent = {};
+        
+        noteContent.nymbl = [];
+        noteContent.cindy = [];
+        noteContent.me = [];
+        
+        for (let i = notesStart + 1; i < lines.length; i++) {
+            const line = lines[i];
+            
+            const noteHeaderMatch = line.match(/\*\*(.+?)\s+Notes:\*\*/);
+            if (noteHeaderMatch) {
+                const noteName = noteHeaderMatch[1];
+                if (noteName === 'Nymbl') {
+                    currentNote = 'nymbl';
+                } else if (noteName === 'Cindy') {
+                    currentNote = 'cindy';
+                } else if (noteName === 'Personal') {
+                    currentNote = 'me';
+                } else {
+                    const noteKey = noteName.toLowerCase().replace(/\s+/g, '_');
+                    currentNote = noteKey;
+                    if (!noteContent[noteKey]) {
+                        noteContent[noteKey] = [];
+                    }
+                }
+                continue;
+            } else if (line.includes('**Weekly Review Checklist**')) {
+                break;
+            } else if (line.startsWith('**') && line.endsWith('**') && !line.includes('Notes:')) {
+                currentNote = null;
+                continue;
+            }
+            
+            if (currentNote && !line.includes('(No notes)')) {
+                if (!noteContent[currentNote]) {
+                    noteContent[currentNote] = [];
+                }
+                noteContent[currentNote].push(line);
+            }
         }
-    });
+        
+        Object.keys(noteContent).forEach(key => {
+            result.notes[key] = noteContent[key].join('\n').trim();
+        });
+    }
     
     result.categories = Array.from(categoriesSet).sort();
     result.statuses = Array.from(statusesSet).sort();
@@ -1191,14 +1383,39 @@ function handleFileUpload(event) {
                 APP.users = parsed.users;
                 APP.notes = parsed.notes;
                 
-                // Update notes display
-                const selector = document.getElementById('noteTypeSelect');
+                const selector = document.getElementById('notesSelector');
                 if (selector) {
-                    const currentType = selector.value;
-                    document.getElementById('notesTextarea').value = APP.notes[currentType] || '';
+                    selector.innerHTML = '';
+                    
+                    const displayNames = {
+                        'nymbl': 'Nymbl',
+                        'cindy': 'Cindy',
+                        'me': 'Me'
+                    };
+                    
+                    Object.keys(APP.notes).forEach(noteKey => {
+                        const option = document.createElement('option');
+                        const displayName = displayNames[noteKey] || 
+                            noteKey.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                        option.value = displayName;
+                        option.textContent = displayName;
+                        selector.appendChild(option);
+                    });
+                    
+                    if (Object.keys(APP.notes).length > 0) {
+                        const firstNoteKey = Object.keys(APP.notes)[0];
+                        const firstDisplayName = displayNames[firstNoteKey] || 
+                            firstNoteKey.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                        APP.currentNoteName = firstDisplayName;
+                        loadNotes();
+                    }
                 }
                 
+                saveToLocalStorage();
+                updateStats();
+                updateFilterDropdowns();
                 renderProjects();
+                
                 showNotification(`Loaded ${APP.projects.length} projects with ${APP.categories.length} categories and ${APP.users.length} users`, 'success');
             } else {
                 showNotification('No projects found in file', 'error');
@@ -1212,7 +1429,6 @@ function handleFileUpload(event) {
     event.target.value = '';
 }
 
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('passwordInput');
     if (passwordInput) {
