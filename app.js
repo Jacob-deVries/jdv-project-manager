@@ -664,6 +664,22 @@ function deleteProject(id) {
     });
 }
 
+function openProjectModal(id) {
+    showNotification('Project modal not yet implemented', 'info');
+}
+
+function openEditModal(id) {
+    showNotification('Edit modal not yet implemented', 'info');
+}
+
+function openCreateModal() {
+    showNotification('Create modal not yet implemented', 'info');
+}
+
+function openManageModal() {
+    showNotification('Manage modal not yet implemented', 'info');
+}
+
 // ============================================================================
 // NOTES MANAGEMENT
 // ============================================================================
@@ -879,7 +895,6 @@ function exportPKD() {
         content += '\n';
     });
     
-    // Export timeline data
     if (APP.timelineProjects.length > 0) {
         content += `**Timeline Data**\n\n`;
         content += `<!-- TIMELINE_DATA_START\n`;
@@ -936,7 +951,6 @@ function parsePKDContent(content) {
     
     const lines = content.split('\n');
     
-    // Extract timeline data if present
     const timelineDataMatch = content.match(/<!-- TIMELINE_DATA_START\n([\s\S]*?)\nTIMELINE_DATA_END -->/);
     if (timelineDataMatch) {
         try {
@@ -1187,7 +1201,6 @@ function handleFileUpload(event) {
                 APP.users = parsed.users;
                 APP.notes = parsed.notes;
                 
-                // Load timeline data
                 if (parsed.timelineProjects) {
                     APP.timelineProjects = parsed.timelineProjects;
                 }
@@ -1245,7 +1258,7 @@ function handleFileUpload(event) {
 }
 
 // ============================================================================
-// TIMELINE - Core Functions (Part 1)
+// TIMELINE - Core Functions
 // ============================================================================
 
 function renderTimeline() {
@@ -1256,7 +1269,6 @@ function renderTimeline() {
     const currentMonth = APP.timelineStartDate.getMonth();
     
     const months = [];
-    const years = [];
     
     for (let i = 0; i < APP.timelineMonthsToShow; i++) {
         const date = new Date(currentYear, currentMonth + i, 1);
@@ -1339,6 +1351,212 @@ function renderTimeline() {
     timelineWrapper.appendChild(totalsSection.firstChild);
 }
 
+function getFilteredTimelineProjects() {
+    return APP.timelineProjects.filter((tp, index) => {
+        const project = APP.projects.find(p => p.id === tp.projectId);
+        if (!project) return false;
+        
+        if (APP.timelineFilters.categories.length > 0) {
+            const hasCategory = project.categories && 
+                project.categories.some(cat => APP.timelineFilters.categories.includes(cat));
+            if (!hasCategory) return false;
+        }
+        
+        if (APP.timelineFilters.statuses.length > 0) {
+            if (!APP.timelineFilters.statuses.includes(project.status)) return false;
+        }
+        
+        if (APP.timelineFilters.users.length > 0) {
+            const hasUser = project.users && project.users.length > 0 &&
+                project.users.some(user => APP.timelineFilters.users.includes(user));
+            if (!hasUser) return false;
+        }
+        
+        return true;
+    }).map((tp, filteredIndex) => {
+        const originalIndex = APP.timelineProjects.indexOf(tp);
+        return { ...tp, originalIndex };
+    });
+}
+
+function renderTimelineProjectRow(timelineProjectData, displayIndex) {
+    const timelineProject = timelineProjectData;
+    const actualIndex = timelineProject.originalIndex !== undefined ? timelineProject.originalIndex : displayIndex;
+    const project = APP.projects.find(p => p.id === timelineProject.projectId);
+    if (!project) return '';
+    
+    const startDate = timelineProject.startDate || null;
+    const endDate = timelineProject.endDate || null;
+    
+    const currentYear = APP.timelineStartDate.getFullYear();
+    const currentMonth = APP.timelineStartDate.getMonth();
+    
+    let ganttHTML = '<div style="color: var(--text-secondary); font-size: 0.75rem; padding: 0.5rem;">Click to set timeline</div>';
+    
+    if (startDate && endDate) {
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        
+        const timelineStart = new Date(currentYear, currentMonth, 1);
+        
+        const startPosition = dateToMonthPosition(startDateObj, timelineStart);
+        const endPosition = dateToMonthPosition(endDateObj, timelineStart);
+        
+        const leftPercent = (startPosition / APP.timelineMonthsToShow) * 100;
+        const widthPercent = ((endPosition - startPosition) / APP.timelineMonthsToShow) * 100;
+        
+        if (leftPercent < 100 && leftPercent + widthPercent > 0) {
+            const clampedLeft = Math.max(0, leftPercent);
+            const clampedWidth = Math.min(100 - clampedLeft, widthPercent + Math.min(0, leftPercent));
+            
+            const label = formatDateRangeLabel(startDateObj, endDateObj);
+            
+            ganttHTML = `
+                <div class="timeline-gantt-bar" 
+                     style="left: ${clampedLeft}%; width: ${clampedWidth}%;"
+                     data-project-index="${actualIndex}">
+                    <div class="timeline-gantt-handle timeline-gantt-handle-left" 
+                         onmousedown="startGanttDrag(event, ${actualIndex}, 'resize-left')"></div>
+                    <div class="timeline-gantt-bar-body"
+                         onmousedown="startGanttDrag(event, ${actualIndex}, 'move')">
+                        ${label}
+                    </div>
+                    <div class="timeline-gantt-handle timeline-gantt-handle-right" 
+                         onmousedown="startGanttDrag(event, ${actualIndex}, 'resize-right')"></div>
+                </div>
+            `;
+        }
+    }
+    
+    return `
+        <div class="timeline-project-row" 
+             data-project-index="${actualIndex}"
+             draggable="true"
+             ondragstart="handleTimelineRowDragStart(event, ${actualIndex})"
+             ondragover="handleTimelineRowDragOver(event)"
+             ondrop="handleTimelineRowDrop(event, ${actualIndex})"
+             ondragend="handleTimelineRowDragEnd(event)"
+             ondragleave="handleTimelineRowDragLeave(event)">
+            <div class="timeline-project-info" onclick="openAllocationModal(${actualIndex})">
+                <div class="timeline-project-title">${project.title}</div>
+                <div class="timeline-project-users">
+                    ${project.users && project.users.length > 0 ? project.users.join(', ') : 'No users assigned'}
+                </div>
+            </div>
+            <div class="timeline-gantt-container" onclick="handleGanttContainerClick(event, ${actualIndex})">
+                ${ganttHTML}
+            </div>
+        </div>
+    `;
+}
+
+function renderTotalsTable() {
+    return '<div class="timeline-totals-section"><h3 class="timeline-totals-title">Resource Allocation Totals</h3><p style="color: var(--text-secondary);">Totals table not yet implemented</p></div>';
+}
+
+function dateToMonthPosition(date, timelineStart) {
+    const yearDiff = date.getFullYear() - timelineStart.getFullYear();
+    const monthDiff = date.getMonth() - timelineStart.getMonth();
+    return yearDiff * 12 + monthDiff;
+}
+
+function formatDateRangeLabel(startDate, endDate) {
+    const startStr = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const endStr = endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    return `${startStr} - ${endStr}`;
+}
+
+function shiftTimelineBack() {
+    const currentYear = APP.timelineStartDate.getFullYear();
+    const currentMonth = APP.timelineStartDate.getMonth();
+    APP.timelineStartDate = new Date(currentYear, currentMonth - 1, 1);
+    saveToLocalStorage();
+    renderTimeline();
+}
+
+function shiftTimelineForward() {
+    const currentYear = APP.timelineStartDate.getFullYear();
+    const currentMonth = APP.timelineStartDate.getMonth();
+    APP.timelineStartDate = new Date(currentYear, currentMonth + 1, 1);
+    saveToLocalStorage();
+    renderTimeline();
+}
+
+function resetTimelineToToday() {
+    APP.timelineStartDate = new Date();
+    APP.timelineStartDate.setDate(1);
+    saveToLocalStorage();
+    renderTimeline();
+}
+
+function changeTimelineMonths() {
+    const select = document.getElementById('timelineMonthsSelect');
+    APP.timelineMonthsToShow = parseInt(select.value);
+    saveToLocalStorage();
+    renderTimeline();
+}
+
+function handleGanttContainerClick(event, projectIndex) {
+    event.stopPropagation();
+    showNotification('Gantt click handler not yet implemented', 'info');
+}
+
+function startGanttDrag(event, projectIndex, dragType) {
+    event.stopPropagation();
+    showNotification('Gantt drag not yet implemented', 'info');
+}
+
+function openAllocationModal(projectIndex) {
+    showNotification('Allocation modal not yet implemented', 'info');
+}
+
+function handleTimelineRowDragStart(event, projectIndex) {
+    APP.timelineDragIndex = projectIndex;
+    event.target.classList.add('dragging');
+    event.dataTransfer.effectAllowed = 'move';
+}
+
+function handleTimelineRowDragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    const row = event.currentTarget;
+    if (!row.classList.contains('dragging')) {
+        row.classList.add('drag-over');
+    }
+}
+
+function handleTimelineRowDragLeave(event) {
+    const row = event.currentTarget;
+    row.classList.remove('drag-over');
+}
+
+function handleTimelineRowDrop(event, targetIndex) {
+    event.preventDefault();
+    const row = event.currentTarget;
+    row.classList.remove('drag-over');
+    
+    if (APP.timelineDragIndex === undefined || APP.timelineDragIndex === targetIndex) {
+        return;
+    }
+    
+    const draggedItem = APP.timelineProjects[APP.timelineDragIndex];
+    APP.timelineProjects.splice(APP.timelineDragIndex, 1);
+    
+    const newIndex = APP.timelineDragIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    APP.timelineProjects.splice(newIndex, 0, draggedItem);
+    
+    saveToLocalStorage();
+    renderTimeline();
+}
+
+function handleTimelineRowDragEnd(event) {
+    event.target.classList.remove('dragging');
+    APP.timelineDragIndex = undefined;
+    document.querySelectorAll('.timeline-project-row').forEach(row => {
+        row.classList.remove('drag-over');
+    });
+}
+
 // ============================================================================
 // TIMELINE - Add Project Functions
 // ============================================================================
@@ -1408,105 +1626,3 @@ function addProjectToTimeline(projectId) {
     closeAddTimelineProjectMenu();
     showNotification(`Added "${project.title}" to timeline`, 'success');
 }
-
-function getFilteredTimelineProjects() {
-    return APP.timelineProjects.filter((tp, index) => {
-        const project = APP.projects.find(p => p.id === tp.projectId);
-        if (!project) return false;
-        
-        if (APP.timelineFilters.categories.length > 0) {
-            const hasCategory = project.categories && 
-                project.categories.some(cat => APP.timelineFilters.categories.includes(cat));
-            if (!hasCategory) return false;
-        }
-        
-        if (APP.timelineFilters.statuses.length > 0) {
-            if (!APP.timelineFilters.statuses.includes(project.status)) return false;
-        }
-        
-        if (APP.timelineFilters.users.length > 0) {
-            const hasUser = project.users && project.users.length > 0 &&
-                project.users.some(user => APP.timelineFilters.users.includes(user));
-            if (!hasUser) return false;
-        }
-        
-        return true;
-    }).map((tp, filteredIndex) => {
-        const originalIndex = APP.timelineProjects.indexOf(tp);
-        return { ...tp, originalIndex };
-    });
-}
-
-function renderTimelineProjectRow(timelineProjectData, displayIndex) {
-    const timelineProject = timelineProjectData;
-    const actualIndex = timelineProject.originalIndex !== undefined ? timelineProject.originalIndex : displayIndex;
-    const project = APP.projects.find(p => p.id === timelineProject.projectId);
-    if (!project) return '';
-    
-    const allocations = timelineProject.allocations || {};
-    const startDate = timelineProject.startDate || null;
-    const endDate = timelineProject.endDate || null;
-    
-    const currentYear = APP.timelineStartDate.getFullYear();
-    const currentMonth = APP.timelineStartDate.getMonth();
-    
-    let ganttHTML = '<div style="color: var(--text-secondary); font-size: 0.75rem; padding: 0.5rem;">Click to set timeline</div>';
-    
-    if (startDate && endDate) {
-        const startDateObj = new Date(startDate);
-        const endDateObj = new Date(endDate);
-        
-        const timelineStart = new Date(currentYear, currentMonth, 1);
-        
-        const startPosition = dateToMonthPosition(startDateObj, timelineStart);
-        const endPosition = dateToMonthPosition(endDateObj, timelineStart);
-        
-        const leftPercent = (startPosition / APP.timelineMonthsToShow) * 100;
-        const widthPercent = ((endPosition - startPosition) / APP.timelineMonthsToShow) * 100;
-        
-        if (leftPercent < 100 && leftPercent + widthPercent > 0) {
-            const clampedLeft = Math.max(0, leftPercent);
-            const clampedWidth = Math.min(100 - clampedLeft, widthPercent + Math.min(0, leftPercent));
-            
-            const label = formatDateRangeLabel(startDateObj, endDateObj);
-            
-            ganttHTML = `
-                <div class="timeline-gantt-bar" 
-                     style="left: ${clampedLeft}%; width: ${clampedWidth}%;"
-                     data-project-index="${actualIndex}">
-                    <div class="timeline-gantt-handle timeline-gantt-handle-left" 
-                         onmousedown="startGanttDrag(event, ${actualIndex}, 'resize-left')"></div>
-                    <div class="timeline-gantt-bar-body"
-                         onmousedown="startGanttDrag(event, ${actualIndex}, 'move')">
-                        ${label}
-                    </div>
-                    <div class="timeline-gantt-handle timeline-gantt-handle-right" 
-                         onmousedown="startGanttDrag(event, ${actualIndex}, 'resize-right')"></div>
-                </div>
-            `;
-        }
-    }
-    
-    return `
-        <div class="timeline-project-row" 
-             data-project-index="${actualIndex}"
-             draggable="true"
-             ondragstart="handleTimelineRowDragStart(event, ${actualIndex})"
-             ondragover="handleTimelineRowDragOver(event)"
-             ondrop="handleTimelineRowDrop(event, ${actualIndex})"
-             ondragend="handleTimelineRowDragEnd(event)"
-             ondragleave="handleTimelineRowDragLeave(event)">
-            <div class="timeline-project-info" onclick="openAllocationModal(${actualIndex})">
-                <div class="timeline-project-title">${project.title}</div>
-                <div class="timeline-project-users">
-                    ${project.users && project.users.length > 0 ? project.users.join(', ') : 'No users assigned'}
-                </div>
-            </div>
-            <div class="timeline-gantt-container" onclick="handleGanttContainerClick(event, ${actualIndex})">
-                ${ganttHTML}
-            </div>
-        </div>
-    `;
-}
-
-// Continue with part 2...
