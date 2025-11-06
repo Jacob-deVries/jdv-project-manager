@@ -3,7 +3,7 @@
 const APP = {
     projects: [],
     categories: ['ABL', 'Healthcare', 'Liquid Inventory', 'IT / Infrastructure', 'Flagged'],
-    statuses: ['idea', 'flagged', 'in-progress', 'on-hold', 'moving', 'stable', 'person', 'completed'],
+    statuses: ['idea', 'flagged', 'in-progress', 'on-hold', 'moving', 'stable', 'person', 'completed', 'scrapped'],
     users: ['Ben', 'Jacob', 'Sam', 'Jonathan', 'Charlie', 'Jen', 'Holly', 'Grant', 'Benat', 'Nymbl'],
     filters: {
         status: [],
@@ -12,13 +12,9 @@ const APP = {
         search: ''
     },
     lastUpdated: 'Never',
-    notes: {
-        nymbl: '',
-        ben: '',
-        cindy: '',
-        general: ''
-    },
-    currentNoteType: 'nymbl'
+    notes: {},
+    noteTypes: ['Nymbl Notes', 'Cindy Notes', 'Personal Notes', 'Setpoint Notes'],
+    currentNoteType: 'Nymbl Notes'
 };
 
 const PASSWORD_HASH = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'; // 'password'
@@ -794,6 +790,7 @@ function exportPKD() {
     let content = `**PKD Dashboard Export**\n\n`;
     content += `**Last Updated**: ${APP.lastUpdated}\n\n`;
     
+    // Export Notes
     content += `**Notes**\n\n`;
     Object.keys(APP.notes).forEach(noteType => {
         if (APP.notes[noteType]) {
@@ -1194,6 +1191,7 @@ function handleFileUpload(event) {
                 APP.users = parsed.users;
                 APP.notes = parsed.notes;
                 
+                // Update notes display
                 const selector = document.getElementById('noteTypeSelect');
                 if (selector) {
                     const currentType = selector.value;
