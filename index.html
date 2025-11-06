@@ -34,9 +34,6 @@
                     <span id="lastUpdatedText">Last Updated: Never</span>
                     <button class="btn-primary" id="projectsOnlyBtn" onclick="openCreateModal()">New Project</button>
                     <button class="btn-primary" id="manageBtn" onclick="openManageModal()">Manage Settings</button>
-                    <div id="timelineHeaderActions" style="display: none;">
-                        <button class="btn-primary" onclick="showAddTimelineProjectMenu()">+ Add to Timeline</button>
-                    </div>
                     <button class="btn-primary" onclick="exportPKD()">Export PKD</button>
                     <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Upload PKD</button>
                     <input type="file" id="fileInput" style="display: none;" accept=".txt" onchange="handleFileUpload(event)">
@@ -53,76 +50,73 @@
                             <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Active Projects</div>
                         </div>
                         <div class="stat-card">
-                            <div style="font-size: 2rem; color: var(--accent-green); font-weight: 600;" id="completeCount">0</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Completed</div>
+                            <div style="font-size: 2rem; color: var(--accent-green); font-weight: 600;" id="stableCount">0</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Stable Projects</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 2rem; color: var(--accent-red); font-weight: 600;" id="flaggedCount">0</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Flagged Projects</div>
                         </div>
                     </div>
 
-                    <div class="controls">
-                        <div class="search-box">
-                            <input type="text" class="search-input" placeholder="Search projects..." id="searchInput" oninput="renderProjects()">
+                    <div class="filters-bar" id="filtersBar">
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('statusDropdown')">
+                                Status: All <span>▼</span>
+                            </button>
+                            <div class="dropdown-menu" id="statusDropdown"></div>
                         </div>
                         
                         <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('categoryMenu')">
-                                Categories <span id="categoryCount"></span>
+                            <button class="dropdown-button" onclick="toggleDropdown('categoryDropdown')">
+                                Category: All <span>▼</span>
                             </button>
-                            <div class="dropdown-menu" id="categoryMenu"></div>
+                            <div class="dropdown-menu" id="categoryDropdown"></div>
                         </div>
-
+                        
                         <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('statusMenu')">
-                                Statuses <span id="statusCount"></span>
+                            <button class="dropdown-button" onclick="toggleDropdown('userDropdown')">
+                                User: All <span>▼</span>
                             </button>
-                            <div class="dropdown-menu" id="statusMenu"></div>
+                            <div class="dropdown-menu" id="userDropdown"></div>
                         </div>
-
-                        <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('userMenu')">
-                                Users <span id="userCount"></span>
-                            </button>
-                            <div class="dropdown-menu" id="userMenu"></div>
-                        </div>
-
-                        <div class="toggle-container">
-                            <label>Show Completed</label>
-                            <div class="toggle-switch" id="showCompletedToggle" onclick="toggleCompleted()">
-                                <div class="toggle-slider"></div>
-                            </div>
+                        
+                        <div class="search-container">
+                            <input type="text" class="search-input" id="searchInput" placeholder="Search projects..." oninput="applyFilters()">
                         </div>
                     </div>
 
-                    <div style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="projectsGrid"></div>
+                    <div style="flex: 1; overflow-y: auto;">
+                        <div class="projects-grid" id="projectsList"></div>
                     </div>
                 </div>
-                
-                <div style="display: flex; flex-direction: column; overflow: hidden;">
-                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; height: 100%;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0;">
-                            <select id="notesSelector" onchange="switchNote()" style="flex: 1; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.875rem; margin-right: 0.5rem;">
-                                <option value="Nymbl">Nymbl</option>
-                                <option value="Cindy">Cindy</option>
-                                <option value="Me">Me</option>
-                            </select>
-                            <div class="note-header-controls">
-                                <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem; flex-shrink: 0;">+ New Note</button>
-                                <button class="btn-delete-note" onclick="deleteCurrentNote()">Delete</button>
-                            </div>
-                        </div>
-                        <textarea id="notesTextarea" style="flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); font-size: 0.875rem; resize: none; font-family: inherit; overflow-y: auto;" placeholder="Enter notes...
-• Use bullet points with • or -
-• Hyphens auto-convert to bullets
-• All formatting carries over to PKD export" oninput="handleNotesInput(event)"></textarea>
+
+                <div class="notes-panel">
+                    <h2 class="notes-header">Notes</h2>
+                    <div class="notes-selector" id="notesSelector">
+                        <select id="noteTypeSelect" onchange="switchNoteType()">
+                            <option value="nymbl">Nymbl</option>
+                            <option value="ben">Ben</option>
+                            <option value="cindy">Cindy</option>
+                            <option value="general">General</option>
+                        </select>
+                    </div>
+                    <div class="notes-content">
+                        <textarea id="notesTextarea" placeholder="Enter your notes here..."></textarea>
+                    </div>
+                    <div class="notes-actions">
+                        <button style="background: var(--pastel-blue); color: var(--bg-primary);" onclick="saveCurrentNote()">Save Notes</button>
+                        <button style="background: var(--pastel-red); color: var(--bg-primary);" onclick="clearCurrentNote()">Clear</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="timelinePage" class="page-container">
-            <div class="container" style="max-width: none;">
-                <div class="timeline-wrapper">
-                    <!-- Timeline will be rendered here -->
+            <div class="timeline-wrapper">
+                <div style="padding: 2rem; text-align: center;">
+                    <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Timeline View</h2>
+                    <p style="color: var(--text-secondary);">Timeline functionality will be addressed in a separate update.</p>
                 </div>
             </div>
         </div>
