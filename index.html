@@ -1875,7 +1875,7 @@
         function dateToMonthPosition(date, timelineStart) {
             const year = date.getFullYear();
             const monthIndex = date.getMonth();
-            const day = date.getDate();
+            const day = 1 // date.getDate();
             
             const monthsFromTimeline = (year - timelineStart.getFullYear()) * 12 + (monthIndex - timelineStart.getMonth());
             
