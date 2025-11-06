@@ -1867,7 +1867,7 @@
                     <div class="timeline-gantt-container" onclick="handleGanttContainerClick(event, ${actualIndex})">
                         ${ganttHTML}
                     </div>
-                    <button onclick="removeTimelineProject(${actualIndex})" style="padding: 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 500; white-space: nowrap;">Remove</button>
+                    <!-- Removed inline Remove button to avoid layout issues; use Remove inside allocation modal -->
                 </div>
             `;
         }
@@ -1875,7 +1875,7 @@
         function dateToMonthPosition(date, timelineStart) {
             const year = date.getFullYear();
             const monthIndex = date.getMonth();
-            const day = 1 // date.getDate();
+            const day = date.getDate();
             
             const monthsFromTimeline = (year - timelineStart.getFullYear()) * 12 + (monthIndex - timelineStart.getMonth());
             
@@ -2011,6 +2011,7 @@
                         </div>
                     ` : '<p style="color: var(--text-secondary);">No users assigned to this project.</p>'}
                     <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                        <button class="btn-primary" onclick="(function(){ closeAllocationModal(); removeTimelineProject(${projectIndex}); })()" style="background: var(--pastel-red); color: var(--bg-primary); border: none; font-weight: 500;">Remove from Timeline</button>
                         <button class="btn-primary" onclick="closeAllocationModal()" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); font-weight: 500;">Cancel</button>
                         <button class="btn-save" onclick="saveAllocations(${projectIndex})">Save Allocations</button>
                     </div>
