@@ -665,19 +665,307 @@ function deleteProject(id) {
 }
 
 function openProjectModal(id) {
-    showNotification('Project modal not yet implemented', 'info');
+    const project = APP.projects.find(p => p.id === id);
+    if (!project) return;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>${project.title}</h2>
+                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div style="margin-top: 1rem;">
+                <p><strong>Status:</strong> ${project.status}</p>
+                <p><strong>Priority:</strong> ${project.priority || 999}</p>
+                <p><strong>Categories:</strong> ${project.categories ? project.categories.join(', ') : 'None'}</p>
+                <p><strong>Users:</strong> ${project.users && project.users.length > 0 ? project.users.join(', ') : 'None'}</p>
+                <div style="margin-top: 1rem;">
+                    <strong>Key Details:</strong>
+                    <p style="white-space: pre-wrap; margin-top: 0.5rem;">${project.keyDetails || 'None'}</p>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <strong>Next Steps:</strong>
+                    <p style="white-space: pre-wrap; margin-top: 0.5rem;">${project.nextSteps || 'None'}</p>
+                </div>
+                ${project.links && project.links.length > 0 ? `
+                <div style="margin-top: 1rem;">
+                    <strong>Links:</strong>
+                    ${project.links.map(link => `<div><a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a></div>`).join('')}
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
 }
 
 function openEditModal(id) {
-    showNotification('Edit modal not yet implemented', 'info');
+    const project = APP.projects.find(p => p.id === id);
+    if (!project) return;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Project</h2>
+                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <form onsubmit="saveEditProject(event, ${id})">
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input type="text" class="form-input" id="editTitle" value="${project.title}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="editStatus">
+                        ${APP.statuses.map(s => `<option value="${s}" ${s === project.status ? 'selected' : ''}>${s}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <input type="number" class="form-input" id="editPriority" value="${project.priority || 999}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Key Details</label>
+                    <textarea class="form-textarea" id="editKeyDetails">${project.keyDetails || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Next Steps</label>
+                    <textarea class="form-textarea" id="editNextSteps">${project.nextSteps || ''}</textarea>
+                </div>
+                <button type="submit" class="btn-save">Save Changes</button>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function saveEditProject(event, id) {
+    event.preventDefault();
+    
+    const project = APP.projects.find(p => p.id === id);
+    if (!project) return;
+    
+    project.title = document.getElementById('editTitle').value;
+    project.status = document.getElementById('editStatus').value;
+    project.priority = parseInt(document.getElementById('editPriority').value) || 999;
+    project.keyDetails = document.getElementById('editKeyDetails').value;
+    project.nextSteps = document.getElementById('editNextSteps').value;
+    
+    saveToLocalStorage();
+    renderProjects();
+    if (APP.currentPage === 'timeline') {
+        renderTimeline();
+    }
+    
+    event.target.closest('.modal').remove();
+    showNotification('Project updated successfully', 'success');
 }
 
 function openCreateModal() {
-    showNotification('Create modal not yet implemented', 'info');
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Project</h2>
+                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <form onsubmit="saveNewProject(event)">
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input type="text" class="form-input" id="newTitle" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="newStatus">
+                        ${APP.statuses.length > 0 ? APP.statuses.map(s => `<option value="${s}">${s}</option>`).join('') : '<option value="idea">idea</option>'}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <input type="number" class="form-input" id="newPriority" value="999">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Categories (comma-separated)</label>
+                    <input type="text" class="form-input" id="newCategories" placeholder="Healthcare, IT">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Users (comma-separated)</label>
+                    <input type="text" class="form-input" id="newUsers" placeholder="Ben, Jacob">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Key Details</label>
+                    <textarea class="form-textarea" id="newKeyDetails"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Next Steps</label>
+                    <textarea class="form-textarea" id="newNextSteps"></textarea>
+                </div>
+                <button type="submit" class="btn-save">Create Project</button>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function saveNewProject(event) {
+    event.preventDefault();
+    
+    const maxId = APP.projects.length > 0 ? Math.max(...APP.projects.map(p => p.id)) : 0;
+    
+    const categories = document.getElementById('newCategories').value
+        .split(',')
+        .map(c => c.trim())
+        .filter(c => c);
+    
+    const users = document.getElementById('newUsers').value
+        .split(',')
+        .map(u => u.trim())
+        .filter(u => u);
+    
+    const newProject = {
+        id: maxId + 1,
+        title: document.getElementById('newTitle').value,
+        status: document.getElementById('newStatus').value,
+        priority: parseInt(document.getElementById('newPriority').value) || 999,
+        categories: categories,
+        users: users,
+        keyDetails: document.getElementById('newKeyDetails').value,
+        nextSteps: document.getElementById('newNextSteps').value,
+        links: []
+    };
+    
+    APP.projects.push(newProject);
+    
+    categories.forEach(cat => {
+        if (!APP.categories.includes(cat)) {
+            APP.categories.push(cat);
+        }
+    });
+    
+    users.forEach(user => {
+        if (!APP.users.includes(user)) {
+            APP.users.push(user);
+        }
+    });
+    
+    APP.categories.sort();
+    APP.users.sort();
+    
+    saveToLocalStorage();
+    updateStats();
+    updateFilterDropdowns();
+    renderProjects();
+    
+    event.target.closest('.modal').remove();
+    showNotification('Project created successfully', 'success');
 }
 
 function openManageModal() {
-    showNotification('Manage modal not yet implemented', 'info');
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Manage Settings</h2>
+                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div style="margin-top: 1rem;">
+                <h3 style="margin-bottom: 0.5rem;">Categories</h3>
+                <div id="categoriesList" style="margin-bottom: 1rem;">
+                    ${APP.categories.map(cat => `<div style="padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px; margin-bottom: 0.5rem;">${cat}</div>`).join('')}
+                </div>
+                <input type="text" id="newCategoryInput" placeholder="Add new category" style="width: 100%; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); margin-bottom: 0.5rem;">
+                <button onclick="addNewCategory()" class="btn-primary" style="width: 100%;">Add Category</button>
+                
+                <h3 style="margin: 1.5rem 0 0.5rem 0;">Statuses</h3>
+                <div id="statusesList" style="margin-bottom: 1rem;">
+                    ${APP.statuses.map(status => `<div style="padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px; margin-bottom: 0.5rem;">${status}</div>`).join('')}
+                </div>
+                <input type="text" id="newStatusInput" placeholder="Add new status" style="width: 100%; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); margin-bottom: 0.5rem;">
+                <button onclick="addNewStatus()" class="btn-primary" style="width: 100%;">Add Status</button>
+                
+                <h3 style="margin: 1.5rem 0 0.5rem 0;">Users</h3>
+                <div id="usersList" style="margin-bottom: 1rem;">
+                    ${APP.users.map(user => `<div style="padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px; margin-bottom: 0.5rem;">${user}</div>`).join('')}
+                </div>
+                <input type="text" id="newUserInput" placeholder="Add new user" style="width: 100%; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); margin-bottom: 0.5rem;">
+                <button onclick="addNewUser()" class="btn-primary" style="width: 100%;">Add User</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function addNewCategory() {
+    const input = document.getElementById('newCategoryInput');
+    const value = input.value.trim();
+    if (!value) return;
+    
+    if (APP.categories.includes(value)) {
+        showNotification('Category already exists', 'error');
+        return;
+    }
+    
+    APP.categories.push(value);
+    APP.categories.sort();
+    input.value = '';
+    
+    saveToLocalStorage();
+    updateFilterDropdowns();
+    
+    const list = document.getElementById('categoriesList');
+    list.innerHTML = APP.categories.map(cat => `<div style="padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px; margin-bottom: 0.5rem;">${cat}</div>`).join('');
+}
+
+function addNewStatus() {
+    const input = document.getElementById('newStatusInput');
+    const value = input.value.trim();
+    if (!value) return;
+    
+    if (APP.statuses.includes(value)) {
+        showNotification('Status already exists', 'error');
+        return;
+    }
+    
+    APP.statuses.push(value);
+    APP.statuses.sort();
+    input.value = '';
+    
+    saveToLocalStorage();
+    updateFilterDropdowns();
+    
+    const list = document.getElementById('statusesList');
+    list.innerHTML = APP.statuses.map(status => `<div style="padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px; margin-bottom: 0.5rem;">${status}</div>`).join('');
+}
+
+function addNewUser() {
+    const input = document.getElementById('newUserInput');
+    const value = input.value.trim();
+    if (!value) return;
+    
+    if (APP.users.includes(value)) {
+        showNotification('User already exists', 'error');
+        return;
+    }
+    
+    APP.users.push(value);
+    APP.users.sort();
+    input.value = '';
+    
+    saveToLocalStorage();
+    updateFilterDropdowns();
+    
+    const list = document.getElementById('usersList');
+    list.innerHTML = APP.users.map(user => `<div style="padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px; margin-bottom: 0.5rem;">${user}</div>`).join('');
 }
 
 // ============================================================================
@@ -1400,12 +1688,12 @@ function renderTimelineProjectRow(timelineProjectData, displayIndex) {
         const timelineStart = new Date(currentYear, currentMonth, 1);
         
         const startPosition = dateToMonthPosition(startDateObj, timelineStart);
-        const endPosition = dateToMonthPosition(endDateObj, timelineStart);
+        const endPosition = dateToMonthPosition(endDateObj, timelineStart) + 1;
         
         const leftPercent = (startPosition / APP.timelineMonthsToShow) * 100;
         const widthPercent = ((endPosition - startPosition) / APP.timelineMonthsToShow) * 100;
         
-        if (leftPercent < 100 && leftPercent + widthPercent > 0) {
+        if (widthPercent > 0 && (leftPercent < 100 && leftPercent + widthPercent > 0)) {
             const clampedLeft = Math.max(0, leftPercent);
             const clampedWidth = Math.min(100 - clampedLeft, widthPercent + Math.min(0, leftPercent));
             
@@ -1425,6 +1713,8 @@ function renderTimelineProjectRow(timelineProjectData, displayIndex) {
                          onmousedown="startGanttDrag(event, ${actualIndex}, 'resize-right')"></div>
                 </div>
             `;
+        } else {
+            ganttHTML = '<div style="color: var(--text-secondary); font-size: 0.75rem; padding: 0.5rem;">Project outside visible timeline range</div>';
         }
     }
     
