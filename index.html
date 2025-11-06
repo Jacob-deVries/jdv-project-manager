@@ -240,34 +240,6 @@
             background-clip: text;
         }
 
-        .nav-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .nav-btn {
-            padding: 0.5rem 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-primary);
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: background 0.2s, border-color 0.2s;
-        }
-
-        .nav-btn:hover {
-            background: var(--bg-hover);
-            border-color: var(--pastel-blue);
-        }
-
-        .nav-btn.active {
-            background: var(--pastel-purple);
-            border-color: var(--pastel-purple);
-            color: var(--bg-primary);
-            font-weight: 500;
-        }
-
         .header-actions {
             display: flex;
             gap: 1rem;
@@ -289,20 +261,6 @@
 
         .btn-primary:hover {
             background: var(--pastel-blue-dark);
-        }
-
-        .page-container {
-            display: none;
-            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .page-container.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         .container {
@@ -561,82 +519,6 @@
             opacity: 0.8;
         }
 
-        .timeline-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            height: calc(100vh - 180px);
-            min-height: 500px;
-        }
-
-        .timeline-controls {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
-        }
-
-        .timeline-container {
-            flex: 1;
-            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
-            overflow-y: auto;
-            box-shadow: var(--shadow);
-        }
-
-        .timeline-view {
-            display: flex;
-            gap: 2rem;
-            min-height: 100%;
-        }
-
-        .timeline-status-column {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .timeline-status-header {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .timeline-project-item {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .timeline-project-item:hover {
-            transform: translateX(4px);
-            border-color: var(--pastel-blue);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .timeline-project-title {
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .timeline-project-meta {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
         .modal {
             display: none;
             position: fixed;
@@ -817,10 +699,6 @@
             #projectsGrid {
                 grid-template-columns: 1fr !important;
             }
-
-            .timeline-view {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
@@ -843,15 +721,11 @@
             <div class="header-content">
                 <div class="header-left">
                     <h1 class="logo">PKD Dashboard</h1>
-                    <div class="nav-buttons">
-                        <button class="nav-btn active" onclick="showPage('projects')">Projects & Notes</button>
-                        <button class="nav-btn" onclick="showPage('timeline')">Timeline View</button>
-                    </div>
                 </div>
                 <div class="header-actions">
                     <span id="lastUpdatedText">Last Updated: Never</span>
-                    <button class="btn-primary" id="projectsOnlyBtn" onclick="openCreateModal()">New Project</button>
-                    <button class="btn-primary" id="manageBtn" onclick="openManageModal()">Manage Settings</button>
+                    <button class="btn-primary" onclick="openCreateModal()">New Project</button>
+                    <button class="btn-primary" onclick="openManageModal()">Manage Settings</button>
                     <button class="btn-primary" onclick="exportPKD()">Export PKD</button>
                     <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Upload PKD</button>
                     <input type="file" id="fileInput" style="display: none;" accept=".txt" onchange="handleFileUpload(event)">
@@ -859,101 +733,75 @@
             </div>
         </header>
 
-        <div id="projectsPage" class="page-container active">
-            <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none; height: calc(100vh - 200px);">
-                <div style="display: flex; flex-direction: column; overflow: hidden;">
-                    <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                        <div class="stat-card">
-                            <div style="font-size: 2rem; color: var(--accent-blue); font-weight: 600;" id="activeCount">0</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Active Projects</div>
-                        </div>
-                        <div class="stat-card">
-                            <div style="font-size: 2rem; color: var(--accent-green); font-weight: 600;" id="completeCount">0</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Completed</div>
-                        </div>
+        <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none; height: calc(100vh - 200px);">
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div style="font-size: 2rem; color: var(--accent-blue); font-weight: 600;" id="activeCount">0</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Active Projects</div>
                     </div>
-
-                    <div class="controls">
-                        <div class="search-box">
-                            <input type="text" class="search-input" placeholder="Search projects..." id="searchInput" oninput="renderProjects()">
-                        </div>
-                        
-                        <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('categoryMenu')">
-                                Categories <span id="categoryCount"></span>
-                            </button>
-                            <div class="dropdown-menu" id="categoryMenu"></div>
-                        </div>
-
-                        <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('statusMenu')">
-                                Statuses <span id="statusCount"></span>
-                            </button>
-                            <div class="dropdown-menu" id="statusMenu"></div>
-                        </div>
-
-                        <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('userMenu')">
-                                Users <span id="userCount"></span>
-                            </button>
-                            <div class="dropdown-menu" id="userMenu"></div>
-                        </div>
-
-                        <div class="toggle-container">
-                            <label>Show Completed</label>
-                            <div class="toggle-switch" id="showCompletedToggle" onclick="toggleCompleted()">
-                                <div class="toggle-slider"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="projectsGrid"></div>
+                    <div class="stat-card">
+                        <div style="font-size: 2rem; color: var(--accent-green); font-weight: 600;" id="completeCount">0</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Completed</div>
                     </div>
                 </div>
-                
-                <div style="display: flex; flex-direction: column; overflow: hidden;">
-                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; height: 100%;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0;">
-                            <select id="notesSelector" onchange="switchNote()" style="flex: 1; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.875rem; margin-right: 0.5rem;">
-                                <option value="Nymbl">Nymbl</option>
-                                <option value="Cindy">Cindy</option>
-                                <option value="Me">Me</option>
-                            </select>
-                            <div class="note-header-controls">
-                                <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem; flex-shrink: 0;">+ New Note</button>
-                                <button class="btn-delete-note" onclick="deleteCurrentNote()">Delete</button>
-                            </div>
+
+                <div class="controls">
+                    <div class="search-box">
+                        <input type="text" class="search-input" placeholder="Search projects..." id="searchInput" oninput="renderProjects()">
+                    </div>
+                    
+                    <div class="dropdown-filter">
+                        <button class="dropdown-button" onclick="toggleDropdown('categoryMenu')">
+                            Categories <span id="categoryCount"></span>
+                        </button>
+                        <div class="dropdown-menu" id="categoryMenu"></div>
+                    </div>
+
+                    <div class="dropdown-filter">
+                        <button class="dropdown-button" onclick="toggleDropdown('statusMenu')">
+                            Statuses <span id="statusCount"></span>
+                        </button>
+                        <div class="dropdown-menu" id="statusMenu"></div>
+                    </div>
+
+                    <div class="dropdown-filter">
+                        <button class="dropdown-button" onclick="toggleDropdown('userMenu')">
+                            Users <span id="userCount"></span>
+                        </button>
+                        <div class="dropdown-menu" id="userMenu"></div>
+                    </div>
+
+                    <div class="toggle-container">
+                        <label>Show Completed</label>
+                        <div class="toggle-switch" id="showCompletedToggle" onclick="toggleCompleted()">
+                            <div class="toggle-slider"></div>
                         </div>
-                        <textarea id="notesTextarea" style="flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); font-size: 0.875rem; resize: none; font-family: inherit; overflow-y: auto;" placeholder="Enter notes...
+                    </div>
+                </div>
+
+                <div style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="projectsGrid"></div>
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; height: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0;">
+                        <select id="notesSelector" onchange="switchNote()" style="flex: 1; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.875rem; margin-right: 0.5rem;">
+                            <option value="Nymbl">Nymbl</option>
+                            <option value="Cindy">Cindy</option>
+                            <option value="Me">Me</option>
+                        </select>
+                        <div class="note-header-controls">
+                            <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem; flex-shrink: 0;">+ New Note</button>
+                            <button class="btn-delete-note" onclick="deleteCurrentNote()">Delete</button>
+                        </div>
+                    </div>
+                    <textarea id="notesTextarea" style="flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); font-size: 0.875rem; resize: none; font-family: inherit; overflow-y: auto;" placeholder="Enter notes...
 • Use bullet points with • or -
 • Hyphens auto-convert to bullets
 • All formatting carries over to PKD export" oninput="handleNotesInput(event)"></textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="timelinePage" class="page-container">
-            <div class="container">
-                <div class="timeline-wrapper">
-                    <div class="timeline-controls">
-                        <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('timelineCategoryMenu')">
-                                Filter by Category <span id="timelineCategoryCount"></span>
-                            </button>
-                            <div class="dropdown-menu" id="timelineCategoryMenu"></div>
-                        </div>
-                        <div class="dropdown-filter">
-                            <button class="dropdown-button" onclick="toggleDropdown('timelineUserMenu')">
-                                Filter by User <span id="timelineUserCount"></span>
-                            </button>
-                            <div class="dropdown-menu" id="timelineUserMenu"></div>
-                        </div>
-                    </div>
-                    <div class="timeline-container">
-                        <div class="timeline-view" id="timelineView"></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -978,12 +826,7 @@
                 me: ''
             },
             currentNoteName: 'Nymbl',
-            currentPage: 'projects',
-            PASSWORD_HASH: 2147093827,
-            timelineFilters: {
-                categories: [],
-                users: []
-            }
+            PASSWORD_HASH: 2147093827
         };
 
         function hashCode(str) {
@@ -1024,31 +867,6 @@
             grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;"><h3>Welcome to PKD Dashboard</h3><p style="margin-top: 1rem;">Upload a PKD file to get started, or create your first project.</p></div>';
             
             document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
-        }
-
-        function showPage(page) {
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            document.querySelectorAll('.page-container').forEach(container => container.classList.remove('active'));
-            document.getElementById(`${page}Page`).classList.add('active');
-            
-            const projectsOnlyBtn = document.getElementById('projectsOnlyBtn');
-            const manageBtn = document.getElementById('manageBtn');
-            
-            if (page === 'projects') {
-                projectsOnlyBtn.style.display = 'inline-block';
-                manageBtn.style.display = 'inline-block';
-            } else {
-                projectsOnlyBtn.style.display = 'none';
-                manageBtn.style.display = 'none';
-            }
-            
-            APP.currentPage = page;
-            
-            if (page === 'timeline') {
-                renderTimeline();
-            }
         }
 
         function saveToLocalStorage() {
@@ -1127,79 +945,7 @@
                 userMenu.appendChild(item);
             });
             
-            updateTimelineFilterDropdowns();
             updateFilterCounts();
-        }
-
-        function updateTimelineFilterDropdowns() {
-            if (APP.timelineFilters.categories.length === 0 && APP.categories.length > 0) {
-                APP.timelineFilters.categories = [...APP.categories];
-            }
-            if (APP.timelineFilters.users.length === 0 && APP.users.length > 0) {
-                APP.timelineFilters.users = [...APP.users];
-            }
-
-            const timelineCategoryMenu = document.getElementById('timelineCategoryMenu');
-            if (timelineCategoryMenu) {
-                timelineCategoryMenu.innerHTML = '';
-                APP.categories.forEach(cat => {
-                    const item = document.createElement('div');
-                    item.className = 'dropdown-item';
-                    const isChecked = APP.timelineFilters.categories.includes(cat) ? 'checked' : '';
-                    item.innerHTML = `
-                        <input type="checkbox" id="timeline-cat-${cat}" onchange="toggleTimelineCategory('${cat}')" ${isChecked}>
-                        <label for="timeline-cat-${cat}">${cat}</label>
-                    `;
-                    timelineCategoryMenu.appendChild(item);
-                });
-            }
-
-            const timelineUserMenu = document.getElementById('timelineUserMenu');
-            if (timelineUserMenu) {
-                timelineUserMenu.innerHTML = '';
-                APP.users.forEach(user => {
-                    const item = document.createElement('div');
-                    item.className = 'dropdown-item';
-                    const isChecked = APP.timelineFilters.users.includes(user) ? 'checked' : '';
-                    item.innerHTML = `
-                        <input type="checkbox" id="timeline-user-${user}" onchange="toggleTimelineUser('${user}')" ${isChecked}>
-                        <label for="timeline-user-${user}">${user}</label>
-                    `;
-                    timelineUserMenu.appendChild(item);
-                });
-            }
-
-            const timelineCategoryCount = document.getElementById('timelineCategoryCount');
-            if (timelineCategoryCount) {
-                timelineCategoryCount.textContent = APP.timelineFilters.categories.length > 0 ? `(${APP.timelineFilters.categories.length})` : '';
-            }
-
-            const timelineUserCount = document.getElementById('timelineUserCount');
-            if (timelineUserCount) {
-                timelineUserCount.textContent = APP.timelineFilters.users.length > 0 ? `(${APP.timelineFilters.users.length})` : '';
-            }
-        }
-
-        function toggleTimelineCategory(category) {
-            const index = APP.timelineFilters.categories.indexOf(category);
-            if (index > -1) {
-                APP.timelineFilters.categories.splice(index, 1);
-            } else {
-                APP.timelineFilters.categories.push(category);
-            }
-            updateTimelineFilterDropdowns();
-            renderTimeline();
-        }
-
-        function toggleTimelineUser(user) {
-            const index = APP.timelineFilters.users.indexOf(user);
-            if (index > -1) {
-                APP.timelineFilters.users.splice(index, 1);
-            } else {
-                APP.timelineFilters.users.push(user);
-            }
-            updateTimelineFilterDropdowns();
-            renderTimeline();
         }
 
         function toggleDropdown(menuId) {
@@ -1345,75 +1091,6 @@
             `;
             
             return card;
-        }
-
-        function renderTimeline() {
-            const timelineView = document.getElementById('timelineView');
-            if (!timelineView) return;
-
-            const statusOrder = ['idea', 'in-progress', 'moving', 'stable', 'on-hold', 'complete'];
-            
-            let filtered = APP.projects.filter(project => {
-                if (APP.timelineFilters.categories.length > 0) {
-                    const hasCategory = project.categories && 
-                        project.categories.some(cat => APP.timelineFilters.categories.includes(cat));
-                    if (!hasCategory) return false;
-                }
-
-                if (APP.timelineFilters.users.length > 0) {
-                    const hasUser = project.users && project.users.length > 0 &&
-                        project.users.some(user => APP.timelineFilters.users.includes(user));
-                    if (!hasUser) return false;
-                }
-
-                return true;
-            });
-
-            const projectsByStatus = {};
-            statusOrder.forEach(status => {
-                projectsByStatus[status] = filtered.filter(p => p.status === status)
-                    .sort((a, b) => (a.priority || 999) - (b.priority || 999));
-            });
-
-            timelineView.innerHTML = '';
-
-            statusOrder.forEach(status => {
-                const column = document.createElement('div');
-                column.className = 'timeline-status-column';
-
-                const header = document.createElement('div');
-                header.className = 'timeline-status-header';
-                header.textContent = status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                header.textContent += ` (${projectsByStatus[status].length})`;
-                column.appendChild(header);
-
-                projectsByStatus[status].forEach(project => {
-                    const projectItem = document.createElement('div');
-                    projectItem.className = 'timeline-project-item';
-                    projectItem.onclick = () => openProjectModal(project.id);
-
-                    const title = document.createElement('div');
-                    title.className = 'timeline-project-title';
-                    title.textContent = project.title;
-                    projectItem.appendChild(title);
-
-                    const meta = document.createElement('div');
-                    meta.className = 'timeline-project-meta';
-                    const metaParts = [];
-                    if (project.users && project.users.length > 0) {
-                        metaParts.push(`Users: ${project.users.join(', ')}`);
-                    }
-                    if (project.categories && project.categories.length > 0) {
-                        metaParts.push(project.categories.join(', '));
-                    }
-                    meta.textContent = metaParts.join(' | ');
-                    projectItem.appendChild(meta);
-
-                    column.appendChild(projectItem);
-                });
-
-                timelineView.appendChild(column);
-            });
         }
 
         function switchNote() {
@@ -1569,9 +1246,6 @@
                 saveToLocalStorage();
                 updateStats();
                 renderProjects();
-                if (APP.currentPage === 'timeline') {
-                    renderTimeline();
-                }
                 showNotification('Project marked as complete', 'success');
             });
         }
@@ -1586,9 +1260,6 @@
                 saveToLocalStorage();
                 updateStats();
                 renderProjects();
-                if (APP.currentPage === 'timeline') {
-                    renderTimeline();
-                }
                 showNotification('Project deleted successfully', 'success');
             });
         }
@@ -1668,241 +1339,6 @@
                     <div class="modal-header">
                         <h2>${APP.currentEditingProject ? 'Edit Project' : 'Create New Project'}</h2>
                         <button class="close-btn" onclick="closeEditModal()">&times;</button>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Project ID</label>
-                        <input type="text" class="form-input" id="projectIdInput" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Priority (lower numbers appear first)</label>
-                        <input type="number" class="form-input" id="projectPriorityInput" placeholder="1" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Title *</label>
-                        <input type="text" class="form-input" id="projectTitleInput" placeholder="Enter project title">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" id="projectStatusSelect">
-                            ${APP.statuses.length > 0 ? 
-                                APP.statuses.map(s => `<option value="${s}">${s}</option>`).join('') :
-                                '<option value="idea">idea</option>'}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Users</label>
-                        <div id="userCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                            ${APP.users.length > 0 ? 
-                                APP.users.map(user => `
-                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                        <input type="checkbox" id="user-check-${user}" value="${user}">
-                                        ${user}
-                                    </label>
-                                `).join('') :
-                                '<span style="color: var(--text-secondary);">No users available</span>'}
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Categories ${APP.categories.length === 0 ? '(Add categories in Manage Settings)' : '*'}</label>
-                        <div id="categoryCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                            ${APP.categories.length > 0 ? 
-                                APP.categories.map(cat => `
-                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                        <input type="checkbox" id="cat-check-${cat}" value="${cat}">
-                                        ${cat}
-                                    </label>
-                                `).join('') :
-                                '<span style="color: var(--text-secondary);">No categories available</span>'}
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Key Details</label>
-                        <textarea class="form-textarea" id="projectDetailsInput" placeholder="Enter key details..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Next Steps</label>
-                        <textarea class="form-textarea" id="projectNextStepsInput" placeholder="Enter next steps..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Links</label>
-                        <div id="projectLinksDisplay" style="margin-bottom: 1rem;"></div>
-                        <button class="btn-primary" onclick="addLink()" style="font-size: 0.875rem; padding: 0.5rem 1rem;">Add Link</button>
-                    </div>
-                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                        <button class="btn-primary" onclick="closeEditModal()" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); font-weight: 500;">Cancel</button>
-                        <button class="btn-save" onclick="saveProject()">Save Project</button>
-                    </div>
-                </div>
-            `;
-            
-            updateLinksDisplay();
-            return modal;
-        }
-
-        function updateLinksDisplay() {
-            const container = document.getElementById('projectLinksDisplay');
-            if (!container) return;
-            
-            if (APP.currentProjectLinks.length === 0) {
-                container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.875rem;">No links added</div>';
-            } else {
-                container.innerHTML = APP.currentProjectLinks.map((link, idx) => `
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a>
-                        <button onclick="removeLink(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Remove</button>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function addLink() {
-            const container = document.getElementById('projectLinksDisplay');
-            if (!container) return;
-            
-            if (document.getElementById('linkAddForm')) return;
-            
-            const formDiv = document.createElement('div');
-            formDiv.id = 'linkAddForm';
-            formDiv.style.cssText = 'padding: 1rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 1rem;';
-            formDiv.innerHTML = `
-                <div style="margin-bottom: 0.5rem;">
-                    <input type="text" id="linkAliasInput" placeholder="Display text" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); margin-bottom: 0.5rem;">
-                    <input type="url" id="linkUrlInput" placeholder="https://example.com" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
-                </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button onclick="saveLinkFromForm()" style="padding: 0.5rem 1rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Save</button>
-                    <button onclick="cancelLinkForm()" style="padding: 0.5rem 1rem; background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); border-radius: 4px; cursor: pointer; font-weight: 500;">Cancel</button>
-                </div>
-            `;
-            
-            container.parentNode.insertBefore(formDiv, container);
-        }
-        
-        function saveLinkFromForm() {
-            const aliasInput = document.getElementById('linkAliasInput');
-            const urlInput = document.getElementById('linkUrlInput');
-            
-            if (!aliasInput || !urlInput) return;
-            
-            const alias = aliasInput.value.trim();
-            const url = urlInput.value.trim();
-            
-            if (!alias || !url) {
-                showNotification('Please enter both display text and URL', 'error');
-                return;
-            }
-            
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                showNotification('URL must start with http:// or https://', 'error');
-                return;
-            }
-            
-            APP.currentProjectLinks.push({ alias, url });
-            updateLinksDisplay();
-            
-            const form = document.getElementById('linkAddForm');
-            if (form) form.remove();
-            
-            showNotification('Link added successfully', 'success');
-        }
-        
-        function cancelLinkForm() {
-            const form = document.getElementById('linkAddForm');
-            if (form) form.remove();
-        }
-
-        function removeLink(index) {
-            APP.currentProjectLinks.splice(index, 1);
-            updateLinksDisplay();
-            showNotification('Link removed', 'success');
-        }
-
-        function saveProject() {
-            const id = parseInt(document.getElementById('projectIdInput').value);
-            const priority = parseInt(document.getElementById('projectPriorityInput').value) || 999;
-            const title = document.getElementById('projectTitleInput').value.trim();
-            const status = document.getElementById('projectStatusSelect').value;
-            const keyDetails = document.getElementById('projectDetailsInput').value.trim();
-            const nextSteps = document.getElementById('projectNextStepsInput').value.trim();
-            
-            const categories = [];
-            document.querySelectorAll('#categoryCheckboxes input:checked').forEach(cb => {
-                categories.push(cb.value);
-            });
-            
-            const users = [];
-            document.querySelectorAll('#userCheckboxes input:checked').forEach(cb => {
-                users.push(cb.value);
-            });
-            
-            if (!title) {
-                showNotification('Please enter a project title', 'error');
-                return;
-            }
-            
-            if (categories.length === 0) {
-                showNotification('Please select at least one category', 'error');
-                return;
-            }
-            
-            const projectData = {
-                id,
-                priority,
-                title,
-                status,
-                users: users,
-                categories,
-                keyDetails,
-                nextSteps,
-                links: APP.currentProjectLinks
-            };
-            
-            if (APP.currentEditingProject) {
-                const index = APP.projects.findIndex(p => p.id === APP.currentEditingProject);
-                if (index !== -1) {
-                    APP.projects[index] = projectData;
-                    showNotification('Project updated successfully', 'success');
-                }
-            } else {
-                APP.projects.push(projectData);
-                showNotification('Project created successfully', 'success');
-            }
-            
-            const now = new Date();
-            APP.lastUpdated = now.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-            document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
-            
-            saveToLocalStorage();
-            updateStats();
-            renderProjects();
-            if (APP.currentPage === 'timeline') {
-                renderTimeline();
-            }
-            closeEditModal();
-        }
-
-        function closeEditModal() {
-            const modal = document.getElementById('editModal');
-            if (modal) modal.remove();
-        }
-
-        function openProjectModal(id) {
-            const project = APP.projects.find(p => p.id === id);
-            if (!project) return;
-            
-            const modal = document.createElement('div');
-            modal.id = 'projectModal';
-            modal.className = 'modal';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>${project.title}</h2>
-                        <button class="close-btn" onclick="closeProjectModal()">&times;</button>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Project ID</label>
@@ -2172,6 +1608,7 @@
             APP.projects.forEach(project => {
                 content += `**${project.id}. ${project.title}**\n\n`;
                 content += `-   **Status**: ${project.status}\n\n`;
+                content += `-   **Priority**: ${project.priority || 999}\n\n`;
                 content += `-   **Project Category**: ${project.categories ? project.categories.join(', ') : ''}\n\n`;
                 if (project.users && project.users.length > 0) {
                     content += `-   **Users**: ${project.users.join(', ')}\n\n`;
@@ -2353,6 +1790,16 @@
                         const status = parts[1].trim().toLowerCase().replace(/\s+/g, '-');
                         currentProject.status = status;
                         statusesSet.add(status);
+                    }
+                }
+                
+                if (line.includes('**Priority**:')) {
+                    const parts = line.split('**Priority**:');
+                    if (parts.length > 1) {
+                        const priority = parseInt(parts[1].trim());
+                        if (!isNaN(priority)) {
+                            currentProject.priority = priority;
+                        }
                     }
                 }
                 
@@ -2588,4 +2035,236 @@
         });
     </script>
 </body>
-</html>
+</html>">Project ID</label>
+                        <input type="text" class="form-input" id="projectIdInput" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority (lower numbers appear first)</label>
+                        <input type="number" class="form-input" id="projectPriorityInput" placeholder="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Title *</label>
+                        <input type="text" class="form-input" id="projectTitleInput" placeholder="Enter project title">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="projectStatusSelect">
+                            ${APP.statuses.length > 0 ? 
+                                APP.statuses.map(s => `<option value="${s}">${s}</option>`).join('') :
+                                '<option value="idea">idea</option>'}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Users</label>
+                        <div id="userCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            ${APP.users.length > 0 ? 
+                                APP.users.map(user => `
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                        <input type="checkbox" id="user-check-${user}" value="${user}">
+                                        ${user}
+                                    </label>
+                                `).join('') :
+                                '<span style="color: var(--text-secondary);">No users available</span>'}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categories ${APP.categories.length === 0 ? '(Add categories in Manage Settings)' : '*'}</label>
+                        <div id="categoryCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            ${APP.categories.length > 0 ? 
+                                APP.categories.map(cat => `
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                        <input type="checkbox" id="cat-check-${cat}" value="${cat}">
+                                        ${cat}
+                                    </label>
+                                `).join('') :
+                                '<span style="color: var(--text-secondary);">No categories available</span>'}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Key Details</label>
+                        <textarea class="form-textarea" id="projectDetailsInput" placeholder="Enter key details..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Next Steps</label>
+                        <textarea class="form-textarea" id="projectNextStepsInput" placeholder="Enter next steps..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Links</label>
+                        <div id="projectLinksDisplay" style="margin-bottom: 1rem;"></div>
+                        <button class="btn-primary" onclick="addLink()" style="font-size: 0.875rem; padding: 0.5rem 1rem;">Add Link</button>
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button class="btn-primary" onclick="closeEditModal()" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); font-weight: 500;">Cancel</button>
+                        <button class="btn-save" onclick="saveProject()">Save Project</button>
+                    </div>
+                </div>
+            `;
+            
+            updateLinksDisplay();
+            return modal;
+        }
+
+        function updateLinksDisplay() {
+            const container = document.getElementById('projectLinksDisplay');
+            if (!container) return;
+            
+            if (APP.currentProjectLinks.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.875rem;">No links added</div>';
+            } else {
+                container.innerHTML = APP.currentProjectLinks.map((link, idx) => `
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a>
+                        <button onclick="removeLink(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Remove</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function addLink() {
+            const container = document.getElementById('projectLinksDisplay');
+            if (!container) return;
+            
+            if (document.getElementById('linkAddForm')) return;
+            
+            const formDiv = document.createElement('div');
+            formDiv.id = 'linkAddForm';
+            formDiv.style.cssText = 'padding: 1rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 1rem;';
+            formDiv.innerHTML = `
+                <div style="margin-bottom: 0.5rem;">
+                    <input type="text" id="linkAliasInput" placeholder="Display text" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); margin-bottom: 0.5rem;">
+                    <input type="url" id="linkUrlInput" placeholder="https://example.com" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="saveLinkFromForm()" style="padding: 0.5rem 1rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Save</button>
+                    <button onclick="cancelLinkForm()" style="padding: 0.5rem 1rem; background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); border-radius: 4px; cursor: pointer; font-weight: 500;">Cancel</button>
+                </div>
+            `;
+            
+            container.parentNode.insertBefore(formDiv, container);
+        }
+        
+        function saveLinkFromForm() {
+            const aliasInput = document.getElementById('linkAliasInput');
+            const urlInput = document.getElementById('linkUrlInput');
+            
+            if (!aliasInput || !urlInput) return;
+            
+            const alias = aliasInput.value.trim();
+            const url = urlInput.value.trim();
+            
+            if (!alias || !url) {
+                showNotification('Please enter both display text and URL', 'error');
+                return;
+            }
+            
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                showNotification('URL must start with http:// or https://', 'error');
+                return;
+            }
+            
+            APP.currentProjectLinks.push({ alias, url });
+            updateLinksDisplay();
+            
+            const form = document.getElementById('linkAddForm');
+            if (form) form.remove();
+            
+            showNotification('Link added successfully', 'success');
+        }
+        
+        function cancelLinkForm() {
+            const form = document.getElementById('linkAddForm');
+            if (form) form.remove();
+        }
+
+        function removeLink(index) {
+            APP.currentProjectLinks.splice(index, 1);
+            updateLinksDisplay();
+            showNotification('Link removed', 'success');
+        }
+
+        function saveProject() {
+            const id = parseInt(document.getElementById('projectIdInput').value);
+            const priority = parseInt(document.getElementById('projectPriorityInput').value) || 999;
+            const title = document.getElementById('projectTitleInput').value.trim();
+            const status = document.getElementById('projectStatusSelect').value;
+            const keyDetails = document.getElementById('projectDetailsInput').value.trim();
+            const nextSteps = document.getElementById('projectNextStepsInput').value.trim();
+            
+            const categories = [];
+            document.querySelectorAll('#categoryCheckboxes input:checked').forEach(cb => {
+                categories.push(cb.value);
+            });
+            
+            const users = [];
+            document.querySelectorAll('#userCheckboxes input:checked').forEach(cb => {
+                users.push(cb.value);
+            });
+            
+            if (!title) {
+                showNotification('Please enter a project title', 'error');
+                return;
+            }
+            
+            if (categories.length === 0) {
+                showNotification('Please select at least one category', 'error');
+                return;
+            }
+            
+            const projectData = {
+                id,
+                priority,
+                title,
+                status,
+                users: users,
+                categories,
+                keyDetails,
+                nextSteps,
+                links: APP.currentProjectLinks
+            };
+            
+            if (APP.currentEditingProject) {
+                const index = APP.projects.findIndex(p => p.id === APP.currentEditingProject);
+                if (index !== -1) {
+                    APP.projects[index] = projectData;
+                    showNotification('Project updated successfully', 'success');
+                }
+            } else {
+                APP.projects.push(projectData);
+                showNotification('Project created successfully', 'success');
+            }
+            
+            const now = new Date();
+            APP.lastUpdated = now.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
+            
+            saveToLocalStorage();
+            updateStats();
+            renderProjects();
+            closeEditModal();
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            if (modal) modal.remove();
+        }
+
+        function openProjectModal(id) {
+            const project = APP.projects.find(p => p.id === id);
+            if (!project) return;
+            
+            const modal = document.createElement('div');
+            modal.id = 'projectModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${project.title}</h2>
+                        <button class="close-btn" onclick="closeProjectModal()">&times;</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label
