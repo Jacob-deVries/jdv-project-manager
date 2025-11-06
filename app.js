@@ -1502,15 +1502,13 @@ function handleGanttContainerClick(event, projectIndex) {
     const timelineProject = APP.timelineProjects[projectIndex];
     if (!timelineProject) return;
     
-    // If already has dates, don't override - let them use drag handles
     if (timelineProject.startDate && timelineProject.endDate) {
         return;
     }
     
-    // Set default to current month (1 month duration)
     const today = new Date();
     const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-    const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of current month
+    const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     
     timelineProject.startDate = startDate.toISOString().split('T')[0];
     timelineProject.endDate = endDate.toISOString().split('T')[0];
@@ -1524,7 +1522,90 @@ function handleGanttContainerClick(event, projectIndex) {
 
 function startGanttDrag(event, projectIndex, dragType) {
     event.stopPropagation();
-    showNotification('Gantt drag not yet implemented', 'info');
+    event.preventDefault();
+    
+    APP.isDraggingGantt = true;
+    APP.ganttDragData = {
+        projectIndex: projectIndex,
+        dragType: dragType,
+        startX: event.clientX,
+        originalStartDate: APP.timelineProjects[projectIndex].startDate,
+        originalEndDate: APP.timelineProjects[projectIndex].endDate
+    };
+    
+    const bar = event.target.closest('.timeline-gantt-bar');
+    if (bar) {
+        bar.classList.add('dragging');
+    }
+    
+    document.addEventListener('mousemove', handleGanttDragMove);
+    document.addEventListener('mouseup', handleGanttDragEnd);
+    
+    document.body.style.cursor = dragType === 'move' ? 'grabbing' : 'ew-resize';
+}
+
+function handleGanttDragMove(event) {
+    if (!APP.isDraggingGantt || !APP.ganttDragData) return;
+    
+    const container = document.querySelector('.timeline-gantt-container');
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const containerWidth = rect.width;
+    const monthWidth = containerWidth / APP.timelineMonthsToShow;
+    
+    const deltaX = event.clientX - APP.ganttDragData.startX;
+    const monthsDelta = Math.round(deltaX / monthWidth);
+    
+    if (monthsDelta === 0) return;
+    
+    const timelineProject = APP.timelineProjects[APP.ganttDragData.projectIndex];
+    const originalStart = new Date(APP.ganttDragData.originalStartDate);
+    const originalEnd = new Date(APP.ganttDragData.originalEndDate);
+    
+    let newStart, newEnd;
+    
+    if (APP.ganttDragData.dragType === 'move') {
+        newStart = new Date(originalStart.getFullYear(), originalStart.getMonth() + monthsDelta, 1);
+        newEnd = new Date(originalEnd.getFullYear(), originalEnd.getMonth() + monthsDelta, originalEnd.getDate());
+    } else if (APP.ganttDragData.dragType === 'resize-left') {
+        newStart = new Date(originalStart.getFullYear(), originalStart.getMonth() + monthsDelta, 1);
+        newEnd = originalEnd;
+        
+        if (newStart >= newEnd) {
+            return;
+        }
+    } else if (APP.ganttDragData.dragType === 'resize-right') {
+        newStart = originalStart;
+        const tempEnd = new Date(originalEnd.getFullYear(), originalEnd.getMonth() + monthsDelta + 1, 0);
+        newEnd = tempEnd;
+        
+        if (newEnd <= newStart) {
+            return;
+        }
+    }
+    
+    timelineProject.startDate = newStart.toISOString().split('T')[0];
+    timelineProject.endDate = newEnd.toISOString().split('T')[0];
+    
+    renderTimeline();
+}
+
+function handleGanttDragEnd(event) {
+    if (!APP.isDraggingGantt) return;
+    
+    APP.isDraggingGantt = false;
+    APP.ganttDragData = null;
+    
+    document.removeEventListener('mousemove', handleGanttDragMove);
+    document.removeEventListener('mouseup', handleGanttDragEnd);
+    
+    document.body.style.cursor = '';
+    
+    saveToLocalStorage();
+    
+    const bars = document.querySelectorAll('.timeline-gantt-bar');
+    bars.forEach(bar => bar.classList.remove('dragging'));
 }
 
 function openAllocationModal(projectIndex) {
