@@ -94,12 +94,11 @@
                 <div class="notes-panel">
                     <h2 class="notes-header">Notes</h2>
                     <div class="notes-selector" id="notesSelector">
-                        <select id="noteTypeSelect" onchange="switchNoteType()">
-                            <option value="nymbl">Nymbl</option>
-                            <option value="ben">Ben</option>
-                            <option value="cindy">Cindy</option>
-                            <option value="general">General</option>
-                        </select>
+                        <select id="noteTypeSelect" onchange="switchNoteType()"></select>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                            <button style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-blue); border: none; border-radius: 4px; color: var(--bg-primary); font-size: 0.75rem; cursor: pointer;" onclick="addNoteType()">+ Add Type</button>
+                            <button style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-red); border: none; border-radius: 4px; color: var(--bg-primary); font-size: 0.75rem; cursor: pointer;" onclick="removeNoteType()">- Remove Type</button>
+                        </div>
                     </div>
                     <div class="notes-content">
                         <textarea id="notesTextarea" placeholder="Enter your notes here..."></textarea>
