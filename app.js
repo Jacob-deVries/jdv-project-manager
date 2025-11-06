@@ -1339,6 +1339,76 @@ function renderTimeline() {
     timelineWrapper.appendChild(totalsSection.firstChild);
 }
 
+// ============================================================================
+// TIMELINE - Add Project Functions
+// ============================================================================
+
+function showAddTimelineProjectMenu() {
+    const availableProjects = APP.projects.filter(p => {
+        return !APP.timelineProjects.some(tp => tp.projectId === p.id);
+    });
+    
+    if (availableProjects.length === 0) {
+        showNotification('All projects are already in the timeline', 'info');
+        return;
+    }
+    
+    const menuDiv = document.createElement('div');
+    menuDiv.id = 'addTimelineProjectMenu';
+    menuDiv.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 9999;';
+    
+    menuDiv.innerHTML = `
+        <div style="background: rgba(35, 35, 38, 0.98); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; max-width: 500px; max-height: 70vh; overflow-y: auto; box-shadow: var(--shadow);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="color: var(--text-primary); margin: 0;">Add Project to Timeline</h3>
+                <button onclick="closeAddTimelineProjectMenu()" style="background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                ${availableProjects.map(p => `
+                    <div onclick="addProjectToTimeline(${p.id})" style="padding: 1rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                        <div style="font-weight: 500; color: var(--text-primary); margin-bottom: 0.25rem;">${p.title}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                            ${p.status} ${p.categories && p.categories.length > 0 ? '• ' + p.categories.join(', ') : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(menuDiv);
+}
+
+function closeAddTimelineProjectMenu() {
+    const menu = document.getElementById('addTimelineProjectMenu');
+    if (menu) {
+        menu.remove();
+    }
+}
+
+function addProjectToTimeline(projectId) {
+    const project = APP.projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    if (APP.timelineProjects.some(tp => tp.projectId === projectId)) {
+        showNotification('Project is already in the timeline', 'error');
+        closeAddTimelineProjectMenu();
+        return;
+    }
+    
+    APP.timelineProjects.push({
+        projectId: projectId,
+        allocations: {},
+        startDate: null,
+        endDate: null
+    });
+    
+    saveToLocalStorage();
+    renderTimeline();
+    closeAddTimelineProjectMenu();
+    showNotification(`Added "${project.title}" to timeline`, 'success');
+}
+
 function getFilteredTimelineProjects() {
     return APP.timelineProjects.filter((tp, index) => {
         const project = APP.projects.find(p => p.id === tp.projectId);
