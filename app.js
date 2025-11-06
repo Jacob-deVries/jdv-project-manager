@@ -1498,7 +1498,28 @@ function changeTimelineMonths() {
 
 function handleGanttContainerClick(event, projectIndex) {
     event.stopPropagation();
-    showNotification('Gantt click handler not yet implemented', 'info');
+    
+    const timelineProject = APP.timelineProjects[projectIndex];
+    if (!timelineProject) return;
+    
+    // If already has dates, don't override - let them use drag handles
+    if (timelineProject.startDate && timelineProject.endDate) {
+        return;
+    }
+    
+    // Set default to current month (1 month duration)
+    const today = new Date();
+    const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of current month
+    
+    timelineProject.startDate = startDate.toISOString().split('T')[0];
+    timelineProject.endDate = endDate.toISOString().split('T')[0];
+    
+    saveToLocalStorage();
+    renderTimeline();
+    
+    const project = APP.projects.find(p => p.id === timelineProject.projectId);
+    showNotification(`Set timeline for "${project?.title}" to current month`, 'success');
 }
 
 function startGanttDrag(event, projectIndex, dragType) {
