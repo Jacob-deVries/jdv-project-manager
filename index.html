@@ -82,26 +82,663 @@
         *:focus-visible {
             outline: 2px solid var(--pastel-blue);
             outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        #passwordScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .password-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .password-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2rem;
+        }
+
+        .password-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .password-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            text-align: center;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .password-input.error {
+            border-color: var(--accent-red);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .password-error {
+            color: var(--accent-red);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            opacity: 0;
+            height: 20px;
+        }
+
+        .password-error.show {
+            opacity: 1;
+        }
+
+        .password-submit {
+            width: 100%;
+            padding: 1rem;
+            background: var(--pastel-blue);
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .password-submit:hover {
+            background: var(--pastel-blue-dark);
+        }
+
+        #dashboardWrapper {
+            display: none;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--pastel-purple), transparent);
+            opacity: 0.5;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--pastel-blue);
+        }
+
+        .nav-btn.active {
+            background: var(--pastel-purple);
+            border-color: var(--pastel-purple);
+            color: var(--bg-primary);
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            padding: 0.5rem 1rem;
+            background: var(--pastel-blue);
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--pastel-blue-dark);
+        }
+
+        .page-container {
+            display: none;
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page-container.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.85) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--pastel-blue), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--pastel-blue);
+            box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.1);
+        }
+
+        .dropdown-filter {
+            position: relative;
+        }
+
+        .dropdown-button {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .dropdown-button:hover {
+            border-color: var(--pastel-purple);
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            min-width: 200px;
+            background: rgba(35, 35, 38, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            box-shadow: var(--shadow);
+            z-index: 50;
+            max-height: 300px;
+            overflow-y: auto;
+            animation: dropdownSlide 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-menu.open {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-hover);
+            transform: translateX(4px);
+        }
+
+        .dropdown-item input[type="checkbox"] {
+            margin-right: 0.75rem;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-switch {
+            width: 48px;
+            height: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .toggle-switch.active {
+            background: var(--pastel-purple);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .project-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--pastel-blue), var(--pastel-purple), var(--pastel-blue));
+            border-radius: 12px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+        }
+
+        .project-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .project-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .project-title:hover {
+            color: var(--accent-blue);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .project-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .edit-btn, .complete-btn, .delete-btn {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s;
+        }
+        
+        .edit-btn:hover, .complete-btn:hover, .delete-btn:hover {
+            opacity: 0.8;
+        }
+
+        .timeline-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            height: calc(100vh - 180px);
+            min-height: 500px;
+        }
+
+        .timeline-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .timeline-container {
+            flex: 1;
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(35, 35, 38, 0.95) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .timeline-view {
+            display: flex;
+            gap: 2rem;
+            min-height: 100%;
+        }
+
+        .timeline-status-column {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .timeline-status-header {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .timeline-project-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timeline-project-item:hover {
+            transform: translateX(4px);
+            border-color: var(--pastel-blue);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .timeline-project-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .timeline-project-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(35, 35, 38, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn-save {
+            padding: 0.75rem 1.5rem;
+            background: var(--pastel-green);
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-save:hover {
+            background: var(--pastel-green-dark);
         }
 
         .notification-container {
             position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
         }
 
         .notification {
-            background: var(--bg-card);
+            background: rgba(35, 35, 38, 0.98);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 1rem 1.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
             min-width: 300px;
-            box-shadow: var(--shadow);
-            animation: slideIn 0.3s ease-out;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
         @keyframes slideIn {
@@ -125,578 +762,6 @@
 
         .notification.info {
             border-color: var(--pastel-blue);
-        }
-
-        .password-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--bg-card);
-            padding: 3rem;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            min-width: 400px;
-            z-index: 9999;
-        }
-
-        .password-logo {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--pastel-blue);
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .password-title {
-            text-align: center;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .password-subtitle {
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin-bottom: 2rem;
-        }
-
-        .password-input {
-            width: 100%;
-            padding: 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            margin-bottom: 1rem;
-            transition: border-color 0.2s;
-        }
-
-        .password-input:focus {
-            border-color: var(--pastel-blue);
-        }
-
-        .password-input.error {
-            border-color: var(--pastel-red);
-            animation: shake 0.3s;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        .password-error {
-            color: var(--pastel-red);
-            font-size: 0.875rem;
-            text-align: center;
-            margin-bottom: 1rem;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .password-error.show {
-            opacity: 1;
-        }
-
-        .password-submit {
-            width: 100%;
-            padding: 1rem;
-            background: var(--pastel-blue);
-            color: var(--bg-primary);
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .password-submit:hover {
-            background: var(--pastel-blue-dark);
-            transform: translateY(-1px);
-        }
-
-        #dashboardWrapper {
-            display: none;
-        }
-
-        .header {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.5rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            background: rgba(35, 35, 38, 0.95);
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--pastel-blue);
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .nav-btn {
-            padding: 0.5rem 1rem;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .nav-btn:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-
-        .nav-btn.active {
-            background: var(--pastel-blue);
-            color: var(--bg-primary);
-            border-color: var(--pastel-blue);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        #lastUpdatedText {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .btn-primary {
-            padding: 0.5rem 1rem;
-            background: var(--pastel-purple);
-            color: var(--bg-primary);
-            border: none;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-primary:hover {
-            background: var(--pastel-purple-dark);
-            transform: translateY(-1px);
-        }
-
-        .page-container {
-            display: none;
-            padding: 2rem;
-        }
-
-        .page-container.active {
-            display: block;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .stat-card:hover {
-            border-color: var(--pastel-blue);
-            transform: translateY(-2px);
-        }
-
-        .filter-controls {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 2rem;
-        }
-
-        .dropdown-wrapper {
-            position: relative;
-        }
-
-        .dropdown-trigger {
-            padding: 0.5rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
-
-        .dropdown-trigger:hover {
-            background: var(--bg-hover);
-            border-color: var(--pastel-blue);
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: calc(100% + 0.5rem);
-            left: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.5rem;
-            min-width: 200px;
-            max-height: 300px;
-            overflow-y: auto;
-            box-shadow: var(--shadow);
-            z-index: 1000;
-        }
-
-        .dropdown-item {
-            padding: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-
-        .dropdown-item:hover {
-            background: var(--bg-hover);
-        }
-
-        .search-bar {
-            flex: 1;
-            min-width: 300px;
-        }
-
-        .search-bar input {
-            width: 100%;
-            padding: 0.5rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 0.875rem;
-        }
-
-        .search-bar input:focus {
-            border-color: var(--pastel-blue);
-        }
-
-        #projectsGrid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .project-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.3s;
-        }
-
-        .project-card:hover {
-            border-color: var(--pastel-blue);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        }
-
-        .project-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1rem;
-        }
-
-        .project-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .project-title:hover {
-            color: var(--pastel-blue);
-        }
-
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .project-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-        }
-
-        .project-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .edit-btn {
-            padding: 0.5rem 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            border-radius: 6px;
-            font-size: 0.875rem;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .edit-btn:hover {
-            background: var(--bg-hover);
-            border-color: var(--pastel-purple);
-        }
-
-        .notes-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            height: fit-content;
-            position: sticky;
-            top: 120px;
-        }
-
-        .note-section {
-            margin-bottom: 1.5rem;
-        }
-
-        .note-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .note-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .note-header h3 {
-            font-size: 1rem;
-            color: var(--pastel-blue);
-        }
-
-        .note-textarea {
-            width: 100%;
-            min-height: 100px;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 0.875rem;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        .note-textarea:focus {
-            border-color: var(--pastel-blue);
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            animation: fadeIn 0.2s;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal h2 {
-            margin-bottom: 1.5rem;
-            color: var(--text-primary);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 0.875rem;
-            font-family: inherit;
-        }
-
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            border-color: var(--pastel-blue);
-        }
-
-        .multi-select {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            min-height: 44px;
-        }
-
-        .multi-select-tag {
-            padding: 0.25rem 0.75rem;
-            background: var(--pastel-blue);
-            color: var(--bg-primary);
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .multi-select-tag button {
-            background: none;
-            border: none;
-            color: var(--bg-primary);
-            cursor: pointer;
-            font-size: 1rem;
-            line-height: 1;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 2rem;
-        }
-
-        .btn-secondary {
-            padding: 0.75rem 1.5rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-secondary:hover {
-            background: var(--bg-hover);
-            border-color: var(--pastel-blue);
-        }
-
-        .btn-save {
-            padding: 0.75rem 1.5rem;
-            background: var(--pastel-green);
-            color: var(--bg-primary);
-            border: none;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-save:hover {
-            background: var(--pastel-green-dark);
-            transform: translateY(-1px);
         }
 
         .settings-list-item {
@@ -744,239 +809,6 @@
             color: var(--bg-primary);
         }
 
-        /* Timeline View Styles */
-        .timeline-wrapper {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-
-        .timeline-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .timeline-controls-left {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .timeline-controls-right {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .timeline-grid-container {
-            overflow-x: auto;
-            overflow-y: visible;
-            border-radius: 8px;
-            background: var(--bg-card);
-        }
-
-        .timeline-grid {
-            display: grid;
-            grid-template-columns: 250px repeat(var(--months-count, 12), 120px);
-            min-width: min-content;
-        }
-
-        .timeline-header-row {
-            display: contents;
-        }
-
-        .timeline-header-cell {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            padding: 0.75rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .timeline-header-label {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            padding: 0.75rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--pastel-blue);
-            position: sticky;
-            left: 0;
-            top: 0;
-            z-index: 11;
-        }
-
-        .timeline-body {
-            display: contents;
-        }
-
-        .timeline-row {
-            display: contents;
-        }
-
-        .timeline-project-label {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            padding: 0.75rem;
-            font-size: 0.875rem;
-            color: var(--text-primary);
-            position: sticky;
-            left: 0;
-            z-index: 9;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: move;
-        }
-
-        .timeline-project-label:hover {
-            background: var(--bg-hover);
-        }
-
-        .timeline-cell {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            position: relative;
-            min-height: 60px;
-        }
-
-        .timeline-bar {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 40px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            padding: 0 0.75rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            cursor: move;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .timeline-bar:hover {
-            transform: translateY(-50%) scale(1.02);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            z-index: 5;
-        }
-
-        .timeline-bar.dragging {
-            opacity: 0.6;
-            cursor: grabbing;
-            z-index: 100;
-        }
-
-        .timeline-bar-content {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .resize-handle {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 8px;
-            cursor: ew-resize;
-            z-index: 10;
-        }
-
-        .resize-handle-left {
-            left: 0;
-            border-left: 2px solid transparent;
-        }
-
-        .resize-handle-right {
-            right: 0;
-            border-right: 2px solid transparent;
-        }
-
-        .resize-handle:hover {
-            border-color: var(--pastel-blue);
-        }
-
-        .timeline-grid-line {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 1px;
-            background: var(--border-color);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-
-        .timeline-grid-line.visible {
-            opacity: 0.3;
-        }
-
-        .timeline-totals {
-            margin-top: 1.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
-        }
-
-        .timeline-totals h3 {
-            margin-bottom: 1rem;
-            color: var(--pastel-blue);
-        }
-
-        .resource-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .resource-table th,
-        .resource-table td {
-            padding: 0.5rem;
-            text-align: center;
-            border: 1px solid var(--border-color);
-            font-size: 0.875rem;
-        }
-
-        .resource-table th {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-
-        .resource-allocation-healthy {
-            color: var(--pastel-green);
-        }
-
-        .resource-allocation-warning {
-            color: var(--accent-orange);
-        }
-
-        .resource-allocation-danger {
-            color: var(--pastel-red);
-        }
-
-        .user-badge {
-            display: inline-block;
-            padding: 0.125rem 0.375rem;
-            background: rgba(124, 211, 252, 0.2);
-            border-radius: 4px;
-            font-size: 0.625rem;
-            color: var(--pastel-blue);
-        }
-
         @media (max-width: 768px) {
             #projectsPage .container {
                 grid-template-columns: 1fr !important;
@@ -986,8 +818,8 @@
                 grid-template-columns: 1fr !important;
             }
 
-            .timeline-grid {
-                grid-template-columns: 200px repeat(var(--months-count, 12), 100px);
+            .timeline-view {
+                flex-direction: column;
             }
         }
     </style>
@@ -1000,7 +832,7 @@
             <div class="password-logo">PKD Dashboard</div>
             <h2 class="password-title">Secure Access</h2>
             <p class="password-subtitle">Please enter your password to continue</p>
-            <input type="password" class="password-input" id="passwordInput" placeholder="Enter password" onkeypress="if(event.key === 'Enter') checkPassword()">
+            <input type="password" class="password-input" id="passwordInput" placeholder="Enter password">
             <div class="password-error" id="passwordError">Incorrect password. Please try again.</div>
             <button class="password-submit" onclick="checkPassword()">Access Dashboard</button>
         </div>
@@ -1027,7 +859,6 @@
             </div>
         </header>
 
-        <!-- Projects Page -->
         <div id="projectsPage" class="page-container active">
             <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none; height: calc(100vh - 200px);">
                 <div style="display: flex; flex-direction: column; overflow: hidden;">
@@ -1037,235 +868,123 @@
                             <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Active Projects</div>
                         </div>
                         <div class="stat-card">
-                            <div style="font-size: 2rem; color: var(--pastel-green); font-weight: 600;" id="completeCount">0</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Completed Projects</div>
+                            <div style="font-size: 2rem; color: var(--accent-green); font-weight: 600;" id="completeCount">0</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Completed</div>
                         </div>
                     </div>
 
-                    <div class="filter-controls">
-                        <div class="dropdown-wrapper">
-                            <button class="dropdown-trigger" onclick="toggleDropdown('category')">
-                                Categories ▼
+                    <div class="controls">
+                        <div class="search-box">
+                            <input type="text" class="search-input" placeholder="Search projects..." id="searchInput" oninput="renderProjects()">
+                        </div>
+                        
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('categoryMenu')">
+                                Categories <span id="categoryCount"></span>
                             </button>
-                            <div class="dropdown-menu" id="categoryMenu" style="display: none;"></div>
+                            <div class="dropdown-menu" id="categoryMenu"></div>
                         </div>
-                        <div class="dropdown-wrapper">
-                            <button class="dropdown-trigger" onclick="toggleDropdown('status')">
-                                Status ▼
-                            </button>
-                            <div class="dropdown-menu" id="statusMenu" style="display: none;"></div>
-                        </div>
-                        <div class="dropdown-wrapper">
-                            <button class="dropdown-trigger" onclick="toggleDropdown('user')">
-                                Users ▼
-                            </button>
-                            <div class="dropdown-menu" id="userMenu" style="display: none;"></div>
-                        </div>
-                        <div class="search-bar">
-                            <input type="text" id="searchInput" placeholder="Search projects..." oninput="filterProjects()">
-                        </div>
-                    </div>
 
-                    <div id="projectsGrid" style="overflow-y: auto; flex: 1;"></div>
-                </div>
-
-                <div class="notes-panel">
-                    <div class="note-section">
-                        <div class="note-header">
-                            <h3>Nymbl Notes</h3>
-                        </div>
-                        <textarea class="note-textarea" id="nymblNotes" placeholder="Notes about Nymbl projects..." oninput="saveNotes()"></textarea>
-                    </div>
-                    <div class="note-section">
-                        <div class="note-header">
-                            <h3>Cindy Notes</h3>
-                        </div>
-                        <textarea class="note-textarea" id="cindyNotes" placeholder="Notes about Cindy's projects..." oninput="saveNotes()"></textarea>
-                    </div>
-                    <div class="note-section">
-                        <div class="note-header">
-                            <h3>Personal Notes</h3>
-                        </div>
-                        <textarea class="note-textarea" id="meNotes" placeholder="Personal project notes..." oninput="saveNotes()"></textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Timeline Page -->
-        <div id="timelinePage" class="page-container">
-            <div class="timeline-wrapper">
-                <div class="timeline-controls">
-                    <div class="timeline-controls-left">
-                        <button class="btn-primary" onclick="showAddTimelineProjectMenu()">+ Add Projects</button>
-                        <div class="dropdown-wrapper">
-                            <button class="dropdown-trigger" onclick="toggleDropdown('timelineFilter')">
-                                Filters ▼
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('statusMenu')">
+                                Statuses <span id="statusCount"></span>
                             </button>
-                            <div class="dropdown-menu" id="timelineFilterMenu" style="display: none;">
-                                <div class="dropdown-item" onclick="applyTimelineFilter('all')">Show All</div>
-                                <div class="dropdown-item" onclick="applyTimelineFilter('active')">Active Only</div>
-                                <div class="dropdown-item" onclick="applyTimelineFilter('healthcare')">Healthcare</div>
-                                <div class="dropdown-item" onclick="applyTimelineFilter('abl')">ABL</div>
+                            <div class="dropdown-menu" id="statusMenu"></div>
+                        </div>
+
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('userMenu')">
+                                Users <span id="userCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="userMenu"></div>
+                        </div>
+
+                        <div class="toggle-container">
+                            <label>Show Completed</label>
+                            <div class="toggle-switch" id="showCompletedToggle" onclick="toggleCompleted()">
+                                <div class="toggle-slider"></div>
                             </div>
                         </div>
-                        <select id="monthsToShow" onchange="updateTimelineRange()" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary);">
-                            <option value="6">6 Months</option>
-                            <option value="12" selected>12 Months</option>
-                            <option value="18">18 Months</option>
-                            <option value="24">24 Months</option>
-                        </select>
                     </div>
-                    <div class="timeline-controls-right">
-                        <button class="btn-secondary" onclick="shiftTimelineLeft()">← Previous</button>
-                        <button class="btn-secondary" onclick="resetTimelineToToday()">Today</button>
-                        <button class="btn-secondary" onclick="shiftTimelineRight()">Next →</button>
+
+                    <div style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="projectsGrid"></div>
                     </div>
                 </div>
                 
-                <div class="timeline-grid-container" id="timelineGridContainer">
-                    <div class="timeline-grid" id="timelineGrid"></div>
-                </div>
-
-                <div class="timeline-totals" id="timelineTotals" style="display: none;">
-                    <h3>Resource Allocation</h3>
-                    <table class="resource-table" id="resourceTable"></table>
+                <div style="display: flex; flex-direction: column; overflow: hidden;">
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; height: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0;">
+                            <select id="notesSelector" onchange="switchNote()" style="flex: 1; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.875rem; margin-right: 0.5rem;">
+                                <option value="Nymbl">Nymbl</option>
+                                <option value="Cindy">Cindy</option>
+                                <option value="Me">Me</option>
+                            </select>
+                            <div class="note-header-controls">
+                                <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem; flex-shrink: 0;">+ New Note</button>
+                                <button class="btn-delete-note" onclick="deleteCurrentNote()">Delete</button>
+                            </div>
+                        </div>
+                        <textarea id="notesTextarea" style="flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); font-size: 0.875rem; resize: none; font-family: inherit; overflow-y: auto;" placeholder="Enter notes...
+• Use bullet points with • or -
+• Hyphens auto-convert to bullets
+• All formatting carries over to PKD export" oninput="handleNotesInput(event)"></textarea>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Create/Edit Project Modal -->
-    <div class="modal-overlay" id="projectModal">
-        <div class="modal">
-            <h2 id="modalTitle">Create New Project</h2>
-            <form onsubmit="saveProject(event)">
-                <input type="hidden" id="projectId">
-                
-                <div class="form-group">
-                    <label>Project Title *</label>
-                    <input type="text" id="projectTitle" required>
+        <div id="timelinePage" class="page-container">
+            <div class="container">
+                <div class="timeline-wrapper">
+                    <div class="timeline-controls">
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('timelineCategoryMenu')">
+                                Filter by Category <span id="timelineCategoryCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="timelineCategoryMenu"></div>
+                        </div>
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('timelineUserMenu')">
+                                Filter by User <span id="timelineUserCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="timelineUserMenu"></div>
+                        </div>
+                    </div>
+                    <div class="timeline-container">
+                        <div class="timeline-view" id="timelineView"></div>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label>Status *</label>
-                    <select id="projectStatus" required></select>
-                </div>
-
-                <div class="form-group">
-                    <label>Priority</label>
-                    <input type="number" id="projectPriority" value="999">
-                </div>
-
-                <div class="form-group">
-                    <label>Categories</label>
-                    <div class="multi-select" id="projectCategories" onclick="showCategorySelector()"></div>
-                </div>
-
-                <div class="form-group">
-                    <label>Assigned Users</label>
-                    <div class="multi-select" id="projectUsers" onclick="showUserSelector()"></div>
-                </div>
-
-                <div class="form-group">
-                    <label>Key Details</label>
-                    <textarea id="projectDetails"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Next Steps</label>
-                    <textarea id="projectNextSteps"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Links</label>
-                    <textarea id="projectLinks" placeholder="One link per line"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Start Date (Timeline)</label>
-                    <input type="month" id="projectStartMonth">
-                </div>
-
-                <div class="form-group">
-                    <label>End Date (Timeline)</label>
-                    <input type="month" id="projectEndMonth">
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn-secondary" onclick="closeProjectModal()">Cancel</button>
-                    <button type="submit" class="btn-save">Save Project</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Manage Settings Modal -->
-    <div class="modal-overlay" id="manageModal">
-        <div class="modal">
-            <h2>Manage Settings</h2>
-            
-            <div class="form-group">
-                <label>Categories</label>
-                <div id="categoriesList"></div>
-                <input type="text" id="newCategory" placeholder="Add new category">
-                <button type="button" class="btn-primary" style="margin-top: 0.5rem;" onclick="addCategory()">Add Category</button>
-            </div>
-
-            <div class="form-group">
-                <label>Statuses</label>
-                <div id="statusesList"></div>
-                <input type="text" id="newStatus" placeholder="Add new status">
-                <button type="button" class="btn-primary" style="margin-top: 0.5rem;" onclick="addStatus()">Add Status</button>
-            </div>
-
-            <div class="form-group">
-                <label>Users</label>
-                <div id="usersList"></div>
-                <input type="text" id="newUser" placeholder="Add new user">
-                <button type="button" class="btn-primary" style="margin-top: 0.5rem;" onclick="addUser()">Add User</button>
-            </div>
-
-            <div class="modal-actions">
-                <button type="button" class="btn-secondary" onclick="closeManageModal()">Close</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ============================================================================
-        // APPLICATION STATE
-        // ============================================================================
-        
         const APP = {
-            PASSWORD_HASH: 1869968976,
             projects: [],
-            categories: ['ABL', 'Healthcare', 'Liquid Inventory', 'IT / Infrastructure', 'Personal', 'Flagged', 'Nymbl'],
-            statuses: ['idea', 'in-progress', 'moving', 'stable', 'on-hold', 'complete', 'person'],
-            users: ['Jacob', 'Ben', 'Charlie', 'Jen', 'Holly', 'Sam', 'Grant', 'Benat', 'Nymbl'],
+            categories: [],
+            statuses: [],
+            users: [],
             selectedCategories: [],
             selectedStatuses: [],
             selectedUsers: [],
+            showCompleted: false,
             lastUpdated: 'Never',
-            currentPage: 'projects',
+            currentEditingProject: null,
+            currentProjectLinks: [],
             notes: {
                 nymbl: '',
                 cindy: '',
                 me: ''
             },
-            timeline: {
-                viewStartDate: new Date(),
-                monthsToShow: 12,
-                selectedProjects: [],
-                dragState: null
+            currentNoteName: 'Nymbl',
+            currentPage: 'projects',
+            PASSWORD_HASH: 2147093827,
+            timelineFilters: {
+                categories: [],
+                users: []
             }
         };
-
-        let nextProjectId = 1;
-
-        // ============================================================================
-        // PASSWORD & INITIALIZATION
-        // ============================================================================
 
         function hashCode(str) {
             let hash = 0;
@@ -1307,10 +1026,6 @@
             document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
         }
 
-        // ============================================================================
-        // NAVIGATION
-        // ============================================================================
-
         function showPage(page) {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
@@ -1336,9 +1051,23 @@
             }
         }
 
-        // ============================================================================
-        // STATS & FILTERS
-        // ============================================================================
+        function saveToLocalStorage() {
+            if (typeof localStorage !== 'undefined') {
+                const data = {
+                    projects: APP.projects,
+                    categories: APP.categories,
+                    statuses: APP.statuses,
+                    users: APP.users,
+                    lastUpdated: APP.lastUpdated,
+                    notes: APP.notes
+                };
+                try {
+                    localStorage.setItem('pkdDashboardData', JSON.stringify(data));
+                } catch (e) {
+                    console.error('Error saving to localStorage:', e);
+                }
+            }
+        }
 
         function updateStats() {
             const active = APP.projects.filter(p => p.status !== 'complete').length;
@@ -1397,34 +1126,96 @@
                 `;
                 userMenu.appendChild(item);
             });
+            
+            updateTimelineFilterDropdowns();
+            updateFilterCounts();
         }
 
-        function toggleDropdown(type) {
-            const menus = {
-                'category': document.getElementById('categoryMenu'),
-                'status': document.getElementById('statusMenu'),
-                'user': document.getElementById('userMenu'),
-                'timelineFilter': document.getElementById('timelineFilterMenu')
-            };
-            
-            Object.keys(menus).forEach(key => {
-                if (key !== type) {
-                    menus[key].style.display = 'none';
-                }
-            });
-            
-            const menu = menus[type];
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        function updateTimelineFilterDropdowns() {
+            if (APP.timelineFilters.categories.length === 0 && APP.categories.length > 0) {
+                APP.timelineFilters.categories = [...APP.categories];
+            }
+            if (APP.timelineFilters.users.length === 0 && APP.users.length > 0) {
+                APP.timelineFilters.users = [...APP.users];
+            }
+
+            const timelineCategoryMenu = document.getElementById('timelineCategoryMenu');
+            if (timelineCategoryMenu) {
+                timelineCategoryMenu.innerHTML = '';
+                APP.categories.forEach(cat => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    const isChecked = APP.timelineFilters.categories.includes(cat) ? 'checked' : '';
+                    item.innerHTML = `
+                        <input type="checkbox" id="timeline-cat-${cat}" onchange="toggleTimelineCategory('${cat}')" ${isChecked}>
+                        <label for="timeline-cat-${cat}">${cat}</label>
+                    `;
+                    timelineCategoryMenu.appendChild(item);
+                });
+            }
+
+            const timelineUserMenu = document.getElementById('timelineUserMenu');
+            if (timelineUserMenu) {
+                timelineUserMenu.innerHTML = '';
+                APP.users.forEach(user => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    const isChecked = APP.timelineFilters.users.includes(user) ? 'checked' : '';
+                    item.innerHTML = `
+                        <input type="checkbox" id="timeline-user-${user}" onchange="toggleTimelineUser('${user}')" ${isChecked}>
+                        <label for="timeline-user-${user}">${user}</label>
+                    `;
+                    timelineUserMenu.appendChild(item);
+                });
+            }
+
+            const timelineCategoryCount = document.getElementById('timelineCategoryCount');
+            if (timelineCategoryCount) {
+                timelineCategoryCount.textContent = APP.timelineFilters.categories.length > 0 ? `(${APP.timelineFilters.categories.length})` : '';
+            }
+
+            const timelineUserCount = document.getElementById('timelineUserCount');
+            if (timelineUserCount) {
+                timelineUserCount.textContent = APP.timelineFilters.users.length > 0 ? `(${APP.timelineFilters.users.length})` : '';
+            }
         }
 
-        function toggleCategory(cat) {
-            const index = APP.selectedCategories.indexOf(cat);
+        function toggleTimelineCategory(category) {
+            const index = APP.timelineFilters.categories.indexOf(category);
+            if (index > -1) {
+                APP.timelineFilters.categories.splice(index, 1);
+            } else {
+                APP.timelineFilters.categories.push(category);
+            }
+            updateTimelineFilterDropdowns();
+            renderTimeline();
+        }
+
+        function toggleTimelineUser(user) {
+            const index = APP.timelineFilters.users.indexOf(user);
+            if (index > -1) {
+                APP.timelineFilters.users.splice(index, 1);
+            } else {
+                APP.timelineFilters.users.push(user);
+            }
+            updateTimelineFilterDropdowns();
+            renderTimeline();
+        }
+
+        function toggleDropdown(menuId) {
+            const menu = document.getElementById(menuId);
+            menu.classList.toggle('open');
+        }
+
+        function toggleCategory(category) {
+            const index = APP.selectedCategories.indexOf(category);
             if (index > -1) {
                 APP.selectedCategories.splice(index, 1);
             } else {
-                APP.selectedCategories.push(cat);
+                APP.selectedCategories.push(category);
             }
-            filterProjects();
+            updateFilterCounts();
+            renderProjects();
         }
 
         function toggleStatus(status) {
@@ -1434,7 +1225,8 @@
             } else {
                 APP.selectedStatuses.push(status);
             }
-            filterProjects();
+            updateFilterCounts();
+            renderProjects();
         }
 
         function toggleUser(user) {
@@ -1444,47 +1236,70 @@
             } else {
                 APP.selectedUsers.push(user);
             }
-            filterProjects();
+            updateFilterCounts();
+            renderProjects();
         }
 
-        function filterProjects() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        function updateFilterCounts() {
+            document.getElementById('categoryCount').textContent = APP.selectedCategories.length > 0 ? `(${APP.selectedCategories.length})` : '';
+            document.getElementById('statusCount').textContent = APP.selectedStatuses.length > 0 ? `(${APP.selectedStatuses.length})` : '';
+            document.getElementById('userCount').textContent = APP.selectedUsers.length > 0 ? `(${APP.selectedUsers.length})` : '';
+        }
+
+        function toggleCompleted() {
+            APP.showCompleted = !APP.showCompleted;
+            document.getElementById('showCompletedToggle').classList.toggle('active');
+            renderProjects();
+        }
+
+        function renderProjects() {
+            const grid = document.getElementById('projectsGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase();
             
-            const filtered = APP.projects.filter(project => {
-                const matchesSearch = !searchTerm || 
-                    project.title.toLowerCase().includes(searchTerm) ||
-                    (project.keyDetails && project.keyDetails.toLowerCase().includes(searchTerm));
+            let filtered = APP.projects.filter(project => {
+                if (!APP.showCompleted && project.status === 'complete') return false;
                 
-                const matchesCategory = APP.selectedCategories.length === 0 || 
-                    (project.categories && project.categories.some(cat => APP.selectedCategories.includes(cat)));
+                if (APP.selectedCategories.length > 0) {
+                    const hasCategory = project.categories && 
+                        project.categories.some(cat => APP.selectedCategories.includes(cat));
+                    if (!hasCategory) return false;
+                }
                 
-                const matchesStatus = APP.selectedStatuses.length === 0 || 
-                    APP.selectedStatuses.includes(project.status);
+                if (APP.selectedStatuses.length > 0) {
+                    if (!APP.selectedStatuses.includes(project.status)) return false;
+                }
+
+                if (APP.selectedUsers.length > 0) {
+                    const hasUser = project.users && project.users.length > 0 &&
+                        project.users.some(user => APP.selectedUsers.includes(user));
+                    if (!hasUser) return false;
+                }
                 
-                const matchesUser = APP.selectedUsers.length === 0 || 
-                    (project.users && project.users.some(user => APP.selectedUsers.includes(user)));
+                if (search) {
+                    const searchInProject = 
+                        project.title.toLowerCase().includes(search) ||
+                        (project.keyDetails && project.keyDetails.toLowerCase().includes(search)) ||
+                        (project.nextSteps && project.nextSteps.toLowerCase().includes(search));
+                    if (!searchInProject) return false;
+                }
                 
-                return matchesSearch && matchesCategory && matchesStatus && matchesUser;
+                return true;
             });
             
-            renderProjects(filtered);
-        }
-
-        function renderProjects(projects) {
-            const grid = document.getElementById('projectsGrid');
+            filtered.sort((a, b) => {
+                const priorityA = a.priority || 999;
+                const priorityB = b.priority || 999;
+                return priorityA - priorityB;
+            });
+            
             grid.innerHTML = '';
             
-            if (projects.length === 0) {
-                grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;">No projects match your filters.</div>';
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;">No projects found. Upload a PKD file to get started.</div>';
                 return;
             }
             
-            const sorted = [...projects].sort((a, b) => {
-                if (a.priority === b.priority) return a.id - b.id;
-                return a.priority - b.priority;
-            });
-            
-            sorted.forEach(project => {
+            filtered.forEach(project => {
                 const card = createProjectCard(project);
                 grid.appendChild(card);
             });
@@ -1522,8 +1337,9 @@
                     </div>
                     <div class="project-actions">
                         <button class="edit-btn" style="background: var(--pastel-purple); color: var(--bg-primary); font-weight: 500;" onclick="openEditModal(${project.id})">Edit</button>
-                        ${project.status !== 'complete' ? `<button class="edit-btn" style="background: var(--pastel-green); color: var(--bg-primary); font-weight: 500;" onclick="markComplete(${project.id})">Complete</button>` : ''}
-                        <button class="edit-btn" style="background: var(--pastel-red); color: var(--bg-primary); font-weight: 500;" onclick="deleteProject(${project.id})">Delete</button>
+                        ${project.status !== 'complete' ? 
+                            `<button class="complete-btn" style="background: var(--pastel-green); color: var(--bg-primary); font-weight: 500;" onclick="markComplete(${project.id})">Complete</button>` : ''}
+                        <button class="delete-btn" style="background: var(--pastel-red); color: var(--bg-primary); font-weight: 500;" onclick="deleteProject(${project.id})">Delete</button>
                     </div>
                 </div>
             `;
@@ -1531,877 +1347,910 @@
             return card;
         }
 
-        // ============================================================================
-        // PROJECT CRUD
-        // ============================================================================
+        function renderTimeline() {
+            const timelineView = document.getElementById('timelineView');
+            if (!timelineView) return;
 
-        function openCreateModal() {
-            document.getElementById('modalTitle').textContent = 'Create New Project';
-            document.getElementById('projectId').value = '';
-            document.getElementById('projectTitle').value = '';
-            document.getElementById('projectStatus').value = 'in-progress';
-            document.getElementById('projectPriority').value = '999';
-            document.getElementById('projectDetails').value = '';
-            document.getElementById('projectNextSteps').value = '';
-            document.getElementById('projectLinks').value = '';
-            document.getElementById('projectStartMonth').value = '';
-            document.getElementById('projectEndMonth').value = '';
+            const statusOrder = ['idea', 'in-progress', 'moving', 'stable', 'on-hold', 'complete'];
             
-            updateStatusOptions();
-            renderMultiSelect('projectCategories', []);
-            renderMultiSelect('projectUsers', []);
-            
-            document.getElementById('projectModal').classList.add('active');
+            let filtered = APP.projects.filter(project => {
+                if (APP.timelineFilters.categories.length > 0) {
+                    const hasCategory = project.categories && 
+                        project.categories.some(cat => APP.timelineFilters.categories.includes(cat));
+                    if (!hasCategory) return false;
+                }
+
+                if (APP.timelineFilters.users.length > 0) {
+                    const hasUser = project.users && project.users.length > 0 &&
+                        project.users.some(user => APP.timelineFilters.users.includes(user));
+                    if (!hasUser) return false;
+                }
+
+                return true;
+            });
+
+            const projectsByStatus = {};
+            statusOrder.forEach(status => {
+                projectsByStatus[status] = filtered.filter(p => p.status === status)
+                    .sort((a, b) => (a.priority || 999) - (b.priority || 999));
+            });
+
+            timelineView.innerHTML = '';
+
+            statusOrder.forEach(status => {
+                const column = document.createElement('div');
+                column.className = 'timeline-status-column';
+
+                const header = document.createElement('div');
+                header.className = 'timeline-status-header';
+                header.textContent = status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                header.textContent += ` (${projectsByStatus[status].length})`;
+                column.appendChild(header);
+
+                projectsByStatus[status].forEach(project => {
+                    const projectItem = document.createElement('div');
+                    projectItem.className = 'timeline-project-item';
+                    projectItem.onclick = () => openProjectModal(project.id);
+
+                    const title = document.createElement('div');
+                    title.className = 'timeline-project-title';
+                    title.textContent = project.title;
+                    projectItem.appendChild(title);
+
+                    const meta = document.createElement('div');
+                    meta.className = 'timeline-project-meta';
+                    const metaParts = [];
+                    if (project.users && project.users.length > 0) {
+                        metaParts.push(`Users: ${project.users.join(', ')}`);
+                    }
+                    if (project.categories && project.categories.length > 0) {
+                        metaParts.push(project.categories.join(', '));
+                    }
+                    meta.textContent = metaParts.join(' | ');
+                    projectItem.appendChild(meta);
+
+                    column.appendChild(projectItem);
+                });
+
+                timelineView.appendChild(column);
+            });
         }
 
-        function openEditModal(projectId) {
-            const project = APP.projects.find(p => p.id === projectId);
-            if (!project) return;
+        function switchNote() {
+            saveCurrentNote();
+            const selector = document.getElementById('notesSelector');
+            APP.currentNoteName = selector.value;
+            loadNotes();
+        }
+        
+        function saveCurrentNote() {
+            const textarea = document.getElementById('notesTextarea');
+            const noteName = APP.currentNoteName;
+            const noteKey = noteName.toLowerCase().replace(/\s+/g, '_');
+            APP.notes[noteKey] = textarea.value;
+            saveToLocalStorage();
+        }
+        
+        function loadNotes() {
+            const textarea = document.getElementById('notesTextarea');
+            const selector = document.getElementById('notesSelector');
             
-            document.getElementById('modalTitle').textContent = 'Edit Project';
-            document.getElementById('projectId').value = project.id;
-            document.getElementById('projectTitle').value = project.title;
-            document.getElementById('projectStatus').value = project.status;
-            document.getElementById('projectPriority').value = project.priority || 999;
-            document.getElementById('projectDetails').value = project.keyDetails || '';
-            document.getElementById('projectNextSteps').value = project.nextSteps || '';
-            document.getElementById('projectLinks').value = project.links ? project.links.join('\n') : '';
+            if (!textarea || !selector) return;
             
-            if (project.timeline) {
-                document.getElementById('projectStartMonth').value = project.timeline.startMonth || '';
-                document.getElementById('projectEndMonth').value = project.timeline.endMonth || '';
+            const noteName = APP.currentNoteName;
+            const noteKey = noteName.toLowerCase().replace(/\s+/g, '_');
+            textarea.value = APP.notes[noteKey] || '';
+            selector.value = noteName;
+        }
+        
+        function addNewNote() {
+            const noteName = prompt('Enter note name:');
+            if (!noteName || !noteName.trim()) return;
+            
+            const trimmedName = noteName.trim();
+            const noteKey = trimmedName.toLowerCase().replace(/\s+/g, '_');
+            
+            if (APP.notes[noteKey] !== undefined) {
+                showNotification('A note with this name already exists', 'error');
+                return;
             }
             
-            updateStatusOptions();
-            renderMultiSelect('projectCategories', project.categories || []);
-            renderMultiSelect('projectUsers', project.users || []);
+            APP.notes[noteKey] = '';
             
-            document.getElementById('projectModal').classList.add('active');
+            const selector = document.getElementById('notesSelector');
+            const option = document.createElement('option');
+            option.value = trimmedName;
+            option.textContent = trimmedName;
+            selector.appendChild(option);
+            
+            APP.currentNoteName = trimmedName;
+            selector.value = trimmedName;
+            loadNotes();
+            
+            saveToLocalStorage();
+            showNotification(`Note "${trimmedName}" created`, 'success');
         }
 
-        function openProjectModal(projectId) {
-            openEditModal(projectId);
+        function deleteCurrentNote() {
+            const selector = document.getElementById('notesSelector');
+            const currentNoteName = selector.value;
+            const noteKey = currentNoteName.toLowerCase().replace(/\s+/g, '_');
+
+            const defaultNotes = ['Nymbl', 'Cindy', 'Me'];
+            if (defaultNotes.includes(currentNoteName)) {
+                showNotification('Cannot delete default notes', 'error');
+                return;
+            }
+
+            showConfirm(`Delete note "${currentNoteName}"? This action cannot be undone.`, function() {
+                delete APP.notes[noteKey];
+
+                const optionToRemove = Array.from(selector.options).find(opt => opt.value === currentNoteName);
+                if (optionToRemove) {
+                    selector.removeChild(optionToRemove);
+                }
+
+                APP.currentNoteName = 'Nymbl';
+                selector.value = 'Nymbl';
+                loadNotes();
+
+                saveToLocalStorage();
+                showNotification('Note deleted successfully', 'success');
+            });
+        }
+
+        function handleNotesInput(e) {
+            const textarea = e.target;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            
+            let value = textarea.value;
+            let newValue = value.replace(/^-\s/gm, '• ');
+            
+            if (value !== newValue) {
+                const beforeCursor = value.substring(0, start);
+                const beforeCursorNew = beforeCursor.replace(/^-\s/gm, '• ');
+                const diff = beforeCursorNew.length - beforeCursor.length;
+                
+                textarea.value = newValue;
+                textarea.selectionStart = start + diff;
+                textarea.selectionEnd = end + diff;
+            }
+            
+            saveCurrentNote();
+        }
+
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                if (container.contains(notification)) {
+                    container.removeChild(notification);
+                }
+            }, 3000);
+        }
+
+        function showConfirm(message, onConfirm) {
+            const confirmDiv = document.createElement('div');
+            confirmDiv.id = 'confirmDialog';
+            confirmDiv.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 9999;';
+            confirmDiv.innerHTML = `
+                <div style="background: rgba(35, 35, 38, 0.98); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; max-width: 400px; box-shadow: var(--shadow);">
+                    <p style="margin-bottom: 1.5rem; color: var(--text-primary);">${message}</p>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button onclick="cancelConfirm()" style="padding: 0.5rem 1.5rem; background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); border-radius: 6px; cursor: pointer; font-weight: 500;">Cancel</button>
+                        <button onclick="acceptConfirm()" style="padding: 0.5rem 1.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Confirm</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmDiv);
+            
+            window.acceptConfirm = function() {
+                confirmDiv.remove();
+                if (onConfirm) onConfirm();
+            };
+            
+            window.cancelConfirm = function() {
+                confirmDiv.remove();
+            };
+        }
+
+        function markComplete(id) {
+            const project = APP.projects.find(p => p.id === id);
+            if (!project) return;
+            
+            showConfirm(`Mark "${project.title}" as complete?`, function() {
+                project.status = 'complete';
+                
+                saveToLocalStorage();
+                updateStats();
+                renderProjects();
+                if (APP.currentPage === 'timeline') {
+                    renderTimeline();
+                }
+                showNotification('Project marked as complete', 'success');
+            });
+        }
+
+        function deleteProject(id) {
+            const project = APP.projects.find(p => p.id === id);
+            if (!project) return;
+            
+            showConfirm(`Delete project "${project.title}"? This action cannot be undone.`, function() {
+                APP.projects = APP.projects.filter(p => p.id !== id);
+                
+                saveToLocalStorage();
+                updateStats();
+                renderProjects();
+                if (APP.currentPage === 'timeline') {
+                    renderTimeline();
+                }
+                showNotification('Project deleted successfully', 'success');
+            });
+        }
+
+        function openCreateModal() {
+            if (APP.categories.length === 0) {
+                showNotification('Please upload a PKD file first or add categories in Manage Settings', 'error');
+                return;
+            }
+            
+            APP.currentEditingProject = null;
+            APP.currentProjectLinks = [];
+            
+            const modal = createEditModal();
+            document.body.appendChild(modal);
+            
+            const maxId = APP.projects.length > 0 ? Math.max(...APP.projects.map(p => p.id)) + 1 : 1;
+            document.getElementById('projectIdInput').value = maxId;
+            
+            const maxPriority = APP.projects.length > 0 ? Math.max(...APP.projects.map(p => p.priority || 999)) + 1 : 1;
+            document.getElementById('projectPriorityInput').value = maxPriority;
+            
+            const statusSelect = document.getElementById('projectStatusSelect');
+            if (APP.statuses.includes('idea')) {
+                statusSelect.value = 'idea';
+            } else if (APP.statuses.length > 0) {
+                statusSelect.value = APP.statuses[0];
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function openEditModal(id) {
+            APP.currentEditingProject = id;
+            const project = APP.projects.find(p => p.id === id);
+            if (!project) return;
+            
+            APP.currentProjectLinks = project.links ? [...project.links] : [];
+            
+            const modal = createEditModal();
+            document.body.appendChild(modal);
+            
+            document.getElementById('projectIdInput').value = project.id;
+            document.getElementById('projectTitleInput').value = project.title;
+            document.getElementById('projectStatusSelect').value = project.status;
+            document.getElementById('projectPriorityInput').value = project.priority || 999;
+            document.getElementById('projectDetailsInput').value = project.keyDetails || '';
+            document.getElementById('projectNextStepsInput').value = project.nextSteps || '';
+            
+            if (project.categories) {
+                project.categories.forEach(cat => {
+                    const checkbox = document.getElementById(`cat-check-${cat}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            if (project.users && project.users.length > 0) {
+                project.users.forEach(user => {
+                    const checkbox = document.getElementById(`user-check-${user}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            updateLinksDisplay();
+            modal.style.display = 'block';
+        }
+
+        function createEditModal() {
+            const existing = document.getElementById('editModal');
+            if (existing) existing.remove();
+            
+            const modal = document.createElement('div');
+            modal.id = 'editModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${APP.currentEditingProject ? 'Edit Project' : 'Create New Project'}</h2>
+                        <button class="close-btn" onclick="closeEditModal()">&times;</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Project ID</label>
+                        <input type="text" class="form-input" id="projectIdInput" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority (lower numbers appear first)</label>
+                        <input type="number" class="form-input" id="projectPriorityInput" placeholder="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Title *</label>
+                        <input type="text" class="form-input" id="projectTitleInput" placeholder="Enter project title">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="projectStatusSelect">
+                            ${APP.statuses.length > 0 ? 
+                                APP.statuses.map(s => `<option value="${s}">${s}</option>`).join('') :
+                                '<option value="idea">idea</option>'}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Users</label>
+                        <div id="userCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            ${APP.users.length > 0 ? 
+                                APP.users.map(user => `
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                        <input type="checkbox" id="user-check-${user}" value="${user}">
+                                        ${user}
+                                    </label>
+                                `).join('') :
+                                '<span style="color: var(--text-secondary);">No users available</span>'}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categories ${APP.categories.length === 0 ? '(Add categories in Manage Settings)' : '*'}</label>
+                        <div id="categoryCheckboxes" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            ${APP.categories.length > 0 ? 
+                                APP.categories.map(cat => `
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                        <input type="checkbox" id="cat-check-${cat}" value="${cat}">
+                                        ${cat}
+                                    </label>
+                                `).join('') :
+                                '<span style="color: var(--text-secondary);">No categories available</span>'}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Key Details</label>
+                        <textarea class="form-textarea" id="projectDetailsInput" placeholder="Enter key details..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Next Steps</label>
+                        <textarea class="form-textarea" id="projectNextStepsInput" placeholder="Enter next steps..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Links</label>
+                        <div id="projectLinksDisplay" style="margin-bottom: 1rem;"></div>
+                        <button class="btn-primary" onclick="addLink()" style="font-size: 0.875rem; padding: 0.5rem 1rem;">Add Link</button>
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button class="btn-primary" onclick="closeEditModal()" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); font-weight: 500;">Cancel</button>
+                        <button class="btn-save" onclick="saveProject()">Save Project</button>
+                    </div>
+                </div>
+            `;
+            
+            updateLinksDisplay();
+            return modal;
+        }
+
+        function updateLinksDisplay() {
+            const container = document.getElementById('projectLinksDisplay');
+            if (!container) return;
+            
+            if (APP.currentProjectLinks.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.875rem;">No links added</div>';
+            } else {
+                container.innerHTML = APP.currentProjectLinks.map((link, idx) => `
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a>
+                        <button onclick="removeLink(${idx})" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Remove</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function addLink() {
+            const container = document.getElementById('projectLinksDisplay');
+            if (!container) return;
+            
+            if (document.getElementById('linkAddForm')) return;
+            
+            const formDiv = document.createElement('div');
+            formDiv.id = 'linkAddForm';
+            formDiv.style.cssText = 'padding: 1rem; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 1rem;';
+            formDiv.innerHTML = `
+                <div style="margin-bottom: 0.5rem;">
+                    <input type="text" id="linkAliasInput" placeholder="Display text" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); margin-bottom: 0.5rem;">
+                    <input type="url" id="linkUrlInput" placeholder="https://example.com" style="width: 100%; padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="saveLinkFromForm()" style="padding: 0.5rem 1rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Save</button>
+                    <button onclick="cancelLinkForm()" style="padding: 0.5rem 1rem; background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red); border-radius: 4px; cursor: pointer; font-weight: 500;">Cancel</button>
+                </div>
+            `;
+            
+            container.parentNode.insertBefore(formDiv, container);
+        }
+        
+        function saveLinkFromForm() {
+            const aliasInput = document.getElementById('linkAliasInput');
+            const urlInput = document.getElementById('linkUrlInput');
+            
+            if (!aliasInput || !urlInput) return;
+            
+            const alias = aliasInput.value.trim();
+            const url = urlInput.value.trim();
+            
+            if (!alias || !url) {
+                showNotification('Please enter both display text and URL', 'error');
+                return;
+            }
+            
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                showNotification('URL must start with http:// or https://', 'error');
+                return;
+            }
+            
+            APP.currentProjectLinks.push({ alias, url });
+            updateLinksDisplay();
+            
+            const form = document.getElementById('linkAddForm');
+            if (form) form.remove();
+            
+            showNotification('Link added successfully', 'success');
+        }
+        
+        function cancelLinkForm() {
+            const form = document.getElementById('linkAddForm');
+            if (form) form.remove();
+        }
+
+        function removeLink(index) {
+            APP.currentProjectLinks.splice(index, 1);
+            updateLinksDisplay();
+            showNotification('Link removed', 'success');
+        }
+
+        function saveProject() {
+            const id = parseInt(document.getElementById('projectIdInput').value);
+            const priority = parseInt(document.getElementById('projectPriorityInput').value) || 999;
+            const title = document.getElementById('projectTitleInput').value.trim();
+            const status = document.getElementById('projectStatusSelect').value;
+            const keyDetails = document.getElementById('projectDetailsInput').value.trim();
+            const nextSteps = document.getElementById('projectNextStepsInput').value.trim();
+            
+            const categories = [];
+            document.querySelectorAll('#categoryCheckboxes input:checked').forEach(cb => {
+                categories.push(cb.value);
+            });
+            
+            const users = [];
+            document.querySelectorAll('#userCheckboxes input:checked').forEach(cb => {
+                users.push(cb.value);
+            });
+            
+            if (!title) {
+                showNotification('Please enter a project title', 'error');
+                return;
+            }
+            
+            if (categories.length === 0) {
+                showNotification('Please select at least one category', 'error');
+                return;
+            }
+            
+            const projectData = {
+                id,
+                priority,
+                title,
+                status,
+                users: users,
+                categories,
+                keyDetails,
+                nextSteps,
+                links: APP.currentProjectLinks
+            };
+            
+            if (APP.currentEditingProject) {
+                const index = APP.projects.findIndex(p => p.id === APP.currentEditingProject);
+                if (index !== -1) {
+                    APP.projects[index] = projectData;
+                    showNotification('Project updated successfully', 'success');
+                }
+            } else {
+                APP.projects.push(projectData);
+                showNotification('Project created successfully', 'success');
+            }
+            
+            const now = new Date();
+            APP.lastUpdated = now.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
+            
+            saveToLocalStorage();
+            updateStats();
+            renderProjects();
+            if (APP.currentPage === 'timeline') {
+                renderTimeline();
+            }
+            closeEditModal();
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            if (modal) modal.remove();
+        }
+
+        function openProjectModal(id) {
+            const project = APP.projects.find(p => p.id === id);
+            if (!project) return;
+            
+            const modal = document.createElement('div');
+            modal.id = 'projectModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${project.title}</h2>
+                        <button class="close-btn" onclick="closeProjectModal()">&times;</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Project ID</label>
+                        <div>${project.id}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <div>${project.priority || 999}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <div><span style="background: var(--pastel-blue); color: var(--bg-primary); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.875rem; font-weight: 500;">${project.status}</span></div>
+                    </div>
+                    ${project.users && project.users.length > 0 ? `
+                    <div class="form-group">
+                        <label class="form-label">Assigned Users</label>
+                        <div>${project.users.join(', ')}</div>
+                    </div>
+                    ` : ''}
+                    <div class="form-group">
+                        <label class="form-label">Categories</label>
+                        <div>${project.categories ? project.categories.join(', ') : 'None'}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Key Details</label>
+                        <div style="white-space: pre-wrap; line-height: 1.5;">${project.keyDetails || 'No details provided'}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Next Steps</label>
+                        <div style="white-space: pre-wrap; line-height: 1.5;">${project.nextSteps || 'No next steps defined'}</div>
+                    </div>
+                    ${project.links && project.links.length > 0 ? `
+                        <div class="form-group">
+                            <label class="form-label">Links</label>
+                            <div>
+                                ${project.links.map(link => 
+                                    `<div style="margin-bottom: 0.5rem;"><a href="${link.url}" target="_blank" style="color: var(--pastel-blue);">${link.alias}</a></div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
         }
 
         function closeProjectModal() {
-            document.getElementById('projectModal').classList.remove('active');
+            const modal = document.getElementById('projectModal');
+            if (modal) modal.remove();
         }
-
-        function updateStatusOptions() {
-            const select = document.getElementById('projectStatus');
-            select.innerHTML = '';
-            APP.statuses.forEach(status => {
-                const option = document.createElement('option');
-                option.value = status;
-                option.textContent = status;
-                select.appendChild(option);
-            });
-        }
-
-        function renderMultiSelect(elementId, selectedValues) {
-            const container = document.getElementById(elementId);
-            container.innerHTML = '';
-            
-            selectedValues.forEach(value => {
-                const tag = document.createElement('div');
-                tag.className = 'multi-select-tag';
-                tag.innerHTML = `
-                    ${value}
-                    <button type="button" onclick="removeFromMultiSelect('${elementId}', '${value}')">×</button>
-                `;
-                container.appendChild(tag);
-            });
-        }
-
-        function removeFromMultiSelect(elementId, value) {
-            const container = document.getElementById(elementId);
-            const tags = Array.from(container.children);
-            const tag = tags.find(t => t.textContent.trim().startsWith(value));
-            if (tag) tag.remove();
-        }
-
-        function showCategorySelector() {
-            const selected = Array.from(document.getElementById('projectCategories').children).map(tag => 
-                tag.textContent.trim().replace('×', '').trim()
-            );
-            
-            const available = APP.categories.filter(cat => !selected.includes(cat));
-            if (available.length === 0) {
-                showNotification('All categories are already selected', 'info');
-                return;
-            }
-            
-            const choice = available[0];
-            if (choice) {
-                selected.push(choice);
-                renderMultiSelect('projectCategories', selected);
-            }
-        }
-
-        function showUserSelector() {
-            const selected = Array.from(document.getElementById('projectUsers').children).map(tag => 
-                tag.textContent.trim().replace('×', '').trim()
-            );
-            
-            const available = APP.users.filter(user => !selected.includes(user));
-            if (available.length === 0) {
-                showNotification('All users are already selected', 'info');
-                return;
-            }
-            
-            const choice = available[0];
-            if (choice) {
-                selected.push(choice);
-                renderMultiSelect('projectUsers', selected);
-            }
-        }
-
-        function saveProject(event) {
-            event.preventDefault();
-            
-            const id = document.getElementById('projectId').value;
-            const title = document.getElementById('projectTitle').value;
-            const status = document.getElementById('projectStatus').value;
-            const priority = parseInt(document.getElementById('projectPriority').value);
-            const keyDetails = document.getElementById('projectDetails').value;
-            const nextSteps = document.getElementById('projectNextSteps').value;
-            const linksText = document.getElementById('projectLinks').value;
-            const links = linksText ? linksText.split('\n').filter(l => l.trim()) : [];
-            
-            const categories = Array.from(document.getElementById('projectCategories').children).map(tag => 
-                tag.textContent.trim().replace('×', '').trim()
-            );
-            
-            const users = Array.from(document.getElementById('projectUsers').children).map(tag => 
-                tag.textContent.trim().replace('×', '').trim()
-            );
-
-            const startMonth = document.getElementById('projectStartMonth').value;
-            const endMonth = document.getElementById('projectEndMonth').value;
-            
-            const project = {
-                id: id ? parseInt(id) : nextProjectId++,
-                title,
-                status,
-                priority,
-                categories,
-                users,
-                keyDetails,
-                nextSteps,
-                links,
-                timeline: {
-                    startMonth: startMonth || null,
-                    endMonth: endMonth || null,
-                    startWeek: 0,
-                    endWeek: 3,
-                    displayOrder: 0
-                }
-            };
-            
-            if (id) {
-                const index = APP.projects.findIndex(p => p.id === project.id);
-                if (index > -1) {
-                    APP.projects[index] = project;
-                }
-            } else {
-                APP.projects.push(project);
-            }
-            
-            closeProjectModal();
-            updateStats();
-            filterProjects();
-            showNotification('Project saved successfully', 'success');
-        }
-
-        function markComplete(projectId) {
-            const project = APP.projects.find(p => p.id === projectId);
-            if (project) {
-                project.status = 'complete';
-                filterProjects();
-                updateStats();
-                showNotification('Project marked as complete', 'success');
-            }
-        }
-
-        function deleteProject(projectId) {
-            if (confirm('Are you sure you want to delete this project?')) {
-                const index = APP.projects.findIndex(p => p.id === projectId);
-                if (index > -1) {
-                    APP.projects.splice(index, 1);
-                    filterProjects();
-                    updateStats();
-                    showNotification('Project deleted', 'success');
-                }
-            }
-        }
-
-        // ============================================================================
-        // MANAGE SETTINGS
-        // ============================================================================
 
         function openManageModal() {
-            renderSettingsList('categories', APP.categories);
-            renderSettingsList('statuses', APP.statuses);
-            renderSettingsList('users', APP.users);
-            document.getElementById('manageModal').classList.add('active');
+            const modal = document.createElement('div');
+            modal.id = 'manageModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Manage Settings</h2>
+                        <button class="close-btn" onclick="closeManageModal()">&times;</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Categories</label>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="newCategoryInput" placeholder="Enter category name" style="flex: 1;">
+                            <button class="btn-save" onclick="addCategory()">Add</button>
+                        </div>
+                        <div id="categoriesList">
+                            ${APP.categories.map((cat, idx) => `
+                                <div class="settings-list-item">
+                                    <span class="drag-handle">≡</span>
+                                    <input type="text" id="cat-edit-${idx}" value="${cat}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                                    <button onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Statuses</label>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="newStatusInput" placeholder="Enter status name" style="flex: 1;">
+                            <button class="btn-save" onclick="addStatus()">Add</button>
+                        </div>
+                        <div id="statusesList">
+                            ${APP.statuses.map((status, idx) => `
+                                <div class="settings-list-item">
+                                    <span class="drag-handle">≡</span>
+                                    <input type="text" id="status-edit-${idx}" value="${status}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                                    <button onclick="deleteStatus('${status}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Users</label>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="newUserInput" placeholder="Enter user name" style="flex: 1;">
+                            <button class="btn-save" onclick="addUser()">Add</button>
+                        </div>
+                        <div id="usersList">
+                            ${APP.users.map((user, idx) => `
+                                <div class="settings-list-item">
+                                    <span class="drag-handle">≡</span>
+                                    <input type="text" id="user-edit-${idx}" value="${user}" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem 0.5rem; color: var(--text-primary);">
+                                    <button onclick="deleteUser('${user.replace(/'/g, "\\'")}')" style="padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">Delete</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
         }
 
         function closeManageModal() {
-            document.getElementById('manageModal').classList.remove('active');
-        }
-
-        function renderSettingsList(type, items) {
-            const container = document.getElementById(`${type}List`);
-            container.innerHTML = '';
-            
-            items.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = 'settings-list-item';
-                div.draggable = true;
-                div.dataset.index = index;
-                div.innerHTML = `
-                    <span class="drag-handle">☰</span>
-                    <span style="flex: 1;">${item}</span>
-                    <button type="button" onclick="removeSetting('${type}', ${index})" style="background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; padding: 0.25rem 0.5rem; cursor: pointer;">×</button>
-                `;
-                container.appendChild(div);
-            });
+            const modal = document.getElementById('manageModal');
+            if (modal) modal.remove();
         }
 
         function addCategory() {
-            const input = document.getElementById('newCategory');
-            const value = input.value.trim();
-            if (value && !APP.categories.includes(value)) {
-                APP.categories.push(value);
-                renderSettingsList('categories', APP.categories);
-                input.value = '';
-                updateFilterDropdowns();
-                showNotification('Category added', 'success');
+            const input = document.getElementById('newCategoryInput');
+            const category = input.value.trim();
+            
+            if (!category) {
+                showNotification('Please enter a category name', 'error');
+                return;
             }
+            
+            if (APP.categories.includes(category)) {
+                showNotification('This category already exists', 'error');
+                return;
+            }
+            
+            APP.categories.push(category);
+            saveToLocalStorage();
+            updateFilterDropdowns();
+            closeManageModal();
+            setTimeout(() => openManageModal(), 100);
+            showNotification('Category added successfully', 'success');
+        }
+
+        function deleteCategory(category) {
+            showConfirm(`Delete category "${category}"? This will remove it from all projects.`, function() {
+                APP.categories = APP.categories.filter(c => c !== category);
+                APP.projects.forEach(p => {
+                    if (p.categories) {
+                        p.categories = p.categories.filter(c => c !== category);
+                    }
+                });
+                saveToLocalStorage();
+                updateFilterDropdowns();
+                renderProjects();
+                closeManageModal();
+                setTimeout(() => openManageModal(), 100);
+                showNotification('Category deleted successfully', 'success');
+            });
         }
 
         function addStatus() {
-            const input = document.getElementById('newStatus');
-            const value = input.value.trim();
-            if (value && !APP.statuses.includes(value)) {
-                APP.statuses.push(value);
-                renderSettingsList('statuses', APP.statuses);
-                input.value = '';
-                updateFilterDropdowns();
-                showNotification('Status added', 'success');
+            const input = document.getElementById('newStatusInput');
+            const status = input.value.trim().toLowerCase().replace(/\s+/g, '-');
+            
+            if (!status) {
+                showNotification('Please enter a status name', 'error');
+                return;
             }
+            
+            if (APP.statuses.includes(status)) {
+                showNotification('This status already exists', 'error');
+                return;
+            }
+            
+            APP.statuses.push(status);
+            saveToLocalStorage();
+            updateFilterDropdowns();
+            closeManageModal();
+            setTimeout(() => openManageModal(), 100);
+            showNotification('Status added successfully', 'success');
+        }
+
+        function deleteStatus(status) {
+            showConfirm(`Delete status "${status}"? Projects with this status will be set to "idea".`, function() {
+                APP.statuses = APP.statuses.filter(s => s !== status);
+                APP.projects.forEach(p => {
+                    if (p.status === status) p.status = 'idea';
+                });
+                saveToLocalStorage();
+                updateFilterDropdowns();
+                renderProjects();
+                closeManageModal();
+                setTimeout(() => openManageModal(), 100);
+                showNotification('Status deleted successfully', 'success');
+            });
         }
 
         function addUser() {
-            const input = document.getElementById('newUser');
-            const value = input.value.trim();
-            if (value && !APP.users.includes(value)) {
-                APP.users.push(value);
-                renderSettingsList('users', APP.users);
-                input.value = '';
-                updateFilterDropdowns();
-                showNotification('User added', 'success');
+            const input = document.getElementById('newUserInput');
+            const user = input.value.trim();
+            
+            if (!user) {
+                showNotification('Please enter a user name', 'error');
+                return;
             }
-        }
-
-        function removeSetting(type, index) {
-            const array = APP[type];
-            array.splice(index, 1);
-            renderSettingsList(type, array);
+            
+            if (APP.users.includes(user)) {
+                showNotification('This user already exists', 'error');
+                return;
+            }
+            
+            APP.users.push(user);
+            saveToLocalStorage();
             updateFilterDropdowns();
-            showNotification('Item removed', 'success');
+            closeManageModal();
+            setTimeout(() => openManageModal(), 100);
+            showNotification('User added successfully', 'success');
         }
 
-        // ============================================================================
-        // NOTES
-        // ============================================================================
-
-        function loadNotes() {
-            document.getElementById('nymblNotes').value = APP.notes.nymbl || '';
-            document.getElementById('cindyNotes').value = APP.notes.cindy || '';
-            document.getElementById('meNotes').value = APP.notes.me || '';
-        }
-
-        function saveNotes() {
-            APP.notes.nymbl = document.getElementById('nymblNotes').value;
-            APP.notes.cindy = document.getElementById('cindyNotes').value;
-            APP.notes.me = document.getElementById('meNotes').value;
-        }
-
-        // ============================================================================
-        // TIMELINE VIEW
-        // ============================================================================
-
-        function getMonthsBetween(start, count) {
-            const months = [];
-            const current = new Date(start);
-            
-            for (let i = 0; i < count; i++) {
-                months.push({
-                    year: current.getFullYear(),
-                    month: current.getMonth(),
-                    label: current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-                    key: `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`
-                });
-                current.setMonth(current.getMonth() + 1);
-            }
-            
-            return months;
-        }
-
-        function renderTimeline() {
-            const months = getMonthsBetween(APP.timeline.viewStartDate, APP.timeline.monthsToShow);
-            const grid = document.getElementById('timelineGrid');
-            grid.style.setProperty('--months-count', months.length);
-            
-            // Filter projects that have timeline data
-            const timelineProjects = APP.projects.filter(p => 
-                p.timeline && p.timeline.startMonth && p.timeline.endMonth &&
-                APP.timeline.selectedProjects.includes(p.id)
-            ).sort((a, b) => (a.timeline.displayOrder || 0) - (b.timeline.displayOrder || 0));
-            
-            // Build header
-            let html = `
-                <div class="timeline-header-label">Project</div>
-            `;
-            
-            months.forEach(month => {
-                html += `<div class="timeline-header-cell">${month.label}</div>`;
-            });
-            
-            // Build project rows
-            timelineProjects.forEach(project => {
-                html += `
-                    <div class="timeline-project-label" data-project-id="${project.id}" draggable="true">
-                        <span class="drag-handle">☰</span>
-                        <span>${project.title}</span>
-                    </div>
-                `;
-                
-                // Add cells for each month
-                months.forEach((month, idx) => {
-                    html += `<div class="timeline-cell" data-month="${month.key}" data-project-id="${project.id}" data-month-index="${idx}"></div>`;
-                });
-            });
-            
-            grid.innerHTML = html;
-            
-            // Add project bars
-            timelineProjects.forEach(project => {
-                addProjectBar(project, months);
-            });
-            
-            // Setup drag handlers
-            setupTimelineDragHandlers();
-            
-            // Update resource allocation
-            updateResourceAllocation(months);
-        }
-
-        function addProjectBar(project, months) {
-            if (!project.timeline.startMonth || !project.timeline.endMonth) return;
-            
-            const startMonthKey = project.timeline.startMonth;
-            const endMonthKey = project.timeline.endMonth;
-            
-            const startIndex = months.findIndex(m => m.key === startMonthKey);
-            const endIndex = months.findIndex(m => m.key === endMonthKey);
-            
-            if (startIndex === -1 || endIndex === -1) return;
-            
-            // Find the first cell for this project
-            const firstCell = document.querySelector(`.timeline-cell[data-project-id="${project.id}"][data-month-index="${startIndex}"]`);
-            if (!firstCell) return;
-            
-            const monthWidth = 120;
-            const startWeekOffset = (project.timeline.startWeek || 0) * (monthWidth / 4);
-            const endWeekOffset = (project.timeline.endWeek || 3) * (monthWidth / 4);
-            
-            const left = startWeekOffset;
-            const width = ((endIndex - startIndex) * monthWidth) + endWeekOffset - startWeekOffset;
-            
-            let statusColor = 'var(--pastel-blue)';
-            if (project.status === 'complete') statusColor = 'var(--text-secondary)';
-            else if (project.status === 'on-hold') statusColor = 'var(--pastel-red)';
-            else if (project.status === 'moving') statusColor = 'var(--pastel-green)';
-            else if (project.status === 'stable') statusColor = 'var(--pastel-purple)';
-            else if (project.status === 'idea') statusColor = 'var(--accent-orange)';
-            
-            const bar = document.createElement('div');
-            bar.className = 'timeline-bar';
-            bar.dataset.projectId = project.id;
-            bar.style.left = `${left}px`;
-            bar.style.width = `${width}px`;
-            bar.style.background = statusColor;
-            bar.style.color = project.status === 'complete' ? 'var(--text-secondary)' : 'var(--bg-primary)';
-            
-            const userBadges = project.users ? project.users.map(u => 
-                `<span class="user-badge">${u}</span>`
-            ).join('') : '';
-            
-            bar.innerHTML = `
-                <div class="resize-handle resize-handle-left" data-project-id="${project.id}"></div>
-                <div class="timeline-bar-content">
-                    <span>${project.title}</span>
-                    ${userBadges}
-                </div>
-                <div class="resize-handle resize-handle-right" data-project-id="${project.id}"></div>
-            `;
-            
-            firstCell.appendChild(bar);
-            
-            // Add drag handlers for the bar
-            bar.addEventListener('mousedown', (e) => {
-                if (e.target.classList.contains('resize-handle')) return;
-                startBarDrag(e, project);
-            });
-            
-            // Add resize handlers
-            const leftHandle = bar.querySelector('.resize-handle-left');
-            const rightHandle = bar.querySelector('.resize-handle-right');
-            
-            leftHandle.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                startResize(e, project, 'left');
-            });
-            
-            rightHandle.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                startResize(e, project, 'right');
-            });
-        }
-
-        function startBarDrag(e, project) {
-            e.preventDefault();
-            
-            const bar = e.currentTarget;
-            const rect = bar.getBoundingClientRect();
-            
-            APP.timeline.dragState = {
-                type: 'move',
-                projectId: project.id,
-                startX: e.clientX,
-                startLeft: rect.left,
-                originalStartMonth: project.timeline.startMonth,
-                originalEndMonth: project.timeline.endMonth,
-                originalStartWeek: project.timeline.startWeek || 0,
-                originalEndWeek: project.timeline.endWeek || 3
-            };
-            
-            bar.classList.add('dragging');
-            
-            document.addEventListener('mousemove', handleBarDrag);
-            document.addEventListener('mouseup', endBarDrag);
-        }
-
-        function handleBarDrag(e) {
-            if (!APP.timeline.dragState || APP.timeline.dragState.type !== 'move') return;
-            
-            const deltaX = e.clientX - APP.timeline.dragState.startX;
-            const monthWidth = 120;
-            const quarterMonths = Math.round(deltaX / (monthWidth / 4));
-            
-            // Update project dates
-            const project = APP.projects.find(p => p.id === APP.timeline.dragState.projectId);
-            if (!project) return;
-            
-            const newDates = offsetMonthsByQuarters(
-                APP.timeline.dragState.originalStartMonth,
-                APP.timeline.dragState.originalEndMonth,
-                APP.timeline.dragState.originalStartWeek,
-                APP.timeline.dragState.originalEndWeek,
-                quarterMonths
-            );
-            
-            project.timeline.startMonth = newDates.startMonth;
-            project.timeline.endMonth = newDates.endMonth;
-            project.timeline.startWeek = newDates.startWeek;
-            project.timeline.endWeek = newDates.endWeek;
-            
-            renderTimeline();
-        }
-
-        function endBarDrag(e) {
-            if (!APP.timeline.dragState) return;
-            
-            const bar = document.querySelector(`.timeline-bar[data-project-id="${APP.timeline.dragState.projectId}"]`);
-            if (bar) bar.classList.remove('dragging');
-            
-            APP.timeline.dragState = null;
-            
-            document.removeEventListener('mousemove', handleBarDrag);
-            document.removeEventListener('mouseup', endBarDrag);
-            
-            showNotification('Project timeline updated', 'success');
-        }
-
-        function startResize(e, project, edge) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            APP.timeline.dragState = {
-                type: 'resize',
-                edge: edge,
-                projectId: project.id,
-                startX: e.clientX,
-                originalStartMonth: project.timeline.startMonth,
-                originalEndMonth: project.timeline.endMonth,
-                originalStartWeek: project.timeline.startWeek || 0,
-                originalEndWeek: project.timeline.endWeek || 3
-            };
-            
-            document.addEventListener('mousemove', handleResize);
-            document.addEventListener('mouseup', endResize);
-        }
-
-        function handleResize(e) {
-            if (!APP.timeline.dragState || APP.timeline.dragState.type !== 'resize') return;
-            
-            const deltaX = e.clientX - APP.timeline.dragState.startX;
-            const monthWidth = 120;
-            const quarterMonths = Math.round(deltaX / (monthWidth / 4));
-            
-            const project = APP.projects.find(p => p.id === APP.timeline.dragState.projectId);
-            if (!project) return;
-            
-            if (APP.timeline.dragState.edge === 'left') {
-                const newStart = offsetMonthByQuarters(
-                    APP.timeline.dragState.originalStartMonth,
-                    APP.timeline.dragState.originalStartWeek,
-                    quarterMonths
-                );
-                
-                if (isBeforeOrEqual(newStart.month, project.timeline.endMonth)) {
-                    project.timeline.startMonth = newStart.month;
-                    project.timeline.startWeek = newStart.week;
-                }
-            } else {
-                const newEnd = offsetMonthByQuarters(
-                    APP.timeline.dragState.originalEndMonth,
-                    APP.timeline.dragState.originalEndWeek,
-                    quarterMonths
-                );
-                
-                if (isBeforeOrEqual(project.timeline.startMonth, newEnd.month)) {
-                    project.timeline.endMonth = newEnd.month;
-                    project.timeline.endWeek = newEnd.week;
-                }
-            }
-            
-            renderTimeline();
-        }
-
-        function endResize(e) {
-            APP.timeline.dragState = null;
-            
-            document.removeEventListener('mousemove', handleResize);
-            document.removeEventListener('mouseup', endResize);
-            
-            showNotification('Project timeline updated', 'success');
-        }
-
-        function setupTimelineDragHandlers() {
-            const labels = document.querySelectorAll('.timeline-project-label');
-            
-            labels.forEach(label => {
-                label.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', label.dataset.projectId);
-                    label.style.opacity = '0.5';
-                });
-                
-                label.addEventListener('dragend', (e) => {
-                    label.style.opacity = '1';
-                });
-                
-                label.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                });
-                
-                label.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    const draggedId = parseInt(e.dataTransfer.getData('text/plain'));
-                    const targetId = parseInt(label.dataset.projectId);
-                    
-                    if (draggedId !== targetId) {
-                        reorderTimelineProjects(draggedId, targetId);
+        function deleteUser(user) {
+            showConfirm(`Delete user "${user}"? This will remove them from all projects.`, function() {
+                APP.users = APP.users.filter(u => u !== user);
+                APP.projects.forEach(p => {
+                    if (p.users && p.users.length > 0) {
+                        p.users = p.users.filter(u => u !== user);
                     }
                 });
+                saveToLocalStorage();
+                updateFilterDropdowns();
+                renderProjects();
+                closeManageModal();
+                setTimeout(() => openManageModal(), 100);
+                showNotification('User deleted successfully', 'success');
             });
         }
-
-        function reorderTimelineProjects(draggedId, targetId) {
-            const draggedProject = APP.projects.find(p => p.id === draggedId);
-            const targetProject = APP.projects.find(p => p.id === targetId);
-            
-            if (!draggedProject || !targetProject) return;
-            
-            const draggedOrder = draggedProject.timeline.displayOrder || 0;
-            const targetOrder = targetProject.timeline.displayOrder || 0;
-            
-            draggedProject.timeline.displayOrder = targetOrder;
-            targetProject.timeline.displayOrder = draggedOrder;
-            
-            renderTimeline();
-            showNotification('Project order updated', 'success');
-        }
-
-        function offsetMonthsByQuarters(startMonth, endMonth, startWeek, endWeek, quarters) {
-            const start = offsetMonthByQuarters(startMonth, startWeek, quarters);
-            const end = offsetMonthByQuarters(endMonth, endWeek, quarters);
-            
-            return {
-                startMonth: start.month,
-                endMonth: end.month,
-                startWeek: start.week,
-                endWeek: end.week
-            };
-        }
-
-        function offsetMonthByQuarters(monthKey, week, quarters) {
-            const [year, month] = monthKey.split('-').map(Number);
-            const date = new Date(year, month - 1, 1);
-            
-            const totalWeeks = week + quarters;
-            const monthOffset = Math.floor(totalWeeks / 4);
-            const newWeek = ((totalWeeks % 4) + 4) % 4;
-            
-            date.setMonth(date.getMonth() + monthOffset);
-            
-            return {
-                month: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
-                week: newWeek
-            };
-        }
-
-        function isBeforeOrEqual(month1, month2) {
-            const [y1, m1] = month1.split('-').map(Number);
-            const [y2, m2] = month2.split('-').map(Number);
-            
-            if (y1 < y2) return true;
-            if (y1 > y2) return false;
-            return m1 <= m2;
-        }
-
-        function updateTimelineRange() {
-            APP.timeline.monthsToShow = parseInt(document.getElementById('monthsToShow').value);
-            renderTimeline();
-        }
-
-        function shiftTimelineLeft() {
-            const date = new Date(APP.timeline.viewStartDate);
-            date.setMonth(date.getMonth() - 3);
-            APP.timeline.viewStartDate = date;
-            renderTimeline();
-        }
-
-        function shiftTimelineRight() {
-            const date = new Date(APP.timeline.viewStartDate);
-            date.setMonth(date.getMonth() + 3);
-            APP.timeline.viewStartDate = date;
-            renderTimeline();
-        }
-
-        function resetTimelineToToday() {
-            APP.timeline.viewStartDate = new Date();
-            renderTimeline();
-        }
-
-        function showAddTimelineProjectMenu() {
-            const availableProjects = APP.projects.filter(p => 
-                p.timeline && p.timeline.startMonth && p.timeline.endMonth &&
-                !APP.timeline.selectedProjects.includes(p.id)
-            );
-            
-            if (availableProjects.length === 0) {
-                showNotification('No projects available to add. Make sure projects have start and end dates.', 'info');
-                return;
-            }
-            
-            // Simple implementation: add the first available project
-            const project = availableProjects[0];
-            APP.timeline.selectedProjects.push(project.id);
-            project.timeline.displayOrder = APP.timeline.selectedProjects.length - 1;
-            
-            renderTimeline();
-            showNotification(`Added ${project.title} to timeline`, 'success');
-        }
-
-        function applyTimelineFilter(filterType) {
-            if (filterType === 'all') {
-                APP.timeline.selectedProjects = APP.projects
-                    .filter(p => p.timeline && p.timeline.startMonth && p.timeline.endMonth)
-                    .map(p => p.id);
-            } else if (filterType === 'active') {
-                APP.timeline.selectedProjects = APP.projects
-                    .filter(p => p.timeline && p.timeline.startMonth && p.timeline.endMonth && p.status !== 'complete')
-                    .map(p => p.id);
-            } else if (filterType === 'healthcare') {
-                APP.timeline.selectedProjects = APP.projects
-                    .filter(p => p.timeline && p.timeline.startMonth && p.timeline.endMonth && 
-                           p.categories && p.categories.includes('Healthcare'))
-                    .map(p => p.id);
-            } else if (filterType === 'abl') {
-                APP.timeline.selectedProjects = APP.projects
-                    .filter(p => p.timeline && p.timeline.startMonth && p.timeline.endMonth && 
-                           p.categories && p.categories.includes('ABL'))
-                    .map(p => p.id);
-            }
-            
-            renderTimeline();
-            document.getElementById('timelineFilterMenu').style.display = 'none';
-        }
-
-        function updateResourceAllocation(months) {
-            const allocation = {};
-            
-            APP.users.forEach(user => {
-                allocation[user] = months.map(() => 0);
-            });
-            
-            APP.timeline.selectedProjects.forEach(projectId => {
-                const project = APP.projects.find(p => p.id === projectId);
-                if (!project || !project.users) return;
-                
-                months.forEach((month, idx) => {
-                    if (isProjectActiveInMonth(project, month.key)) {
-                        project.users.forEach(user => {
-                            if (allocation[user]) {
-                                allocation[user][idx]++;
-                            }
-                        });
-                    }
-                });
-            });
-            
-            // Render resource table
-            const hasData = Object.values(allocation).some(counts => counts.some(c => c > 0));
-            
-            if (!hasData) {
-                document.getElementById('timelineTotals').style.display = 'none';
-                return;
-            }
-            
-            document.getElementById('timelineTotals').style.display = 'block';
-            
-            let tableHTML = '<tr><th>User</th>';
-            months.forEach(month => {
-                tableHTML += `<th>${month.label.split(' ')[0]}</th>`;
-            });
-            tableHTML += '<th>Total</th></tr>';
-            
-            Object.keys(allocation).forEach(user => {
-                const counts = allocation[user];
-                const total = counts.reduce((a, b) => a + b, 0);
-                
-                if (total === 0) return;
-                
-                tableHTML += `<tr><td style="text-align: left; font-weight: 600;">${user}</td>`;
-                
-                counts.forEach(count => {
-                    let className = 'resource-allocation-healthy';
-                    if (count >= 5) className = 'resource-allocation-danger';
-                    else if (count >= 3) className = 'resource-allocation-warning';
-                    
-                    tableHTML += `<td class="${className}">${count}</td>`;
-                });
-                
-                tableHTML += `<td style="font-weight: 600;">${total}</td></tr>`;
-            });
-            
-            document.getElementById('resourceTable').innerHTML = tableHTML;
-        }
-
-        function isProjectActiveInMonth(project, monthKey) {
-            if (!project.timeline || !project.timeline.startMonth || !project.timeline.endMonth) {
-                return false;
-            }
-            
-            return !isBeforeOrEqual(monthKey, getPreviousMonth(project.timeline.startMonth)) &&
-                   !isBeforeOrEqual(getNextMonth(project.timeline.endMonth), monthKey);
-        }
-
-        function getPreviousMonth(monthKey) {
-            const [year, month] = monthKey.split('-').map(Number);
-            const date = new Date(year, month - 1, 1);
-            date.setMonth(date.getMonth() - 1);
-            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        }
-
-        function getNextMonth(monthKey) {
-            const [year, month] = monthKey.split('-').map(Number);
-            const date = new Date(year, month - 1, 1);
-            date.setMonth(date.getMonth() + 1);
-            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        }
-
-        // ============================================================================
-        // EXPORT/IMPORT
-        // ============================================================================
 
         function exportPKD() {
             const today = new Date();
-            const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            
+            const dateStr = today.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+
             let content = `**Project Knowledge Document**\n\n`;
             content += `*Last Updated: ${dateStr}*\n\n`;
-            
-            // Timeline configuration
-            content += `<!-- TIMELINE_DATA_START\n`;
-            content += JSON.stringify({
-                timelineProjects: APP.timeline.selectedProjects,
-                timelineMonthsToShow: APP.timeline.monthsToShow,
-                timelineStartDate: APP.timeline.viewStartDate.toISOString()
-            }, null, 2);
-            content += `\nTIMELINE_DATA_END -->\n\n`;
-            
             content += `**Quick Reference List**\n\n`;
+            
             APP.projects.forEach((project, index) => {
                 content += `${index + 1}.  ${project.title}\n\n`;
             });
             
-            content += `**Users List**\n\n`;
-            APP.users.forEach(user => {
-                content += `-   ${user}\n`;
-            });
+            if (APP.users.length > 0) {
+                content += `**Users List**\n\n`;
+                APP.users.forEach(user => {
+                    content += `-   ${user}\n`;
+                });
+                content += `\n`;
+            }
             
-            content += `\n**Active Projects**\n\n`;
+            content += `**Active Projects**\n\n`;
             
             APP.projects.forEach(project => {
                 content += `**${project.id}. ${project.title}**\n\n`;
                 content += `-   **Status**: ${project.status}\n\n`;
-                content += `-   **Priority**: ${project.priority || 999}\n\n`;
-                
-                if (project.categories && project.categories.length > 0) {
-                    content += `-   **Project Category**: ${project.categories.join(', ')}\n\n`;
-                }
-                
+                content += `-   **Project Category**: ${project.categories ? project.categories.join(', ') : ''}\n\n`;
                 if (project.users && project.users.length > 0) {
                     content += `-   **Users**: ${project.users.join(', ')}\n\n`;
                 }
                 
-                if (project.keyDetails) {
-                    content += `-   **Key Details**: ${project.keyDetails}\n\n`;
+                content += `-   **Key Details**: `;
+                if (project.keyDetails && project.keyDetails.trim()) {
+                    const detailLines = project.keyDetails.split('\n');
+                    if (detailLines.length === 1) {
+                        content += `${project.keyDetails}\n\n`;
+                    } else {
+                        content += `\n`;
+                        detailLines.forEach((line) => {
+                            content += `    ${line}\n`;
+                        });
+                        content += '\n';
+                    }
+                } else {
+                    content += '\n\n';
                 }
                 
-                if (project.nextSteps) {
-                    content += `-   **Next Steps**: ${project.nextSteps}\n\n`;
+                content += `-   **Next Steps**: `;
+                if (project.nextSteps && project.nextSteps.trim()) {
+                    const stepLines = project.nextSteps.split('\n');
+                    if (stepLines.length === 1) {
+                        content += `${project.nextSteps}\n\n`;
+                    } else {
+                        content += `\n`;
+                        stepLines.forEach((line) => {
+                            content += `    ${line}\n`;
+                        });
+                        content += '\n';
+                    }
+                } else {
+                    content += '\n\n';
                 }
                 
                 if (project.links && project.links.length > 0) {
-                    content += `-   **Links**: ${project.links.map(link => `[Link](${link})`).join(', ')}\n\n`;
-                }
-                
-                if (project.timeline && project.timeline.startMonth) {
-                    content += `-   **Timeline**: ${project.timeline.startMonth} to ${project.timeline.endMonth} (Order: ${project.timeline.displayOrder || 0})\n\n`;
+                    content += `-   **Links**: `;
+                    project.links.forEach((link, idx) => {
+                        if (idx > 0) content += ', ';
+                        content += `[${link.alias}](${link.url})`;
+                    });
+                    content += '\n\n';
                 }
             });
             
             content += `**Notes**\n\n`;
-            content += `**Nymbl**\n\n${APP.notes.nymbl || 'No notes'}\n\n`;
-            content += `**Cindy**\n\n${APP.notes.cindy || 'No notes'}\n\n`;
-            content += `**Me**\n\n${APP.notes.me || 'No notes'}\n\n`;
+            
+            const noteNames = Object.keys(APP.notes);
+            const displayNoteNames = {
+                'nymbl': 'Nymbl',
+                'cindy': 'Cindy',
+                'me': 'Personal'
+            };
+            
+            noteNames.forEach(noteKey => {
+                const displayName = displayNoteNames[noteKey] || 
+                    noteKey.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                
+                content += `**${displayName} Notes:**\n`;
+                if (APP.notes[noteKey] && APP.notes[noteKey].trim()) {
+                    const noteLines = APP.notes[noteKey].split('\n');
+                    noteLines.forEach(line => {
+                        content += `${line}\n`;
+                    });
+                } else {
+                    content += `(No notes)\n`;
+                }
+                content += '\n';
+            });
+            
+            content += `**Weekly Review Checklist**\n\n`;
+            content += `-   [ ] Update project statuses\n\n`;
+            content += `-   [ ] Review blockers and dependencies\n\n`;
+            content += `-   [ ] Check upcoming deadlines\n\n`;
+            content += `-   [ ] Update team member progress\n\n`;
+            content += `-   [ ] Document completed milestones\n\n`;
+            content += `-   [ ] Plan next week's priorities\n\n`;
             
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -2413,44 +2262,8 @@
             
             APP.lastUpdated = dateStr;
             document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
+            saveToLocalStorage();
             showNotification('PKD exported successfully', 'success');
-        }
-
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const content = e.target.result;
-                const parsed = parsePKDContent(content);
-                
-                APP.projects = parsed.projects;
-                APP.categories = parsed.categories.length > 0 ? parsed.categories : APP.categories;
-                APP.statuses = parsed.statuses.length > 0 ? parsed.statuses : APP.statuses;
-                APP.users = parsed.users.length > 0 ? parsed.users : APP.users;
-                APP.lastUpdated = parsed.lastUpdated;
-                APP.notes = parsed.notes;
-                APP.timeline.selectedProjects = parsed.timelineProjects || [];
-                APP.timeline.monthsToShow = parsed.timelineMonthsToShow || 12;
-                
-                if (parsed.timelineStartDate) {
-                    APP.timeline.viewStartDate = new Date(parsed.timelineStartDate);
-                }
-                
-                nextProjectId = Math.max(...APP.projects.map(p => p.id), 0) + 1;
-                
-                updateStats();
-                updateFilterDropdowns();
-                filterProjects();
-                loadNotes();
-                
-                document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
-                showNotification('PKD loaded successfully', 'success');
-            };
-            
-            reader.readAsText(file);
-            event.target.value = '';
         }
 
         function parsePKDContent(content) {
@@ -2464,24 +2277,8 @@
                     nymbl: '',
                     cindy: '',
                     me: ''
-                },
-                timelineProjects: [],
-                timelineMonthsToShow: 12,
-                timelineStartDate: null
-            };
-            
-            // Parse timeline data
-            const timelineDataMatch = content.match(/<!-- TIMELINE_DATA_START\n([\s\S]*?)\nTIMELINE_DATA_END -->/);
-            if (timelineDataMatch) {
-                try {
-                    const timelineData = JSON.parse(timelineDataMatch[1]);
-                    result.timelineProjects = timelineData.timelineProjects || [];
-                    result.timelineMonthsToShow = timelineData.timelineMonthsToShow || 12;
-                    result.timelineStartDate = timelineData.timelineStartDate ? new Date(timelineData.timelineStartDate) : null;
-                } catch (e) {
-                    console.error('Error parsing timeline data:', e);
                 }
-            }
+            };
             
             const categoriesSet = new Set();
             const statusesSet = new Set();
@@ -2489,7 +2286,7 @@
             
             const lines = content.split('\n');
             
-            for (let i = 0; i < Math.min(lines.length, 20); i++) {
+            for (let i = 0; i < Math.min(lines.length, 10); i++) {
                 const line = lines[i];
                 if (line.includes('Last Updated:')) {
                     const match = line.match(/\*Last Updated:\s*(.+?)\*/);
@@ -2518,6 +2315,7 @@
             }
             
             if (projectsStart === -1) {
+                console.log('No Active Projects section found');
                 return result;
             }
             
@@ -2525,136 +2323,268 @@
             const projectsEnd = notesStart !== -1 ? notesStart : lines.length;
             
             for (let i = projectsStart + 1; i < projectsEnd; i++) {
-                const line = lines[i].trim();
+                const line = lines[i];
+                const trimmedLine = line.trim();
                 
-                if (line.match(/^\*\*\d+\.\s+.+\*\*$/)) {
+                const projectMatch = trimmedLine.match(/^\*\*(\d+)\.\s+(.+)\*\*$/);
+                if (projectMatch) {
                     if (currentProject) {
                         result.projects.push(currentProject);
                     }
-                    
-                    const match = line.match(/^\*\*(\d+)\.\s+(.+?)\*\*$/);
-                    if (match) {
-                        currentProject = {
-                            id: parseInt(match[1]),
-                            title: match[2],
-                            status: 'in-progress',
-                            priority: 999,
-                            categories: [],
-                            users: [],
-                            keyDetails: '',
-                            nextSteps: '',
-                            links: [],
-                            timeline: {
-                                startMonth: null,
-                                endMonth: null,
-                                startWeek: 0,
-                                endWeek: 3,
-                                displayOrder: 0
-                            }
-                        };
-                    }
-                } else if (currentProject && line.startsWith('-')) {
-                    if (line.includes('**Status**:')) {
-                        const status = line.split('**Status**:')[1].trim();
+                    currentProject = {
+                        id: parseInt(projectMatch[1]),
+                        title: projectMatch[2],
+                        status: 'idea',
+                        users: [],
+                        categories: [],
+                        keyDetails: '',
+                        nextSteps: '',
+                        links: [],
+                        priority: 999
+                    };
+                    continue;
+                }
+                
+                if (!currentProject) continue;
+                
+                if (line.includes('**Status**:')) {
+                    const parts = line.split('**Status**:');
+                    if (parts.length > 1) {
+                        const status = parts[1].trim().toLowerCase().replace(/\s+/g, '-');
                         currentProject.status = status;
                         statusesSet.add(status);
-                    } else if (line.includes('**Priority**:')) {
-                        const priority = parseInt(line.split('**Priority**:')[1].trim());
-                        currentProject.priority = priority;
-                    } else if (line.includes('**Project Category**:')) {
-                        const cats = line.split('**Project Category**:')[1].split(',').map(c => c.trim());
-                        currentProject.categories = cats;
-                        cats.forEach(cat => categoriesSet.add(cat));
-                    } else if (line.includes('**Users**:')) {
-                        const users = line.split('**Users**:')[1].split(',').map(u => u.trim());
-                        currentProject.users = users;
-                        users.forEach(user => usersSet.add(user));
-                    } else if (line.includes('**Key Details**:')) {
-                        currentProject.keyDetails = line.split('**Key Details**:')[1].trim();
-                    } else if (line.includes('**Next Steps**:')) {
-                        currentProject.nextSteps = line.split('**Next Steps**:')[1].trim();
-                    } else if (line.includes('**Timeline**:')) {
-                        const timelineMatch = line.match(/(\d{4}-\d{2})\s+to\s+(\d{4}-\d{2})\s+\(Order:\s+(\d+)\)/);
-                        if (timelineMatch) {
-                            currentProject.timeline.startMonth = timelineMatch[1];
-                            currentProject.timeline.endMonth = timelineMatch[2];
-                            currentProject.timeline.displayOrder = parseInt(timelineMatch[3]);
+                    }
+                }
+                
+                if (line.includes('**Project Category**:')) {
+                    const parts = line.split('**Project Category**:');
+                    if (parts.length > 1) {
+                        const cats = parts[1].trim();
+                        if (cats) {
+                            const categoryList = cats.split(',').map(c => c.trim()).filter(c => c);
+                            currentProject.categories = categoryList;
+                            categoryList.forEach(c => categoriesSet.add(c));
                         }
                     }
                 }
+                
+                if (line.includes('**User**:') || line.includes('**Users**:')) {
+                    const parts = line.includes('**Users**:') ? line.split('**Users**:') : line.split('**User**:');
+                    if (parts.length > 1) {
+                        const usersString = parts[1].trim();
+                        if (usersString) {
+                            const usersList = usersString.split(',').map(u => u.trim()).filter(u => u);
+                            currentProject.users = usersList;
+                            usersList.forEach(u => usersSet.add(u));
+                        }
+                    }
+                }
+                
+                if (line.includes('**Key Details**:')) {
+                    const parts = line.split('**Key Details**:');
+                    if (parts.length > 1 && parts[1].trim()) {
+                        currentProject.keyDetails = parts[1].trim();
+                    } else {
+                        const detailLines = [];
+                        let j = i + 1;
+                        while (j < projectsEnd && lines[j] && !lines[j].includes('**') && !lines[j].trim().startsWith('-')) {
+                            if (lines[j].trim()) {
+                                detailLines.push(lines[j].replace(/^    /, ''));
+                            }
+                            j++;
+                        }
+                        currentProject.keyDetails = detailLines.join('\n').trim();
+                    }
+                }
+                
+                if (line.includes('**Next Steps**:')) {
+                    const parts = line.split('**Next Steps**:');
+                    if (parts.length > 1 && parts[1].trim()) {
+                        currentProject.nextSteps = parts[1].trim();
+                    } else {
+                        const stepLines = [];
+                        let j = i + 1;
+                        while (j < projectsEnd && lines[j] && !lines[j].includes('**') && !lines[j].trim().startsWith('-')) {
+                            if (lines[j].trim()) {
+                                stepLines.push(lines[j].replace(/^    /, ''));
+                            }
+                            j++;
+                        }
+                        currentProject.nextSteps = stepLines.join('\n').trim();
+                    }
+                }
+                
+                if (line.includes('**Links**:')) {
+                    const parts = line.split('**Links**:');
+                    if (parts.length > 1) {
+                        const linksText = parts[1].trim();
+                        const linkMatches = [...linksText.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)];
+                        linkMatches.forEach(match => {
+                            currentProject.links.push({ alias: match[1], url: match[2] });
+                        });
+                    }
+                }
+                
+                if (line.includes('**Weekly Review Checklist**')) {
+                    if (currentProject) {
+                        result.projects.push(currentProject);
+                    }
+                    break;
+                }
             }
             
-            if (currentProject) {
+            if (currentProject && !result.projects.find(p => p.id === currentProject.id)) {
                 result.projects.push(currentProject);
             }
             
-            // Parse notes
             if (notesStart !== -1) {
-                let currentNoteType = null;
-                let noteContent = [];
+                let currentNote = null;
+                let noteContent = {};
+                
+                noteContent.nymbl = [];
+                noteContent.cindy = [];
+                noteContent.me = [];
                 
                 for (let i = notesStart + 1; i < lines.length; i++) {
                     const line = lines[i];
                     
-                    if (line.includes('**Nymbl**')) {
-                        if (currentNoteType && noteContent.length > 0) {
-                            result.notes[currentNoteType] = noteContent.join('\n').trim();
+                    const noteHeaderMatch = line.match(/\*\*(.+?)\s+Notes:\*\*/);
+                    if (noteHeaderMatch) {
+                        const noteName = noteHeaderMatch[1];
+                        if (noteName === 'Nymbl') {
+                            currentNote = 'nymbl';
+                        } else if (noteName === 'Cindy') {
+                            currentNote = 'cindy';
+                        } else if (noteName === 'Personal') {
+                            currentNote = 'me';
+                        } else {
+                            const noteKey = noteName.toLowerCase().replace(/\s+/g, '_');
+                            currentNote = noteKey;
+                            if (!noteContent[noteKey]) {
+                                noteContent[noteKey] = [];
+                            }
                         }
-                        currentNoteType = 'nymbl';
-                        noteContent = [];
-                    } else if (line.includes('**Cindy**')) {
-                        if (currentNoteType && noteContent.length > 0) {
-                            result.notes[currentNoteType] = noteContent.join('\n').trim();
+                        continue;
+                    } else if (line.includes('**Weekly Review Checklist**')) {
+                        break;
+                    } else if (line.startsWith('**') && line.endsWith('**') && !line.includes('Notes:')) {
+                        currentNote = null;
+                        continue;
+                    }
+                    
+                    if (currentNote && !line.includes('(No notes)')) {
+                        if (!noteContent[currentNote]) {
+                            noteContent[currentNote] = [];
                         }
-                        currentNoteType = 'cindy';
-                        noteContent = [];
-                    } else if (line.includes('**Me**')) {
-                        if (currentNoteType && noteContent.length > 0) {
-                            result.notes[currentNoteType] = noteContent.join('\n').trim();
-                        }
-                        currentNoteType = 'me';
-                        noteContent = [];
-                    } else if (currentNoteType) {
-                        noteContent.push(line);
+                        noteContent[currentNote].push(line);
                     }
                 }
                 
-                if (currentNoteType && noteContent.length > 0) {
-                    result.notes[currentNoteType] = noteContent.join('\n').trim();
-                }
+                Object.keys(noteContent).forEach(key => {
+                    result.notes[key] = noteContent[key].join('\n').trim();
+                });
             }
             
-            result.categories = Array.from(categoriesSet);
-            result.statuses = Array.from(statusesSet);
-            result.users = Array.from(usersSet);
+            result.categories = Array.from(categoriesSet).sort();
+            result.statuses = Array.from(statusesSet).sort();
+            result.users = Array.from(usersSet).sort();
             
             return result;
         }
 
-        // ============================================================================
-        // NOTIFICATIONS
-        // ============================================================================
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            
-            container.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    const parsed = parsePKDContent(content);
+                    
+                    if (parsed.lastUpdated) {
+                        APP.lastUpdated = parsed.lastUpdated;
+                        document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
+                    }
+                    
+                    if (parsed.projects.length > 0) {
+                        APP.projects = parsed.projects;
+                        APP.categories = parsed.categories;
+                        APP.statuses = parsed.statuses;
+                        APP.users = parsed.users;
+                        APP.notes = parsed.notes;
+                        
+                        const selector = document.getElementById('notesSelector');
+                        if (selector) {
+                            selector.innerHTML = '';
+                            
+                            const displayNames = {
+                                'nymbl': 'Nymbl',
+                                'cindy': 'Cindy',
+                                'me': 'Me'
+                            };
+                            
+                            Object.keys(APP.notes).forEach(noteKey => {
+                                const option = document.createElement('option');
+                                const displayName = displayNames[noteKey] || 
+                                    noteKey.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                                option.value = displayName;
+                                option.textContent = displayName;
+                                selector.appendChild(option);
+                            });
+                            
+                            if (Object.keys(APP.notes).length > 0) {
+                                const firstNoteKey = Object.keys(APP.notes)[0];
+                                const firstDisplayName = displayNames[firstNoteKey] || 
+                                    firstNoteKey.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                                APP.currentNoteName = firstDisplayName;
+                                loadNotes();
+                            }
+                        }
+                        
+                        saveToLocalStorage();
+                        updateStats();
+                        updateFilterDropdowns();
+                        renderProjects();
+                        
+                        showNotification(`Loaded ${APP.projects.length} projects with ${APP.categories.length} categories and ${APP.users.length} users`, 'success');
+                    } else {
+                        showNotification('No projects found in file', 'error');
+                    }
+                } catch (error) {
+                    console.error('Parse error:', error);
+                    showNotification('Error parsing file: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
         }
 
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.dropdown-wrapper')) {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.style.display = 'none';
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        checkPassword();
+                    }
                 });
+                passwordInput.focus();
             }
+            
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown-filter')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.remove('open');
+                    });
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modals = document.querySelectorAll('.modal');
+                    modals.forEach(modal => modal.remove());
+                }
+            });
         });
     </script>
 </body>
