@@ -2058,13 +2058,24 @@
             const timelineProject = APP.timelineProjects[projectIndex];
             if (!timelineProject) return;
             
+            // store initial drag state and month-position equivalents
+            const currentYear = APP.timelineStartDate.getFullYear();
+            const currentMonth = APP.timelineStartDate.getMonth();
+            const timelineStart = new Date(currentYear, currentMonth, 1);
+
+            const originalStart = timelineProject.startDate ? new Date(timelineProject.startDate) : new Date(timelineStart);
+            const originalEnd = timelineProject.endDate ? new Date(timelineProject.endDate) : new Date(timelineStart.getFullYear(), timelineStart.getMonth() + 1, 1);
+
             APP.isDraggingGantt = true;
             APP.ganttDragData = {
                 projectIndex: projectIndex,
                 dragType: dragType,
                 startX: event.clientX,
-                originalStartDate: timelineProject.startDate,
-                originalEndDate: timelineProject.endDate
+                containerRect: event.target.closest('.timeline-gantt-container')?.getBoundingClientRect(),
+                originalStartDate: originalStart.toISOString(),
+                originalEndDate: originalEnd.toISOString(),
+                originalStartPos: getMonthPositionFromDate(originalStart, timelineStart),
+                originalEndPos: getMonthPositionFromDate(originalEnd, timelineStart)
             };
             
             const bar = event.target.closest('.timeline-gantt-bar');
@@ -2079,117 +2090,79 @@
             
             event.preventDefault();
             
-            const deltaX = event.clientX - APP.ganttDragData.startX;
             
+            // Use month-based positions and snap to quarter (0, .25, .5, .75)
             const row = document.querySelector(`.timeline-project-row[data-project-index="${APP.ganttDragData.projectIndex}"]`);
             if (!row) return;
-            
+
             const ganttContainer = row.querySelector('.timeline-gantt-container');
             if (!ganttContainer) return;
-            
-            const containerWidth = ganttContainer.offsetWidth;
-            const totalQuarters = APP.timelineMonthsToShow * 4;
-            const quarterWidth = containerWidth / totalQuarters;
-            
-            // Calculate how many quarters we've moved
-            const quartersMove = Math.round(deltaX / quarterWidth);
-            
-            const currentYear = APP.timelineStartDate.getFullYear();
-            const currentMonth = APP.timelineStartDate.getMonth();
-            const timelineStart = new Date(currentYear, currentMonth, 1);
-            
-            const timelineProject = APP.timelineProjects[APP.ganttDragData.projectIndex];
-            if (!timelineProject) return;
-            
-            const originalStart = new Date(APP.ganttDragData.originalStartDate);
-            const originalEnd = new Date(APP.ganttDragData.originalEndDate);
-            
-            let newStartDate, newEndDate;
-            
+
+            const rect = APP.ganttDragData.containerRect || ganttContainer.getBoundingClientRect();
+            const containerWidth = rect.width;
+
+            const deltaX = event.clientX - APP.ganttDragData.startX;
+            const deltaMonths = (deltaX / containerWidth) * APP.timelineMonthsToShow;
+
+            const timelineStart = new Date(APP.timelineStartDate.getFullYear(), APP.timelineStartDate.getMonth(), 1);
+            const tp = APP.timelineProjects[APP.ganttDragData.projectIndex];
+
+            // original positions (float months, e.g., 0.25 means first month + quarter)
+            const origStartPos = APP.ganttDragData.originalStartPos;
+            const origEndPos = APP.ganttDragData.originalEndPos;
+
+            let newStartPos = origStartPos;
+            let newEndPos = origEndPos;
+
             if (APP.ganttDragData.dragType === 'move') {
-                // Move both start and end by the same amount
-                const originalStartCol = getColumnFromDate(originalStart, timelineStart);
-                const originalEndCol = getEndColumnFromDate(originalEnd, timelineStart);
-                
-                const newStartCol = originalStartCol + quartersMove;
-                const newEndCol = originalEndCol + quartersMove;
-                
-                newStartDate = getDateFromColumn(newStartCol, timelineStart);
-                newEndDate = getDateFromColumn(newEndCol, timelineStart);
-                
-            } else if (APP.ganttDragData.dragType === 'resize-left') {
-                const originalStartCol = getColumnFromDate(originalStart, timelineStart);
-                const newStartCol = originalStartCol + quartersMove;
-                
-                newStartDate = getDateFromColumn(newStartCol, timelineStart);
-                newEndDate = new Date(originalEnd);
-                
-                // Ensure minimum width of 1 quarter
-                const startCol = getColumnFromDate(newStartDate, timelineStart);
-                const endCol = getEndColumnFromDate(newEndDate, timelineStart);
-                if (endCol - startCol < 1) {
-                    newStartDate = getDateFromColumn(endCol - 1, timelineStart);
+                newStartPos = origStartPos + deltaMonths;
+                newEndPos = origEndPos + deltaMonths;
+
+                // snap both to nearest quarter
+                newStartPos = snapToQuarter(newStartPos);
+                newEndPos = snapToQuarter(newEndPos);
+
+                // preserve duration if snapping collapsed it
+                if (newEndPos - newStartPos < 0.25) {
+                    newEndPos = newStartPos + 0.25;
                 }
-                
+            } else if (APP.ganttDragData.dragType === 'resize-left') {
+                newStartPos = origStartPos + deltaMonths;
+                newStartPos = snapToQuarter(newStartPos);
+
+                // enforce minimum width
+                if (origEndPos - newStartPos < 0.25) {
+                    newStartPos = origEndPos - 0.25;
+                }
             } else if (APP.ganttDragData.dragType === 'resize-right') {
-                const originalEndCol = getEndColumnFromDate(originalEnd, timelineStart);
-                const newEndCol = originalEndCol + quartersMove;
-                
-                newStartDate = new Date(originalStart);
-                newEndDate = getDateFromColumn(newEndCol, timelineStart);
-                
-                // Ensure minimum width of 1 quarter
-                const startCol = getColumnFromDate(newStartDate, timelineStart);
-                const endCol = getEndColumnFromDate(newEndDate, timelineStart);
-                if (endCol - startCol < 1) {
-                    newEndDate = getDateFromColumn(startCol + 1, timelineStart);
+                newEndPos = origEndPos + deltaMonths;
+                newEndPos = snapToQuarter(newEndPos);
+
+                if (newEndPos - origStartPos < 0.25) {
+                    newEndPos = origStartPos + 0.25;
                 }
             }
-            
-            // Update the data
-            timelineProject.startDate = newStartDate.toISOString();
-            timelineProject.endDate = newEndDate.toISOString();
-            
-            // Update the bar visually (use percent left/width since bars are positioned absolutely)
-            const startCol = getColumnFromDate(newStartDate, timelineStart);
-            const endCol = getEndColumnFromDate(newEndDate, timelineStart);
-            const label = formatDateRangeLabel(newStartDate, newEndDate);
 
-            const startQuarterIndex = Math.max(0, startCol - 1);
-            const endQuarterIndex = Math.max(startQuarterIndex + 1, endCol - 1);
+            // clamp to timeline range
+            newStartPos = Math.max(0, Math.min(APP.timelineMonthsToShow - 0.25, newStartPos));
+            newEndPos = Math.max(0.25, Math.min(APP.timelineMonthsToShow, newEndPos));
 
-            let leftPercent = (startQuarterIndex / totalQuarters) * 100;
-            let widthPercent = ((endQuarterIndex - startQuarterIndex) / totalQuarters) * 100;
+            // Update data model
+            tp.startDate = getDateFromMonthPosition(newStartPos, timelineStart).toISOString();
+            tp.endDate = getDateFromMonthPosition(newEndPos, timelineStart).toISOString();
 
-            // Clamp values so bar stays inside container
-            leftPercent = Math.max(0, Math.min(100, leftPercent));
-            widthPercent = Math.max((1 / totalQuarters) * 100, Math.min(100 - leftPercent, widthPercent));
+            // Update visual bar
+            const leftPercent = (newStartPos / APP.timelineMonthsToShow) * 100;
+            const widthPercent = ((newEndPos - newStartPos) / APP.timelineMonthsToShow) * 100;
+            const label = formatDateRangeLabel(new Date(tp.startDate), new Date(tp.endDate));
 
             const bar = ganttContainer.querySelector('.timeline-gantt-bar');
             if (bar) {
                 bar.style.left = `${leftPercent}%`;
                 bar.style.width = `${widthPercent}%`;
                 const barBody = bar.querySelector('.timeline-gantt-bar-body');
-                if (barBody) {
-                    barBody.textContent = label;
-                }
+                if (barBody) barBody.textContent = label;
             }
-        }
-
-        function getDateFromColumn(column, timelineStart) {
-            // Convert 1-based column index to date (first of month)
-            const monthOffset = column - 1;
-            const date = new Date(timelineStart);
-            date.setMonth(date.getMonth() + monthOffset);
-            date.setDate(1);
-            return date;
-        }
-
-        function getColumnFromDate(date, timelineStart) {
-            // Convert a date to a month-based column index (1-based)
-            const yearDiff = date.getFullYear() - timelineStart.getFullYear();
-            const monthDiff = date.getMonth() - timelineStart.getMonth();
-            return yearDiff * 12 + monthDiff + 1;
         }
 
         function getEndColumnFromDate(date, timelineStart) {
@@ -2206,6 +2179,53 @@
             date.setMonth(date.getMonth() + Math.floor(monthPosition));
             date.setDate(1);
             return date;
+        }
+
+        function getMonthPositionFromDate(date, timelineStart) {
+            // returns float months from timelineStart, with fractional quarters: 0, .25, .5, .75
+            const yearDiff = date.getFullYear() - timelineStart.getFullYear();
+            const monthDiff = date.getMonth() - timelineStart.getMonth();
+            const monthsFromTimeline = yearDiff * 12 + monthDiff;
+
+            const day = date.getDate();
+            let frac = 0;
+            if (day === 1) frac = 0;
+            else if (day === 8) frac = 0.25;
+            else if (day === 15) frac = 0.5;
+            else if (day === 23) frac = 0.75;
+            else {
+                // snap other days to nearest quarter
+                const approximate = (() => {
+                    if (day <= 5) return 0;
+                    if (day <= 11) return 0.25;
+                    if (day <= 18) return 0.5;
+                    if (day <= 26) return 0.75;
+                    return 0; // push to next month
+                })();
+                frac = approximate;
+                if (approximate === 0 && day > 26) {
+                    // move to next month
+                    return monthsFromTimeline + 1;
+                }
+            }
+
+            return monthsFromTimeline + frac;
+        }
+
+        function getDateFromMonthPosition(monthPosition, timelineStart) {
+            const whole = Math.floor(monthPosition);
+            const frac = Math.round((monthPosition - whole) * 4) / 4;
+            const date = new Date(timelineStart);
+            date.setMonth(date.getMonth() + whole);
+            if (frac === 0) date.setDate(1);
+            else if (frac === 0.25) date.setDate(8);
+            else if (frac === 0.5) date.setDate(15);
+            else if (frac === 0.75) date.setDate(23);
+            return date;
+        }
+
+        function snapToQuarter(value) {
+            return Math.round(value * 4) / 4;
         }
 
         function stopGanttDrag(event) {
