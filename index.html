@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PKD Project Management Dashboard</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="timeline.css">
 </head>
 <body>
     <div class="notification-container" id="notificationContainer"></div>
@@ -28,7 +29,8 @@
                 </div>
                 <div class="header-actions">
                     <span id="lastUpdatedText">Last Updated: Never</span>
-                    <a href="timeline.html" class="btn-primary" style="text-decoration: none; display: inline-block;">Timeline View</a>
+                    <button class="btn-primary" onclick="switchView('projects')" id="btnProjectsView">Projects</button>
+                    <button class="btn-primary" onclick="switchView('timeline')" id="btnTimelineView">Timeline</button>
                     <button class="btn-primary" onclick="openCreateModal()">New Project</button>
                     <button class="btn-primary" onclick="openManageModal()">Manage Settings</button>
                     <button class="btn-primary" onclick="exportPKD()">Export PKD</button>
@@ -38,80 +40,170 @@
             </div>
         </header>
 
-        <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none; height: calc(100vh - 200px);">
-            <div style="display: flex; flex-direction: column; overflow: hidden;">
-                <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                    <div class="stat-card">
-                        <div style="font-size: 2rem; color: var(--accent-blue); font-weight: 600;" id="activeCount">0</div>
-                        <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Active Projects</div>
-                    </div>
-                    <div class="stat-card">
-                        <div style="font-size: 2rem; color: var(--accent-green); font-weight: 600;" id="completeCount">0</div>
-                        <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Completed</div>
-                    </div>
-                </div>
-
-                <div class="controls">
-                    <div class="search-box">
-                        <input type="text" class="search-input" placeholder="Search projects..." id="searchInput" oninput="renderProjects()">
-                    </div>
-                    
-                    <div class="dropdown-filter">
-                        <button class="dropdown-button" onclick="toggleDropdown('categoryMenu')">
-                            Categories <span id="categoryCount"></span>
-                        </button>
-                        <div class="dropdown-menu" id="categoryMenu"></div>
-                    </div>
-
-                    <div class="dropdown-filter">
-                        <button class="dropdown-button" onclick="toggleDropdown('statusMenu')">
-                            Statuses <span id="statusCount"></span>
-                        </button>
-                        <div class="dropdown-menu" id="statusMenu"></div>
-                    </div>
-
-                    <div class="dropdown-filter">
-                        <button class="dropdown-button" onclick="toggleDropdown('userMenu')">
-                            Users <span id="userCount"></span>
-                        </button>
-                        <div class="dropdown-menu" id="userMenu"></div>
-                    </div>
-
-                    <div class="toggle-container">
-                        <label>Show Completed</label>
-                        <div class="toggle-switch" id="showCompletedToggle" onclick="toggleCompleted()">
-                            <div class="toggle-slider"></div>
+        <!-- Projects View -->
+        <div id="projectsView" class="view-container active" style="padding: 2rem;">
+            <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none; height: calc(100vh - 200px);">
+                <div style="display: flex; flex-direction: column; overflow: hidden;">
+                    <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div class="stat-card">
+                            <div style="font-size: 2rem; color: var(--accent-blue); font-weight: 600;" id="activeCount">0</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Active Projects</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 2rem; color: var(--accent-green); font-weight: 600;" id="completeCount">0</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Completed</div>
                         </div>
                     </div>
-                </div>
 
-                <div style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="projectsGrid"></div>
-                </div>
-            </div>
-            
-            <div style="display: flex; flex-direction: column; overflow: hidden;">
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; height: 100%;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0;">
-                        <select id="notesSelector" onchange="switchNote()" style="flex: 1; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.875rem; margin-right: 0.5rem;">
-                            <option value="Nymbl">Nymbl</option>
-                            <option value="Cindy">Cindy</option>
-                            <option value="Me">Me</option>
-                        </select>
-                        <div class="note-header-controls">
-                            <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem; flex-shrink: 0;">+ New Note</button>
-                            <button class="btn-delete-note" onclick="deleteCurrentNote()">Delete</button>
+                    <div class="controls">
+                        <div class="search-box">
+                            <input type="text" class="search-input" placeholder="Search projects..." id="searchInput" oninput="renderProjects()">
+                        </div>
+                        
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('categoryMenu')">
+                                Categories <span id="categoryCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="categoryMenu"></div>
+                        </div>
+
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('statusMenu')">
+                                Statuses <span id="statusCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="statusMenu"></div>
+                        </div>
+
+                        <div class="dropdown-filter">
+                            <button class="dropdown-button" onclick="toggleDropdown('userMenu')">
+                                Users <span id="userCount"></span>
+                            </button>
+                            <div class="dropdown-menu" id="userMenu"></div>
+                        </div>
+
+                        <div class="toggle-container">
+                            <label>Show Completed</label>
+                            <div class="toggle-switch" id="showCompletedToggle" onclick="toggleCompleted()">
+                                <div class="toggle-slider"></div>
+                            </div>
                         </div>
                     </div>
-                    <textarea id="notesTextarea" style="flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); font-size: 0.875rem; resize: none; font-family: inherit; overflow-y: auto;" placeholder="Enter notes...
+
+                    <div style="flex: 1; overflow-y: auto; padding-right: 0.5rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="projectsGrid"></div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; overflow: hidden;">
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; height: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-shrink: 0;">
+                            <select id="notesSelector" onchange="switchNote()" style="flex: 1; padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.875rem; margin-right: 0.5rem;">
+                                <option value="Nymbl">Nymbl</option>
+                                <option value="Cindy">Cindy</option>
+                                <option value="Me">Me</option>
+                            </select>
+                            <div class="note-header-controls">
+                                <button class="btn-primary" onclick="addNewNote()" style="padding: 0.5rem 1rem; font-size: 0.875rem; flex-shrink: 0;">+ New Note</button>
+                                <button class="btn-delete-note" onclick="deleteCurrentNote()">Delete</button>
+                            </div>
+                        </div>
+                        <textarea id="notesTextarea" style="flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); font-size: 0.875rem; resize: none; font-family: inherit; overflow-y: auto;" placeholder="Enter notes...
 • Use bullet points with • or -
 • Hyphens auto-convert to bullets
 • All formatting carries over to PKD export" oninput="handleNotesInput(event)"></textarea>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Timeline View -->
+        <div id="timelineView" class="timeline-view" style="padding: 2rem;">
+            <div class="timeline-controls">
+                <div class="timeline-control-group">
+                    <span class="timeline-control-label">View Range:</span>
+                    <input type="month" id="timelineStartMonth" onchange="updateTimelineView()">
+                    <span style="color: var(--text-secondary);">to</span>
+                    <input type="month" id="timelineEndMonth" onchange="updateTimelineView()">
+                </div>
+                
+                <div class="timeline-control-group">
+                    <span class="timeline-control-label">Quick Range:</span>
+                    <select id="timelineQuickRange" onchange="applyTimelineQuickRange()">
+                        <option value="">Select...</option>
+                        <option value="this-quarter">This Quarter</option>
+                        <option value="next-quarter">Next Quarter</option>
+                        <option value="this-year">This Year</option>
+                        <option value="next-year">Next Year</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" onclick="openTimelineAddProjectsModal()">Add Projects</button>
+                <button class="btn-primary" onclick="clearTimelineProjects()">Clear All</button>
+            </div>
+
+            <div class="timeline-container" id="timelineGrid"></div>
+        </div>
+    </div>
+
+    <!-- Timeline Add Projects Modal -->
+    <div id="timelineAddProjectsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Projects to Timeline</h2>
+                <button class="close-btn" onclick="closeTimelineAddProjectsModal()">×</button>
+            </div>
+            <div class="project-list" id="timelineProjectList"></div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <button class="btn-primary" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red);" onclick="closeTimelineAddProjectsModal()">Cancel</button>
+                <button class="btn-save" onclick="addSelectedTimelineProjects()">Add Selected</button>
             </div>
         </div>
     </div>
 
     <script src="app.js"></script>
+    <script src="timeline.js"></script>
+    <script>
+        // View switching functionality
+        let currentView = 'projects';
+
+        function switchView(view) {
+            currentView = view;
+            
+            // Hide all views
+            document.getElementById('projectsView').classList.remove('active');
+            document.getElementById('timelineView').classList.remove('active');
+            
+            // Update button states
+            document.getElementById('btnProjectsView').style.background = 'var(--bg-secondary)';
+            document.getElementById('btnProjectsView').style.border = '1px solid var(--border-color)';
+            document.getElementById('btnProjectsView').style.color = 'var(--text-primary)';
+            
+            document.getElementById('btnTimelineView').style.background = 'var(--bg-secondary)';
+            document.getElementById('btnTimelineView').style.border = '1px solid var(--border-color)';
+            document.getElementById('btnTimelineView').style.color = 'var(--text-primary)';
+            
+            // Show selected view and update button
+            if (view === 'projects') {
+                document.getElementById('projectsView').classList.add('active');
+                document.getElementById('btnProjectsView').style.background = 'var(--pastel-blue)';
+                document.getElementById('btnProjectsView').style.border = 'none';
+                document.getElementById('btnProjectsView').style.color = 'var(--bg-primary)';
+            } else if (view === 'timeline') {
+                document.getElementById('timelineView').classList.add('active');
+                document.getElementById('btnTimelineView').style.background = 'var(--pastel-blue)';
+                document.getElementById('btnTimelineView').style.border = 'none';
+                document.getElementById('btnTimelineView').style.color = 'var(--bg-primary)';
+                
+                // Reload timeline data when switching to timeline view
+                loadTimelineData();
+                renderTimeline();
+            }
+        }
+
+        // Initialize view on load
+        document.addEventListener('DOMContentLoaded', function() {
+            switchView('projects');
+        });
+    </script>
 </body>
 </html>
