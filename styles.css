@@ -243,6 +243,30 @@ body::before {
     flex-wrap: wrap;
 }
 
+/* View Toggle Buttons */
+.view-toggle-btn {
+    padding: 0.5rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.view-toggle-btn:hover {
+    border-color: var(--pastel-purple);
+    color: var(--text-primary);
+}
+
+.view-toggle-btn.active {
+    background: var(--pastel-blue);
+    color: var(--bg-primary);
+    border-color: var(--pastel-blue);
+}
+
 /* Buttons */
 .btn-primary {
     padding: 0.5rem 1rem;
@@ -552,6 +576,94 @@ body::before {
 
 .edit-btn:hover, .complete-btn:hover, .delete-btn:hover {
     opacity: 0.8;
+}
+
+/* Timeline Styles */
+.timeline-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    border-bottom: 1px solid var(--border-color);
+    min-height: 40px;
+}
+
+.timeline-label {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.timeline-content {
+    position: relative;
+    padding: 0.5rem;
+}
+
+.timeline-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+}
+
+.timeline-cell {
+    flex: 1;
+    border-right: 1px solid var(--border-color);
+    min-width: 60px;
+}
+
+.timeline-cell:last-child {
+    border-right: none;
+}
+
+.timeline-header {
+    background: var(--bg-secondary);
+    font-weight: 600;
+    text-align: center;
+}
+
+.project-bar {
+    position: absolute;
+    height: 30px;
+    background: linear-gradient(135deg, var(--pastel-blue), var(--pastel-purple));
+    border-radius: 6px;
+    cursor: move;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--bg-primary);
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    user-select: none;
+}
+
+.project-bar-handle {
+    position: absolute;
+    width: 8px;
+    height: 100%;
+    cursor: ew-resize;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.project-bar-handle.left {
+    left: 0;
+    border-radius: 6px 0 0 6px;
+}
+
+.project-bar-handle.right {
+    right: 0;
+    border-radius: 0 6px 6px 0;
+}
+
+.project-bar-handle:hover {
+    background: rgba(255, 255, 255, 0.5);
 }
 
 /* Modal */
