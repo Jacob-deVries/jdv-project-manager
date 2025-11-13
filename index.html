@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PKD Project Management Dashboard</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="timeline.css">
 </head>
 <body>
     <div class="notification-container" id="notificationContainer"></div>
@@ -28,8 +27,6 @@
                     <h1 class="logo">PKD Dashboard</h1>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-primary" onclick="switchView('projects')" id="btnProjectsView">Projects</button>
-                    <button class="btn-primary" onclick="switchView('timeline')" id="btnTimelineView">Timeline</button>
                     <span id="lastUpdatedText">Last Updated: Never</span>
                     <button class="btn-primary" onclick="openCreateModal()">New Project</button>
                     <button class="btn-primary" onclick="openManageModal()">Manage Settings</button>
@@ -40,8 +37,7 @@
             </div>
         </header>
 
-        <!-- Projects View -->
-        <div id="projectsView" class="view-container active" style="padding: 2rem;">
+        <div style="padding: 2rem;">
             <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none; height: calc(100vh - 200px);">
                 <div style="display: flex; flex-direction: column; overflow: hidden;">
                     <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
@@ -115,104 +111,8 @@
                 </div>
             </div>
         </div>
-
-        <!-- Timeline View -->
-        <div id="timelineView" class="timeline-view" style="padding: 2rem;">
-            <div class="timeline-controls">
-                <div class="timeline-control-group">
-                    <span class="timeline-control-label">View Range:</span>
-                    <input type="month" id="timelineStartMonth" onchange="updateTimelineView()">
-                    <span style="color: var(--text-secondary);">to</span>
-                    <input type="month" id="timelineEndMonth" onchange="updateTimelineView()">
-                </div>
-                
-                <div class="timeline-control-group">
-                    <span class="timeline-control-label">Quick Range:</span>
-                    <select id="timelineQuickRange" onchange="applyTimelineQuickRange()">
-                        <option value="">Select...</option>
-                        <option value="this-quarter">This Quarter</option>
-                        <option value="next-quarter">Next Quarter</option>
-                        <option value="this-year">This Year</option>
-                        <option value="next-year">Next Year</option>
-                    </select>
-                </div>
-
-                <button class="btn-primary" onclick="openTimelineAddProjectsModal()">Add Projects</button>
-                <button class="btn-primary" onclick="clearTimelineProjects()">Clear All</button>
-            </div>
-
-            <div class="timeline-container" id="timelineGrid"></div>
-        </div>
-    </div>
-
-    <!-- Timeline Add Projects Modal -->
-    <div id="timelineAddProjectsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add Projects to Timeline</h2>
-                <button class="close-btn" onclick="closeTimelineAddProjectsModal()">×</button>
-            </div>
-            <div class="project-list" id="timelineProjectList"></div>
-            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
-                <button class="btn-primary" style="background: var(--bg-secondary); border: 1px solid var(--pastel-red); color: var(--pastel-red);" onclick="closeTimelineAddProjectsModal()">Cancel</button>
-                <button class="btn-save" onclick="addSelectedTimelineProjects()">Add Selected</button>
-            </div>
-        </div>
     </div>
 
     <script src="app.js"></script>
-    <script src="timeline.js"></script>
-    <script>
-       // Add this to app.js - View switching functionality with proper timeline initialization
-
-        let currentView = 'projects';
-        
-        function switchView(view) {
-            currentView = view;
-            
-            // Hide all views
-            document.getElementById('projectsView').classList.remove('active');
-            document.getElementById('timelineView').classList.remove('active');
-            
-            // Reset all buttons to default state
-            document.getElementById('btnProjectsView').style.background = 'var(--bg-secondary)';
-            document.getElementById('btnProjectsView').style.border = '1px solid var(--border-color)';
-            document.getElementById('btnProjectsView').style.color = 'var(--text-primary)';
-            
-            document.getElementById('btnTimelineView').style.background = 'var(--bg-secondary)';
-            document.getElementById('btnTimelineView').style.border = '1px solid var(--border-color)';
-            document.getElementById('btnTimelineView').style.color = 'var(--text-primary)';
-            
-            // Show selected view and update button
-            if (view === 'projects') {
-                document.getElementById('projectsView').classList.add('active');
-                document.getElementById('btnProjectsView').style.background = 'var(--pastel-blue)';
-                document.getElementById('btnProjectsView').style.border = 'none';
-                document.getElementById('btnProjectsView').style.color = 'var(--bg-primary)';
-                document.getElementById('btnProjectsView').style.fontWeight = '600';
-            } else if (view === 'timeline') {
-                document.getElementById('timelineView').classList.add('active');
-                document.getElementById('btnTimelineView').style.background = 'var(--pastel-blue)';
-                document.getElementById('btnTimelineView').style.border = 'none';
-                document.getElementById('btnTimelineView').style.color = 'var(--bg-primary)';
-                document.getElementById('btnTimelineView').style.fontWeight = '600';
-                
-                // Initialize timeline on first switch
-                if (!TIMELINE.initialized) {
-                    initTimeline();
-                    TIMELINE.initialized = true;
-                } else {
-                    // Reload timeline data when switching back to timeline view
-                    loadTimelineData();
-                    renderTimeline();
-                }
-            }
-        }
-        
-        // Initialize view on load
-        document.addEventListener('DOMContentLoaded', function() {
-            switchView('projects');
-        });
-    </script>
 </body>
 </html>
