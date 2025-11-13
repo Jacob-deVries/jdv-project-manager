@@ -148,23 +148,17 @@ function renderTimeline() {
     attachTimelineEventListeners();
 }
 
-function renderTimelineProjectRow(project, months, rowIndex) {
-    const usersHTML = project.users && project.users.length > 0
-        ? `<div class="timeline-project-users">
-            ${project.users.map(u => `<span class="timeline-user-badge">${u}</span>`).join('')}
-           </div>`
-        : '';
+// Update renderTimelineProjectRow function in timeline.js
 
-    const barCellIndex = project.timeline?.startMonth ? months.indexOf(project.timeline.startMonth) : -1;
-    
+function renderTimelineProjectRow(project, months, rowIndex) {
+    // REMOVED user badges from here - only show project name
     return `
         <div class="timeline-row">
             <div class="timeline-project-info" data-project-id="${project.id}" data-row-index="${rowIndex}">
                 <div class="timeline-project-name">${project.title}</div>
-                ${usersHTML}
             </div>
             ${months.map((month, idx) => {
-                const barHTML = (idx === barCellIndex) ? renderTimelineBar(project, months) : '';
+                const barHTML = (idx === getBarStartIndex(project, months)) ? renderTimelineBar(project, months) : '';
                 return `
                     <div class="timeline-cell ${isQuarterStart(month) ? 'quarter-start' : ''}" 
                          data-month="${month}" 
@@ -175,6 +169,184 @@ function renderTimelineProjectRow(project, months, rowIndex) {
             }).join('')}
         </div>
     `;
+}
+
+function getBarStartIndex(project, months) {
+    if (project.timeline?.startMonth) {
+        return months.indexOf(project.timeline.startMonth);
+    }
+    return -1;
+}
+
+// Update addSelectedTimelineProjects to create 1-month default bars
+
+function addSelectedTimelineProjects() {
+    const checkboxes = document.querySelectorAll('#timelineProjectList input[type="checkbox"]:checked');
+    const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    
+    if (selectedIds.length === 0) {
+        showNotification('Please select at least one project', 'error');
+        return;
+    }
+    
+    const today = new Date();
+    const currentMonth = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}`;
+    
+    // End month is same month (1 month duration: week 0 to week 3 of same month)
+    const endMonth = currentMonth;
+    
+    selectedIds.forEach(id => {
+        const project = APP.projects.find(p => p.id === id);
+        if (project) {
+            if (!project.timeline) {
+                project.timeline = {
+                    startMonth: currentMonth,
+                    startWeek: 0,
+                    endMonth: endMonth,
+                    endWeek: 3,
+                    displayOrder: TIMELINE.projects.length
+                };
+            }
+            TIMELINE.projects.push(project);
+        }
+    });
+    
+    saveToLocalStorage();
+    saveTimelineData();
+    renderTimeline();
+    closeTimelineAddProjectsModal();
+    showNotification(`Added ${selectedIds.length} project(s) to timeline`, 'success');
+}
+
+// Updated drag and resize handlers to support center drag
+
+function handleTimelineBarMouseDown(e) {
+    if (e.target.classList.contains('timeline-resize-handle')) return;
+    e.preventDefault();
+    
+    const bar = e.currentTarget;
+    const projectId = parseInt(bar.dataset.projectId);
+    const project = TIMELINE.projects.find(p => p.id === projectId);
+    
+    if (!project?.timeline) return;
+    
+    TIMELINE.dragState = {
+        type: 'move',
+        projectId: projectId,
+        startX: e.clientX,
+        originalStartMonth: project.timeline.startMonth,
+        originalEndMonth: project.timeline.endMonth,
+        originalStartWeek: project.timeline.startWeek || 0,
+        originalEndWeek: project.timeline.endWeek !== undefined ? project.timeline.endWeek : 3
+    };
+
+    bar.classList.add('dragging');
+    document.addEventListener('mousemove', handleTimelineMouseMove);
+    document.addEventListener('mouseup', handleTimelineMouseUp);
+}
+
+function handleTimelineResizeMouseDown(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const handle = e.currentTarget;
+    const bar = handle.closest('.timeline-bar');
+    const projectId = parseInt(bar.dataset.projectId);
+    const project = TIMELINE.projects.find(p => p.id === projectId);
+    
+    if (!project?.timeline) return;
+    
+    TIMELINE.dragState = {
+        type: 'resize',
+        handle: handle.dataset.handle,
+        projectId: projectId,
+        startX: e.clientX,
+        originalStartMonth: project.timeline.startMonth,
+        originalEndMonth: project.timeline.endMonth,
+        originalStartWeek: project.timeline.startWeek || 0,
+        originalEndWeek: project.timeline.endWeek !== undefined ? project.timeline.endWeek : 3
+    };
+
+    bar.classList.add('dragging');
+    document.addEventListener('mousemove', handleTimelineMouseMove);
+    document.addEventListener('mouseup', handleTimelineMouseUp);
+}
+
+function handleTimelineMouseMove(e) {
+    if (!TIMELINE.dragState) return;
+    // Visual feedback could be added here
+}
+
+function handleTimelineMouseUp(e) {
+    if (!TIMELINE.dragState) return;
+
+    const deltaX = e.clientX - TIMELINE.dragState.startX;
+    const quarterMonths = Math.round(deltaX / TIMELINE.weekWidth);
+
+    const project = TIMELINE.projects.find(p => p.id === TIMELINE.dragState.projectId);
+    if (!project) return;
+    
+    if (!project.timeline) {
+        project.timeline = {};
+    }
+    
+    if (TIMELINE.dragState.type === 'move') {
+        // Move both start and end together (preserves duration)
+        const newStart = addQuarterMonths(
+            TIMELINE.dragState.originalStartMonth, 
+            TIMELINE.dragState.originalStartWeek, 
+            quarterMonths
+        );
+        const newEnd = addQuarterMonths(
+            TIMELINE.dragState.originalEndMonth, 
+            TIMELINE.dragState.originalEndWeek, 
+            quarterMonths
+        );
+
+        project.timeline.startMonth = newStart.month;
+        project.timeline.startWeek = newStart.week;
+        project.timeline.endMonth = newEnd.month;
+        project.timeline.endWeek = newEnd.week;
+    } else if (TIMELINE.dragState.type === 'resize') {
+        if (TIMELINE.dragState.handle === 'left') {
+            // Resize left edge - change start date only
+            const newStart = addQuarterMonths(
+                TIMELINE.dragState.originalStartMonth, 
+                TIMELINE.dragState.originalStartWeek, 
+                quarterMonths
+            );
+            project.timeline.startMonth = newStart.month;
+            project.timeline.startWeek = newStart.week;
+        } else {
+            // Resize right edge - change end date only
+            const newEnd = addQuarterMonths(
+                TIMELINE.dragState.originalEndMonth, 
+                TIMELINE.dragState.originalEndWeek, 
+                quarterMonths
+            );
+            project.timeline.endMonth = newEnd.month;
+            project.timeline.endWeek = newEnd.week;
+        }
+    }
+
+    const mainProject = APP.projects.find(p => p.id === project.id);
+    if (mainProject) {
+        mainProject.timeline = project.timeline;
+        saveToLocalStorage();
+    }
+    
+    saveTimelineData();
+
+    document.querySelectorAll('.timeline-bar').forEach(bar => {
+        bar.classList.remove('dragging');
+    });
+
+    TIMELINE.dragState = null;
+    document.removeEventListener('mousemove', handleTimelineMouseMove);
+    document.removeEventListener('mouseup', handleTimelineMouseUp);
+
+    renderTimeline();
+    showNotification('Timeline updated', 'success');
 }
 
 function renderTimelineBar(project, months) {
