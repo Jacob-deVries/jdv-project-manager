@@ -689,3 +689,24 @@ body::before {
         grid-template-columns: 1fr !important;
     }
 }
+
+/* View Container Visibility */
+
+.view-container {
+    display: none;
+}
+
+.view-container.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Projects View Specific */
+#projectsView.active {
+    padding: 2rem;
+}
+
+/* Timeline View Specific */
+#timelineView.active {
+    padding: 2rem;
+}
