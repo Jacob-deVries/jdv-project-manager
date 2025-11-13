@@ -25,6 +25,10 @@
             <div class="header-content">
                 <div class="header-left">
                     <h1 class="logo">PKD Dashboard</h1>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="view-toggle-btn active" id="projectsViewBtn" onclick="switchView('projects')">Projects and Notes</button>
+                        <button class="view-toggle-btn" id="timelineViewBtn" onclick="switchView('timeline')">Timeline</button>
+                    </div>
                 </div>
                 <div class="header-actions">
                     <span id="lastUpdatedText">Last Updated: Never</span>
@@ -38,7 +42,7 @@
         </header>
 
         <div style="padding: 2rem;">
-            <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none; height: calc(100vh - 200px);">
+            <div id="projectsView" class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: none; height: calc(100vh - 200px);">
                 <div style="display: flex; flex-direction: column; overflow: hidden;">
                     <div id="statsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
                         <div class="stat-card">
@@ -109,6 +113,13 @@
 • All formatting carries over to PKD export" oninput="handleNotesInput(event)"></textarea>
                     </div>
                 </div>
+            </div>
+
+            <div id="timelineView" style="display: none; max-width: 100%; overflow-x: auto;">
+                <div style="margin-bottom: 1rem;">
+                    <button class="btn-primary" onclick="openAddToTimelineModal()">Add Project to Timeline</button>
+                </div>
+                <div id="timelineContainer"></div>
             </div>
         </div>
     </div>
