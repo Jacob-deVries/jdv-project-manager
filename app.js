@@ -1455,3 +1455,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Add this to app.js - View switching functionality with proper timeline initialization
+
+let currentView = 'projects';
+
+function switchView(view) {
+    currentView = view;
+    
+    // Hide all views
+    document.getElementById('projectsView').classList.remove('active');
+    document.getElementById('timelineView').classList.remove('active');
+    
+    // Reset all buttons to default state
+    document.getElementById('btnProjectsView').style.background = 'var(--bg-secondary)';
+    document.getElementById('btnProjectsView').style.border = '1px solid var(--border-color)';
+    document.getElementById('btnProjectsView').style.color = 'var(--text-primary)';
+    
+    document.getElementById('btnTimelineView').style.background = 'var(--bg-secondary)';
+    document.getElementById('btnTimelineView').style.border = '1px solid var(--border-color)';
+    document.getElementById('btnTimelineView').style.color = 'var(--text-primary)';
+    
+    // Show selected view and update button
+    if (view === 'projects') {
+        document.getElementById('projectsView').classList.add('active');
+        document.getElementById('btnProjectsView').style.background = 'var(--pastel-blue)';
+        document.getElementById('btnProjectsView').style.border = 'none';
+        document.getElementById('btnProjectsView').style.color = 'var(--bg-primary)';
+        document.getElementById('btnProjectsView').style.fontWeight = '600';
+    } else if (view === 'timeline') {
+        document.getElementById('timelineView').classList.add('active');
+        document.getElementById('btnTimelineView').style.background = 'var(--pastel-blue)';
+        document.getElementById('btnTimelineView').style.border = 'none';
+        document.getElementById('btnTimelineView').style.color = 'var(--bg-primary)';
+        document.getElementById('btnTimelineView').style.fontWeight = '600';
+        
+        // Initialize timeline on first switch
+        if (!TIMELINE.initialized) {
+            initTimeline();
+            TIMELINE.initialized = true;
+        } else {
+            // Reload timeline data when switching back to timeline view
+            loadTimelineData();
+            renderTimeline();
+        }
+    }
+}
+
+// Initialize view on load
+document.addEventListener('DOMContentLoaded', function() {
+    switchView('projects');
+});
