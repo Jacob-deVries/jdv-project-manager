@@ -707,19 +707,20 @@ function renderTimeline() {
         const startDate = new Date(tp.startDate);
         const endDate = new Date(tp.endDate);
         
-        const yearStart = new Date(months[0]);
-        yearStart.setDate(1);
-        const yearEnd = new Date(months[11]);
-        yearEnd.setMonth(yearEnd.getMonth() + 1);
-        yearEnd.setDate(0);
+        // Calculate positioning relative to the displayed month grid
+        const firstMonthStart = new Date(months[0]);
+        firstMonthStart.setDate(1);
+        const lastMonthStart = new Date(months[11]);
+        const lastMonthEnd = new Date(lastMonthStart.getFullYear(), lastMonthStart.getMonth() + 1, 0);
         
-        const totalDays = Math.floor((yearEnd - yearStart) / (1000 * 60 * 60 * 24)) + 1;
+        const totalDays = Math.floor((lastMonthEnd - firstMonthStart) / (1000 * 60 * 60 * 24)) + 1;
         
-        const startDayOffset = Math.floor((startDate - yearStart) / (1000 * 60 * 60 * 24));
-        const endDayOffset = Math.floor((endDate - yearStart) / (1000 * 60 * 60 * 24));
+        const startDayOffset = Math.floor((startDate - firstMonthStart) / (1000 * 60 * 60 * 24));
+        const endDayOffset = Math.floor((endDate - firstMonthStart) / (1000 * 60 * 60 * 24));
         
         let leftPercent = 0;
         let widthPercent = 100;
+        let isVisible = true;
         
         if (startDayOffset >= 0 && startDayOffset < totalDays) {
             leftPercent = (startDayOffset / totalDays) * 100;
@@ -729,8 +730,10 @@ function renderTimeline() {
             leftPercent = 0;
             widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
         } else if (startDayOffset >= totalDays) {
-            return;
+            isVisible = false;
         }
+        
+        if (!isVisible) return;
         
         html += `<div class="timeline-row" style="grid-template-columns: ${projectColumnWidth}px 1fr;">
             <div class="timeline-label" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${project.title}</div>
