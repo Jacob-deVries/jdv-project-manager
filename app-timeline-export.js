@@ -725,6 +725,7 @@ function renderTimeline() {
         let leftPercent = 0;
         let widthPercent = 100;
         let isVisible = true;
+        console.log(`Project ${project.id}: startDayOffset=${startDayOffset}, endDayOffset=${endDayOffset}, totalDays=${totalDays}, leftPercent=${leftPercent.toFixed(2)}%, widthPercent=${widthPercent.toFixed(2)}%`);
         
         if (startDayOffset >= 0 && startDayOffset < totalDays) {
             leftPercent = (startDayOffset / totalDays) * 100;
