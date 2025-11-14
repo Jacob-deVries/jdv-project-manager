@@ -681,7 +681,7 @@ function renderTimeline() {
             maxProjectNameLength = project.title.length;
         }
     });
-    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5 + 32); // 7.5px per char, min 200px
+    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5);
     
     let html = '<div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">';
     
@@ -707,7 +707,6 @@ function renderTimeline() {
         const project = APP.projects.find(p => p.id === tp.projectId);
         if (!project) return;
         
-        // Always use current values from timelineProject (freshly updated from drag/modal)
         const startDate = new Date(tp.startDate);
         const endDate = new Date(tp.endDate);
         
@@ -732,7 +731,6 @@ function renderTimeline() {
             leftPercent = (startDayOffset / totalDays) * 100;
             const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
             widthPercent = (daysSpanned / totalDays) * 100;
-            console.log(`CALC: Project ${project.id}, startOffset=${startDayOffset}, endOffset=${endDayOffset}, daysSpanned=${daysSpanned}, WIDTH=${widthPercent.toFixed(2)}%`);
         } else if (startDayOffset < 0 && endDayOffset >= 0) {
             leftPercent = 0;
             widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
@@ -751,13 +749,14 @@ function renderTimeline() {
             html += '<div class="timeline-cell"></div>';
         });
         
-        console.log(`RENDER BAR: Project ${project.id}, left=${leftPercent.toFixed(2)}%, width=${widthPercent.toFixed(2)}%`);
         html += `</div>
                 <div class="project-bar" 
-                     style="left: ${leftPercent}%; width: ${widthPercent}%; max-width: fit-content; cursor: pointer;"
+                     style="left: ${leftPercent}%; width: ${widthPercent}%; max-width: fit-content; cursor: pointer; transition: none;"
                      data-project-id="${tp.projectId}"
+                     data-total-days="${totalDays}"
+                     data-first-month-start="${firstMonthStart.toISOString()}"
                      onmousedown="event.stopPropagation(); startDrag(event, ${tp.projectId}, 'move')"
-                     onclick="if(!APP.isDragging) openTimelineProjectModal(event, ${tp.projectId})">
+                     onclick="if (!APP.isDragging) { openTimelineProjectModal(event, ${tp.projectId}); }">
                     <div class="project-bar-handle left" onmousedown="startDrag(event, ${tp.projectId}, 'left')"></div>
                     <span style="flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 0.25rem;">${project.title}</span>
                     <div class="project-bar-handle right" onmousedown="startDrag(event, ${tp.projectId}, 'right')"></div>
@@ -809,23 +808,24 @@ function startDrag(e, projectId, type) {
         containerWidth: gridRect.width,
         originalStartDate: new Date(timelineProject.startDate),
         originalEndDate: new Date(timelineProject.endDate),
+        originalLeftPercent: parseFloat(bar.style.left),
+        originalWidthPercent: parseFloat(bar.style.width),
         dragHandler,
-        stopHandler
+        stopHandler,
+        bar
     };
-    
-    console.log(`Drag start - startDate: ${timelineProject.startDate}, endDate: ${timelineProject.endDate}`);
     
     document.addEventListener('mousemove', dragHandler);
     document.addEventListener('mouseup', stopHandler);
 }
 
 // ============================================
-// handleDrag - Updates dates during drag
+// handleDrag - Updates bar position during drag with smooth visual feedback
 // ============================================
 function handleDrag(e) {
     if (!APP.dragState) return;
     
-    const { projectId, type, startX, containerWidth, originalStartDate, originalEndDate } = APP.dragState;
+    const { projectId, type, startX, containerWidth, originalStartDate, originalEndDate, originalLeftPercent, originalWidthPercent, bar } = APP.dragState;
     const timelineProject = APP.timelineProjects.find(tp => tp.projectId === projectId);
     if (!timelineProject) return;
     
@@ -850,113 +850,95 @@ function handleDrag(e) {
     const deltaDays = Math.round((deltaPercent / 100) * totalDays);
     
     if (type === 'move') {
+        // Smooth visual feedback - move bar in real-time
+        const newLeftPercent = originalLeftPercent + deltaPercent;
+        bar.style.left = `${newLeftPercent}%`;
+        
+        // Update actual dates
         const newStartDate = new Date(originalStartDate);
         newStartDate.setDate(newStartDate.getDate() + deltaDays);
         
         const newEndDate = new Date(originalEndDate);
         newEndDate.setDate(newEndDate.getDate() + deltaDays);
         
-        const startDateStr = newStartDate.toISOString().split('T')[0];
-        console.log(`LEFT HANDLE: oldStart=${originalStartDate.toISOString().split('T')[0]}, newStart=${startDateStr}, totalDays changed`);
-        const endDateStr = newEndDate.toISOString().split('T')[0];
-        console.log(`RIGHT HANDLE: oldEnd=${originalEndDate.toISOString().split('T')[0]}, newEnd=${endDateStr}, totalDays changed`);
-        
-        timelineProject.startDate = startDateStr;
-        timelineProject.endDate = endDateStr;
+        timelineProject.startDate = newStartDate.toISOString().split('T')[0];
+        timelineProject.endDate = newEndDate.toISOString().split('T')[0];
         
         const project = APP.projects.find(p => p.id === projectId);
         if (project) {
-            project.startDate = startDateStr;
-            project.endDate = endDateStr;
+            project.startDate = timelineProject.startDate;
+            project.endDate = timelineProject.endDate;
         }
         
     } else if (type === 'left') {
-        const newStartDate = new Date(originalStartDate);
-        newStartDate.setDate(newStartDate.getDate() + deltaDays);
+        // Resize from left - adjust left position and width
+        const newLeftPercent = originalLeftPercent + deltaPercent;
+        const newWidthPercent = originalWidthPercent - deltaPercent;
         
-        const endDate = new Date(timelineProject.endDate);
-        if (newStartDate <= endDate) {
-            const startDateStr = newStartDate.toISOString().split('T')[0];
-            timelineProject.startDate = startDateStr;
+        // Only update if width stays positive
+        if (newWidthPercent > 1) {
+            bar.style.left = `${newLeftPercent}%`;
+            bar.style.width = `${newWidthPercent}%`;
             
-            const project = APP.projects.find(p => p.id === projectId);
-            if (project) {
-                project.startDate = startDateStr;
+            // Update actual dates
+            const newStartDate = new Date(originalStartDate);
+            newStartDate.setDate(newStartDate.getDate() + deltaDays);
+            
+            const endDate = new Date(timelineProject.endDate);
+            if (newStartDate <= endDate) {
+                timelineProject.startDate = newStartDate.toISOString().split('T')[0];
+                
+                const project = APP.projects.find(p => p.id === projectId);
+                if (project) {
+                    project.startDate = timelineProject.startDate;
+                }
             }
         }
     } else if (type === 'right') {
-        const newEndDate = new Date(originalEndDate);
-        newEndDate.setDate(newEndDate.getDate() + deltaDays);
+        // Resize from right - adjust width only
+        const newWidthPercent = originalWidthPercent + deltaPercent;
         
-        const startDate = new Date(timelineProject.startDate);
-        if (newEndDate >= startDate) {
-            const endDateStr = newEndDate.toISOString().split('T')[0];
-            timelineProject.endDate = endDateStr;
+        // Only update if width stays positive
+        if (newWidthPercent > 1) {
+            bar.style.width = `${newWidthPercent}%`;
             
-            const project = APP.projects.find(p => p.id === projectId);
-            if (project) {
-                project.endDate = endDateStr;
+            // Update actual dates
+            const newEndDate = new Date(originalEndDate);
+            newEndDate.setDate(newEndDate.getDate() + deltaDays);
+            
+            const startDate = new Date(timelineProject.startDate);
+            if (newEndDate >= startDate) {
+                timelineProject.endDate = newEndDate.toISOString().split('T')[0];
+                
+                const project = APP.projects.find(p => p.id === projectId);
+                if (project) {
+                    project.endDate = timelineProject.endDate;
+                }
             }
         }
-    }
-    
-    console.log(`After drag - projectId: ${projectId}, startDate: ${timelineProject.startDate}, endDate: ${timelineProject.endDate}`);
-    
-    // Directly update the bar's visual style instead of re-rendering
-    const bar = document.querySelector(`[data-project-id="${projectId}"]`);
-    if (bar) {
-        const now = new Date();
-        const months = [];
-        for (let i = 0; i < 12; i++) {
-            const monthIndex = (APP.timelineStartMonth + i) % 12;
-            const year = now.getFullYear() + Math.floor((APP.timelineStartMonth + i) / 12);
-            months.push(new Date(year, monthIndex, 1));
-        }
-        
-        const firstMonthStart = new Date(months[0]);
-        firstMonthStart.setDate(1);
-        const lastMonthStart = new Date(months[11]);
-        const lastMonthEnd = new Date(lastMonthStart.getFullYear(), lastMonthStart.getMonth() + 1, 0);
-        
-        const totalDays = Math.floor((lastMonthEnd - firstMonthStart) / (1000 * 60 * 60 * 24)) + 1;
-        
-        const startDate = new Date(timelineProject.startDate);
-        const endDate = new Date(timelineProject.endDate);
-        
-        const startDayOffset = Math.floor((startDate - firstMonthStart) / (1000 * 60 * 60 * 24));
-        const endDayOffset = Math.floor((endDate - firstMonthStart) / (1000 * 60 * 60 * 24));
-        
-        let leftPercent = 0;
-        let widthPercent = 100;
-        
-        if (startDayOffset >= 0 && startDayOffset < totalDays) {
-            leftPercent = (startDayOffset / totalDays) * 100;
-            const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
-            widthPercent = (daysSpanned / totalDays) * 100;
-        } else if (startDayOffset < 0 && endDayOffset >= 0) {
-            leftPercent = 0;
-            widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
-        }
-        
-        console.log(`DIRECT UPDATE: left=${leftPercent.toFixed(2)}%, width=${widthPercent.toFixed(2)}%`);
-        bar.style.left = `${leftPercent}%`;
-        bar.style.width = `${widthPercent}%`;
     }
 }
 
 // ============================================
-// stopDrag - Ends drag operation
+// stopDrag - Ends drag operation and finalizes state
 // ============================================
 function stopDrag() {
     if (APP.dragState) {
-        const { dragHandler, stopHandler } = APP.dragState;
+        const { dragHandler, stopHandler, bar } = APP.dragState;
         
         document.removeEventListener('mousemove', dragHandler);
         document.removeEventListener('mouseup', stopHandler);
         
+        // Re-render timeline once to finalize and ensure alignment
+        renderTimeline();
+        
         saveToLocalStorage();
-        APP.isDragging = false;
         APP.dragState = null;
+        
+        // Set isDragging to false AFTER a small delay to prevent modal from opening
+        setTimeout(() => {
+            APP.isDragging = false;
+        }, 100);
     }
 }
 
