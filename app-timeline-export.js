@@ -798,6 +798,8 @@ function startDrag(e, projectId, type) {
         originalStartDate: new Date(timelineProject.startDate),
         originalEndDate: new Date(timelineProject.endDate)
     };
+
+    console.log(`Drag start - startDate: ${timelineProject.startDate}, endDate: ${timelineProject.endDate}`);
     
     document.addEventListener('mousemove', handleDrag);
     document.addEventListener('mouseup', stopDrag);
@@ -878,7 +880,9 @@ function handleDrag(e) {
             }
         }
     }
-    
+    const tp = APP.timelineProjects.find(tp => tp.projectId === projectId);
+    console.log(`After drag - projectId: ${projectId}, startDate: ${tp.startDate}, endDate: ${tp.endDate}`);
+
     renderTimeline();
 }
 
