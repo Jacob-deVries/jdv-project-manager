@@ -678,7 +678,7 @@ function renderTimeline() {
             maxProjectNameLength = project.title.length;
         }
     });
-    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5); // 7.5px per char, min 200px
+    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5 + 32); // 7.5px per char + 32 for padding, min 200px
     
     let html = '<div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">';
     
@@ -813,13 +813,12 @@ function handleDrag(e) {
         months.push(new Date(year, monthIndex, 1));
     }
     
-    const yearStart = new Date(months[0]);
-    yearStart.setDate(1);
-    const yearEnd = new Date(months[11]);
-    yearEnd.setMonth(yearEnd.getMonth() + 1);
-    yearEnd.setDate(0);
+    const firstMonthStart = new Date(months[0]);
+    firstMonthStart.setDate(1);
+    const lastMonthStart = new Date(months[11]);
+    const lastMonthEnd = new Date(lastMonthStart.getFullYear(), lastMonthStart.getMonth() + 1, 0);
     
-    const totalDays = Math.floor((yearEnd - yearStart) / (1000 * 60 * 60 * 24)) + 1;
+    const totalDays = Math.floor((lastMonthEnd - firstMonthStart) / (1000 * 60 * 60 * 24)) + 1;
     const deltaDays = Math.round((deltaPercent / 100) * totalDays);
     
     if (type === 'move') {
@@ -846,58 +845,6 @@ function handleDrag(e) {
         
         const startDate = new Date(timelineProject.startDate);
         if (newEndDate >= startDate) {
-            timelineProject.endDate = newEndDate.toISOString().split('T')[0];
-        }
-    }
-    
-    const project = APP.projects.find(p => p.id === projectId);
-    if (project) {
-        project.startDate = timelineProject.startDate;
-        project.endDate = timelineProject.endDate;
-    }
-    
-    renderTimeline();
-}
-
-function handleDrag(e) {
-    if (!APP.dragState) return;
-    
-    const { projectId, type, startX, containerWidth, originalStartDate, originalEndDate } = APP.dragState;
-    const timelineProject = APP.timelineProjects.find(tp => tp.projectId === projectId);
-    if (!timelineProject) return;
-    
-    const deltaX = e.clientX - startX;
-    const deltaPercent = (deltaX / containerWidth) * 100;
-    const deltaDays = Math.round((deltaPercent / 100) * 365);
-    
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    
-    if (type === 'move') {
-        const newStartDate = new Date(originalStartDate);
-        newStartDate.setDate(newStartDate.getDate() + deltaDays);
-        
-        const newEndDate = new Date(originalEndDate);
-        newEndDate.setDate(newEndDate.getDate() + deltaDays);
-        
-        if (newStartDate.getFullYear() === currentYear && newEndDate.getFullYear() === currentYear) {
-            timelineProject.startDate = newStartDate.toISOString().split('T')[0];
-            timelineProject.endDate = newEndDate.toISOString().split('T')[0];
-        }
-    } else if (type === 'left') {
-        const newStartDate = new Date(originalStartDate);
-        newStartDate.setDate(newStartDate.getDate() + deltaDays);
-        
-        const endDate = new Date(timelineProject.endDate);
-        if (newStartDate < endDate && newStartDate.getFullYear() === currentYear) {
-            timelineProject.startDate = newStartDate.toISOString().split('T')[0];
-        }
-    } else if (type === 'right') {
-        const newEndDate = new Date(originalEndDate);
-        newEndDate.setDate(newEndDate.getDate() + deltaDays);
-        
-        const startDate = new Date(timelineProject.startDate);
-        if (newEndDate > startDate && newEndDate.getFullYear() === currentYear) {
             timelineProject.endDate = newEndDate.toISOString().split('T')[0];
         }
     }
@@ -1395,9 +1342,9 @@ function shiftTimelineMonth(direction) {
     const maxMonth = 12; // Can scroll forward/backward
     
     if (direction > 0) {
-        APP.timelineStartMonth = (APP.timelineStartMonth + 1) % 24;
+        APP.timelineStartMonth = (APP.timelineStartMonth + 1) % 60;
     } else if (direction < 0) {
-        APP.timelineStartMonth = (APP.timelineStartMonth - 1 + 24) % 24;
+        APP.timelineStartMonth = (APP.timelineStartMonth - 1 + 60) % 60;
     }
     
     renderTimeline();
