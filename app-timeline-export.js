@@ -798,16 +798,6 @@ function startDrag(e, projectId, type) {
     document.addEventListener('mouseup', stopDrag);
 }
 
-function stopDrag() {
-    if (APP.dragState) {
-        saveToLocalStorage();
-        APP.dragState = null;
-    }
-    
-    document.removeEventListener('mousemove', handleDrag);
-    document.removeEventListener('mouseup', stopDrag);
-}
-
 function handleDrag(e) {
     if (!APP.dragState) return;
     
@@ -885,6 +875,16 @@ function handleDrag(e) {
     }
     
     renderTimeline();
+}
+
+function stopDrag() {
+    if (APP.dragState) {
+        saveToLocalStorage();
+        APP.dragState = null;
+    }
+    
+    document.removeEventListener('mousemove', handleDrag);
+    document.removeEventListener('mouseup', stopDrag);
 }
 
 // ===========================
