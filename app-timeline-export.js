@@ -620,6 +620,9 @@ function closeAddToTimelineModal() {
     if (modal) modal.remove();
 }
 
+// ============================================
+// Updated addProjectsToTimeline - Fix sort order
+// ============================================
 function addProjectsToTimeline() {
     const modal = document.getElementById('addToTimelineModal');
     const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
@@ -644,7 +647,7 @@ function addProjectsToTimeline() {
         }
     });
     
-    // Sort APP.timelineProjects by priority FIRST, then ID
+    // Sort APP.timelineProjects by priority first, then ID
     APP.timelineProjects.sort((a, b) => {
         const projectA = APP.projects.find(p => p.id === a.projectId);
         const projectB = APP.projects.find(p => p.id === b.projectId);
@@ -652,12 +655,12 @@ function addProjectsToTimeline() {
         const priorityA = projectA?.priority ?? 999;
         const priorityB = projectB?.priority ?? 999;
         
-        // Primary sort: by priority (lower numbers first)
+        // If priorities are different, sort by priority (lower first)
         if (priorityA !== priorityB) {
             return priorityA - priorityB;
         }
         
-        // Secondary sort: by ID (lower numbers first)
+        // If priorities are the same, sort by ID (lower first)
         return a.projectId - b.projectId;
     });
     
@@ -665,6 +668,52 @@ function addProjectsToTimeline() {
     closeAddToTimelineModal();
     renderTimeline();
     showNotification(`Added ${checkboxes.length} project(s) to timeline`, 'success');
+}
+
+// ============================================
+// Add drag handlers for timeline row reordering
+// ============================================
+function startTimelineRowDrag(e, index) {
+    APP.timelineRowDragState = {
+        fromIndex: index,
+        draggedElement: e.currentTarget
+    };
+    e.currentTarget.style.opacity = '0.5';
+}
+
+function handleTimelineRowDragOver(e, index) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    if (APP.timelineRowDragState && APP.timelineRowDragState.fromIndex !== index) {
+        e.currentTarget.style.borderTop = '2px solid var(--pastel-blue)';
+    }
+}
+
+function handleTimelineRowDrop(e, toIndex) {
+    e.preventDefault();
+    e.currentTarget.style.borderTop = 'none';
+    
+    if (APP.timelineRowDragState && APP.timelineRowDragState.fromIndex !== toIndex) {
+        const fromIndex = APP.timelineRowDragState.fromIndex;
+        const projectId = APP.timelineProjects[fromIndex].projectId;
+        
+        // Remove from old position
+        const project = APP.timelineProjects.splice(fromIndex, 1)[0];
+        
+        // Insert at new position (adjust if dragging down)
+        const adjustedToIndex = toIndex > fromIndex ? toIndex - 1 : toIndex;
+        APP.timelineProjects.splice(adjustedToIndex, 0, project);
+        
+        saveToLocalStorage();
+        renderTimeline();
+    }
+}
+
+function endTimelineRowDrag(e) {
+    e.currentTarget.style.opacity = '1';
+    e.currentTarget.style.borderTop = 'none';
+    APP.timelineRowDragState = null;
 }
 
 function shiftTimelineMonth(direction) {
@@ -805,17 +854,12 @@ function renderTimeline() {
         
         if (!isVisible) return;
         
-        html += `<div class="timeline-row" 
-                     style="grid-template-columns: ${projectColumnWidth}px 1fr; cursor: grab; transition: opacity 0.2s;"
-                     draggable="true"
-                     data-timeline-index="${index}"
-                     data-project-id="${tp.projectId}"
-                     ondragstart="startTimelineRowDrag(event, ${index})"
-                     ondragover="handleTimelineRowDragOver(event, ${index})"
-                     ondrop="handleTimelineRowDrop(event, ${index})"
-                     ondragend="endTimelineRowDrag(event)">
+        html += `<div class="timeline-row" style="grid-template-columns: ${projectColumnWidth}px 1fr;">
             <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0 0.5rem;">
-                <div style="display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 1.2rem; cursor: grab; user-select: none;">≡</div>
+                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    ${index > 0 ? `<button onclick="moveTimelineProject(${tp.projectId}, -1)" style="padding: 0.25rem 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); cursor: pointer; font-size: 0.75rem;">▲</button>` : `<div style="padding: 0.25rem 0.5rem; height: 20px;"></div>`}
+                    ${index < APP.timelineProjects.length - 1 ? `<button onclick="moveTimelineProject(${tp.projectId}, 1)" style="padding: 0.25rem 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); cursor: pointer; font-size: 0.75rem;">▼</button>` : `<div style="padding: 0.25rem 0.5rem; height: 20px;"></div>`}
+                </div>
                 <button onclick="openEditModal(${tp.projectId})" style="padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--pastel-blue); cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;" title="Edit project">📋</button>
                 <div class="timeline-label" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; flex: 1;" onclick="if (!APP.isDragging) { openTimelineProjectModal(event, ${tp.projectId}); }">${project.title}</div>
             </div>
@@ -1180,62 +1224,6 @@ function removeProjectFromTimeline(projectId) {
         closeTimelineProjectModal();
         showNotification('Project removed from timeline', 'success');
     });
-}
-
-// ============================================
-// Timeline row drag handlers for reordering
-// ============================================
-function startTimelineRowDrag(e, index) {
-    APP.timelineRowDragState = {
-        fromIndex: index,
-        draggedElement: e.currentTarget
-    };
-    e.currentTarget.style.opacity = '0.5';
-}
-
-function handleTimelineRowDragOver(e, index) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    
-    if (APP.timelineRowDragState && APP.timelineRowDragState.fromIndex !== index) {
-        e.currentTarget.style.borderTop = '2px solid var(--pastel-blue)';
-    }
-}
-
-function handleTimelineRowDrop(e, toIndex) {
-    e.preventDefault();
-    e.currentTarget.style.borderTop = 'none';
-    
-    if (APP.timelineRowDragState && APP.timelineRowDragState.fromIndex !== toIndex) {
-        const fromIndex = APP.timelineRowDragState.fromIndex;
-        
-        // Clamp indices to valid range
-        const validFromIndex = Math.max(0, Math.min(fromIndex, APP.timelineProjects.length - 1));
-        const validToIndex = Math.max(0, Math.min(toIndex, APP.timelineProjects.length - 1));
-        
-        if (validFromIndex === validToIndex) {
-            APP.timelineRowDragState = null;
-            endTimelineRowDrag(e);
-            return;
-        }
-        
-        // Extract the project being moved
-        const project = APP.timelineProjects[validFromIndex];
-        
-        // Remove from old position
-        APP.timelineProjects.splice(validFromIndex, 1);
-        
-        // Calculate adjusted index after removal
-        const adjustedToIndex = validToIndex > validFromIndex ? validToIndex - 1 : validToIndex;
-        
-        // Insert at new position
-        APP.timelineProjects.splice(adjustedToIndex, 0, project);
-        
-        saveToLocalStorage();
-        renderTimeline();
-    }
-    
-    APP.timelineRowDragState = null;
 }
 
 // ===========================
