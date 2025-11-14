@@ -644,7 +644,7 @@ function addProjectsToTimeline() {
         }
     });
     
-    // Sort APP.timelineProjects by priority FIRST, then ID
+    // Sort APP.timelineProjects by priority first, then ID
     APP.timelineProjects.sort((a, b) => {
         const projectA = APP.projects.find(p => p.id === a.projectId);
         const projectB = APP.projects.find(p => p.id === b.projectId);
@@ -652,12 +652,12 @@ function addProjectsToTimeline() {
         const priorityA = projectA?.priority ?? 999;
         const priorityB = projectB?.priority ?? 999;
         
-        // Primary sort: by priority (lower numbers first)
+        // If priorities are different, sort by priority (lower first)
         if (priorityA !== priorityB) {
             return priorityA - priorityB;
         }
         
-        // Secondary sort: by ID (lower numbers first)
+        // If priorities are the same, sort by ID (lower first)
         return a.projectId - b.projectId;
     });
     
@@ -677,15 +677,15 @@ function shiftTimelineMonth(direction) {
     renderTimeline();
 }
 
-function moveTimelineProject(projectId, direction) {
+function moveTimelineProject(projectId, newIndex) {
     const currentIndex = APP.timelineProjects.findIndex(tp => tp.projectId === projectId);
-    if (currentIndex === -1) return;
+    if (currentIndex === -1 || newIndex < 0 || newIndex >= APP.timelineProjects.length) return;
     
-    const newIndex = currentIndex + direction;
-    if (newIndex < 0 || newIndex >= APP.timelineProjects.length) return;
+    // Remove from current position
+    const project = APP.timelineProjects.splice(currentIndex, 1)[0];
     
-    [APP.timelineProjects[currentIndex], APP.timelineProjects[newIndex]] = 
-    [APP.timelineProjects[newIndex], APP.timelineProjects[currentIndex]];
+    // Insert at new position
+    APP.timelineProjects.splice(newIndex, 0, project);
     
     saveToLocalStorage();
     renderTimeline();
@@ -828,6 +828,7 @@ function renderTimeline() {
         
         html += `</div>
                 <div class="project-bar" 
+                     style="left: ${leftPercent}%; width: ${widthPercent}%; max-width: fit-content; cursor: pointer;"
                      data-project-id="${tp.projectId}"
                      onmousedown="event.stopPropagation(); startDrag(event, ${tp.projectId}, 'move')"
                      onclick="if (!APP.isDragging) { openTimelineProjectModal(event, ${tp.projectId}); }">
@@ -837,58 +838,6 @@ function renderTimeline() {
                 </div>
             </div>
         </div>`;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-    
-    // AFTER DOM is rendered, set the bar positions and widths
-    APP.timelineProjects.forEach(tp => {
-        const project = APP.projects.find(p => p.id === tp.projectId);
-        if (!project) return;
-        
-        const startDate = new Date(tp.startDate);
-        const endDate = new Date(tp.endDate);
-        
-        if (!tp.startDate || !tp.endDate) return;
-        
-        const now = new Date();
-        const months = [];
-        for (let i = 0; i < 12; i++) {
-            const monthIndex = (APP.timelineStartMonth + i) % 12;
-            const year = now.getFullYear() + Math.floor((APP.timelineStartMonth + i) / 12);
-            months.push(new Date(year, monthIndex, 1));
-        }
-        
-        const firstMonthStart = new Date(months[0]);
-        firstMonthStart.setDate(1);
-        const lastMonthStart = new Date(months[11]);
-        const lastMonthEnd = new Date(lastMonthStart.getFullYear(), lastMonthStart.getMonth() + 1, 0);
-        
-        const totalDays = Math.floor((lastMonthEnd - firstMonthStart) / (1000 * 60 * 60 * 24)) + 1;
-        
-        const startDayOffset = Math.floor((startDate - firstMonthStart) / (1000 * 60 * 60 * 24));
-        const endDayOffset = Math.floor((endDate - firstMonthStart) / (1000 * 60 * 60 * 24));
-        
-        let leftPercent = 0;
-        let widthPercent = 100;
-        
-        if (startDayOffset >= 0 && startDayOffset < totalDays) {
-            leftPercent = (startDayOffset / totalDays) * 100;
-            const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
-            widthPercent = (daysSpanned / totalDays) * 100;
-        } else if (startDayOffset < 0 && endDayOffset >= 0) {
-            leftPercent = 0;
-            widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
-        } else if (startDayOffset >= totalDays) {
-            return;
-        }
-        
-        const bar = document.querySelector(`[data-project-id="${tp.projectId}"]`);
-        if (bar) {
-            bar.style.left = `${leftPercent}%`;
-            bar.style.width = `${widthPercent}%`;
-        }
     });
 }
 
@@ -1208,8 +1157,12 @@ function handleTimelineRowDrop(e, toIndex) {
     
     if (APP.timelineRowDragState && APP.timelineRowDragState.fromIndex !== toIndex) {
         const fromIndex = APP.timelineRowDragState.fromIndex;
+        const projectId = APP.timelineProjects[fromIndex].projectId;
+        
+        // Remove from old position
         const project = APP.timelineProjects.splice(fromIndex, 1)[0];
         
+        // Insert at new position (adjust if dragging down)
         const adjustedToIndex = toIndex > fromIndex ? toIndex - 1 : toIndex;
         APP.timelineProjects.splice(adjustedToIndex, 0, project);
         
