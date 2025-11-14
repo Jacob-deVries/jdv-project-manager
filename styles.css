@@ -642,6 +642,8 @@ body::before {
     transform: translateY(-50%);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     user-select: none;
+    transition: none; 
+    will-change: left, width;
 }
 
 .project-bar-handle {
@@ -650,6 +652,7 @@ body::before {
     height: 100%;
     cursor: ew-resize;
     background: rgba(255, 255, 255, 0.3);
+    transition: background 0.2s; 
 }
 
 .project-bar-handle.left {
