@@ -707,7 +707,6 @@ function renderTimeline() {
         // Always use current values from timelineProject and project (freshly updated from drag/modal)
         const startDate = new Date(tp.startDate);
         const endDate = new Date(tp.endDate);
-        console.log(`Project ${project.id}: ${tp.startDate} to ${tp.endDate}`);
         
         if (!tp.startDate || !tp.endDate) return;
         
@@ -725,7 +724,6 @@ function renderTimeline() {
         let leftPercent = 0;
         let widthPercent = 100;
         let isVisible = true;
-        console.log(`Project ${project.id}: startDayOffset=${startDayOffset}, endDayOffset=${endDayOffset}, totalDays=${totalDays}, leftPercent=${leftPercent.toFixed(2)}%, widthPercent=${widthPercent.toFixed(2)}%`);
         
         if (startDayOffset >= 0 && startDayOffset < totalDays) {
             leftPercent = (startDayOffset / totalDays) * 100;
@@ -807,8 +805,6 @@ function startDrag(e, projectId, type) {
         dragHandler,
         stopHandler
     };
-    
-    console.log(`Drag start - startDate: ${timelineProject.startDate}, endDate: ${timelineProject.endDate}`);
     
     document.addEventListener('mousemove', dragHandler);
     document.addEventListener('mouseup', stopHandler);
