@@ -24,7 +24,7 @@ const APP = {
     currentView: 'projects',
     timelineProjects: [],
     dragState: null,
-    timelineStartMonth: 0
+    timelineStartMonth: new Date().getMonth()
 };
 
 function hashCode(str) {
