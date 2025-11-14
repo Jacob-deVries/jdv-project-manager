@@ -751,7 +751,7 @@ function renderTimeline() {
         
         html += `</div>
                 <div class="project-bar" 
-                     style="left: ${leftPercent}%; width: ${widthPercent}%; max-width: fit-content; cursor: pointer; transition: none;"
+                     style="left: ${leftPercent}%; width: ${widthPercent}%; cursor: pointer; transition: none;"
                      data-project-id="${tp.projectId}"
                      data-total-days="${totalDays}"
                      data-first-month-start="${firstMonthStart.toISOString()}"
