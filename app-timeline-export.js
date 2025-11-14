@@ -820,6 +820,175 @@ function startDrag(e, projectId, type) {
 }
 
 // ============================================
+// renderTimeline - Renders the complete timeline with all projects
+// ============================================
+function renderTimeline() {
+    const container = document.getElementById('timelineContainer');
+    if (!container) return;
+    
+    if (APP.timelineProjects.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-secondary);"><h3>No Projects on Timeline</h3><p style="margin-top: 1rem;">Click "Add Project to Timeline" to get started.</p></div>';
+        return;
+    }
+    
+    const now = new Date();
+    const months = [];
+    const startMonth = APP.timelineStartMonth;
+    
+    // Generate 12 months starting from the startMonth
+    for (let i = 0; i < 12; i++) {
+        const monthIndex = (startMonth + i) % 12;
+        const year = now.getFullYear() + Math.floor((startMonth + i) / 12);
+        months.push(new Date(year, monthIndex, 1));
+    }
+    
+    // Calculate max project name width for better layout
+    let maxProjectNameLength = "Month".length;
+    APP.timelineProjects.forEach(tp => {
+        const project = APP.projects.find(p => p.id === tp.projectId);
+        if (project && project.title.length > maxProjectNameLength) {
+            maxProjectNameLength = project.title.length;
+        }
+    });
+    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5);
+    
+    let html = '<div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">';
+    
+    // Month navigation header
+    html += `<div class="timeline-row" style="grid-template-columns: ${projectColumnWidth}px auto 1fr;">`;
+    html += '<div class="timeline-label timeline-header"></div>';
+    html += '<div class="timeline-nav-controls" style="display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 0.5rem; background: var(--bg-secondary); border-right: 1px solid var(--border-color);">';
+    html += '<button onclick="shiftTimelineMonth(-1)" style="padding: 0.5rem 1rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 500;">← Prev</button>';
+    html += `<span style="font-size: 0.875rem; color: var(--text-secondary); min-width: 100px; text-align: center;">${months[0].toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - ${months[11].toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>`;
+    html += '<button onclick="shiftTimelineMonth(1)" style="padding: 0.5rem 1rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 500;">Next →</button>';
+    html += '</div></div>';
+    
+    // Month header row
+    html += `<div class="timeline-row" style="grid-template-columns: ${projectColumnWidth}px 1fr;"><div class="timeline-label timeline-header">Month</div><div class="timeline-content"><div class="timeline-grid">`;
+    months.forEach(month => {
+        const monthName = month.toLocaleDateString('en-US', { month: 'short' });
+        html += `<div class="timeline-cell" style="display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 0.875rem;">${monthName}</div>`;
+    });
+    html += '</div></div></div>';
+    
+    // Project rows
+    APP.timelineProjects.forEach(tp => {
+        const project = APP.projects.find(p => p.id === tp.projectId);
+        if (!project) return;
+        
+        const startDate = new Date(tp.startDate);
+        const endDate = new Date(tp.endDate);
+        
+        if (!tp.startDate || !tp.endDate) return;
+        
+        // Calculate positioning relative to the displayed month grid
+        const firstMonthStart = new Date(months[0]);
+        firstMonthStart.setDate(1);
+        const lastMonthStart = new Date(months[11]);
+        const lastMonthEnd = new Date(lastMonthStart.getFullYear(), lastMonthStart.getMonth() + 1, 0);
+        
+        const totalDays = Math.floor((lastMonthEnd - firstMonthStart) / (1000 * 60 * 60 * 24)) + 1;
+        
+        const startDayOffset = Math.floor((startDate - firstMonthStart) / (1000 * 60 * 60 * 24));
+        const endDayOffset = Math.floor((endDate - firstMonthStart) / (1000 * 60 * 60 * 24));
+        
+        let leftPercent = 0;
+        let widthPercent = 100;
+        let isVisible = true;
+        
+        if (startDayOffset >= 0 && startDayOffset < totalDays) {
+            leftPercent = (startDayOffset / totalDays) * 100;
+            const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
+            widthPercent = (daysSpanned / totalDays) * 100;
+        } else if (startDayOffset < 0 && endDayOffset >= 0) {
+            leftPercent = 0;
+            widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
+        } else if (startDayOffset >= totalDays) {
+            isVisible = false;
+        }
+        
+        if (!isVisible) return;
+        
+        html += `<div class="timeline-row" style="grid-template-columns: ${projectColumnWidth}px 1fr;">
+            <div class="timeline-label" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${project.title}</div>
+            <div class="timeline-content">
+                <div class="timeline-grid">`;
+        
+        months.forEach(() => {
+            html += '<div class="timeline-cell"></div>';
+        });
+        
+        html += `</div>
+                <div class="project-bar" 
+                     style="left: ${leftPercent}%; width: ${widthPercent}%; max-width: fit-content; cursor: pointer; transition: none;"
+                     data-project-id="${tp.projectId}"
+                     data-total-days="${totalDays}"
+                     data-first-month-start="${firstMonthStart.toISOString()}"
+                     onmousedown="event.stopPropagation(); startDrag(event, ${tp.projectId}, 'move')"
+                     onclick="if (!APP.isDragging) { openTimelineProjectModal(event, ${tp.projectId}); }">
+                    <div class="project-bar-handle left" onmousedown="startDrag(event, ${tp.projectId}, 'left')"></div>
+                    <span style="flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 0.25rem;">${project.title}</span>
+                    <div class="project-bar-handle right" onmousedown="startDrag(event, ${tp.projectId}, 'right')"></div>
+                </div>
+            </div>
+        </div>`;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// ============================================
+// startDrag - Initiates drag operation
+// ============================================
+function startDrag(e, projectId, type) {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    // Stop any existing drag
+    if (APP.dragState) {
+        stopDrag();
+    }
+    
+    const timelineProject = APP.timelineProjects.find(tp => tp.projectId === projectId);
+    if (!timelineProject) return;
+    
+    const bar = e.currentTarget.closest('.project-bar');
+    if (!bar) return;
+    
+    const container = bar.closest('.timeline-content');
+    if (!container) return;
+    
+    const gridContainer = container.querySelector('.timeline-grid');
+    if (!gridContainer) return;
+    
+    const gridRect = gridContainer.getBoundingClientRect();
+    
+    // Create bound functions for proper cleanup
+    const dragHandler = (event) => handleDrag(event);
+    const stopHandler = () => stopDrag();
+    
+    APP.isDragging = true;
+    
+    APP.dragState = {
+        projectId,
+        type,
+        startX: e.clientX,
+        containerWidth: gridRect.width,
+        originalStartDate: new Date(timelineProject.startDate),
+        originalEndDate: new Date(timelineProject.endDate),
+        originalLeftPercent: parseFloat(bar.style.left),
+        originalWidthPercent: parseFloat(bar.style.width),
+        dragHandler,
+        stopHandler,
+        bar
+    };
+    
+    document.addEventListener('mousemove', dragHandler);
+    document.addEventListener('mouseup', stopHandler);
+}
+
+// ============================================
 // handleDrag - Updates bar position during drag with smooth visual feedback
 // ============================================
 function handleDrag(e) {
@@ -870,61 +1039,90 @@ function handleDrag(e) {
             project.endDate = timelineProject.endDate;
         }
         
+        console.log(`MOVE: left=${newLeftPercent.toFixed(2)}%, newStart=${timelineProject.startDate}, newEnd=${timelineProject.endDate}`);
+        
     } else if (type === 'left') {
-            const newLeftPercent = originalLeftPercent + deltaPercent;
-            const newWidthPercent = originalWidthPercent - deltaPercent;
+        const newLeftPercent = originalLeftPercent + deltaPercent;
+        const newWidthPercent = originalWidthPercent - deltaPercent;
+        
+        console.log(`LEFT DRAG: deltaPercent=${deltaPercent.toFixed(2)}, originalLeft=${originalLeftPercent.toFixed(2)}%, originalWidth=${originalWidthPercent.toFixed(2)}%, newLeft=${newLeftPercent.toFixed(2)}%, newWidth=${newWidthPercent.toFixed(2)}%`);
+        
+        // Only update if width stays positive
+        if (newWidthPercent > 1) {
+            bar.style.left = `${newLeftPercent}%`;
+            bar.style.width = `${newWidthPercent}%`;
+            console.log(`UPDATING LEFT EDGE: left=${newLeftPercent.toFixed(2)}%, width=${newWidthPercent.toFixed(2)}%`);
             
-            console.log(`LEFT DRAG: deltaPercent=${deltaPercent.toFixed(2)}, newLeft=${newLeftPercent.toFixed(2)}%, newWidth=${newWidthPercent.toFixed(2)}%, originalWidth=${originalWidthPercent.toFixed(2)}%`);
+            // Update actual dates
+            const newStartDate = new Date(originalStartDate);
+            newStartDate.setDate(newStartDate.getDate() + deltaDays);
             
-            // Only update if width stays positive
-            if (newWidthPercent > 1) {
-                bar.style.left = `${newLeftPercent}%`;
-                bar.style.width = `${newWidthPercent}%`;
-                console.log(`UPDATING BAR: left=${newLeftPercent.toFixed(2)}%, width=${newWidthPercent.toFixed(2)}%`);
+            const endDate = new Date(timelineProject.endDate);
+            if (newStartDate <= endDate) {
+                timelineProject.startDate = newStartDate.toISOString().split('T')[0];
                 
-                // Update actual dates
-                const newStartDate = new Date(originalStartDate);
-                newStartDate.setDate(newStartDate.getDate() + deltaDays);
-                
-                const endDate = new Date(timelineProject.endDate);
-                if (newStartDate <= endDate) {
-                    timelineProject.startDate = newStartDate.toISOString().split('T')[0];
-                    
-                    const project = APP.projects.find(p => p.id === projectId);
-                    if (project) {
-                        project.startDate = timelineProject.startDate;
-                    }
+                const project = APP.projects.find(p => p.id === projectId);
+                if (project) {
+                    project.startDate = timelineProject.startDate;
                 }
-            } else {
-                console.log(`WIDTH TOO SMALL: ${newWidthPercent.toFixed(2)}%`);
-            }
-        } else if (type === 'right') {
-            const newWidthPercent = originalWidthPercent + deltaPercent;
-            
-            console.log(`RIGHT DRAG: deltaPercent=${deltaPercent.toFixed(2)}, newWidth=${newWidthPercent.toFixed(2)}%, originalWidth=${originalWidthPercent.toFixed(2)}%`);
-            
-            // Only update if width stays positive
-            if (newWidthPercent > 1) {
-                bar.style.width = `${newWidthPercent}%`;
-                console.log(`UPDATING BAR: width=${newWidthPercent.toFixed(2)}%`);
                 
-                // Update actual dates
-                const newEndDate = new Date(originalEndDate);
-                newEndDate.setDate(newEndDate.getDate() + deltaDays);
-                
-                const startDate = new Date(timelineProject.startDate);
-                if (newEndDate >= startDate) {
-                    timelineProject.endDate = newEndDate.toISOString().split('T')[0];
-                    
-                    const project = APP.projects.find(p => p.id === projectId);
-                    if (project) {
-                        project.endDate = timelineProject.endDate;
-                    }
-                }
-            } else {
-                console.log(`WIDTH TOO SMALL: ${newWidthPercent.toFixed(2)}%`);
+                console.log(`LEFT DATE UPDATED: newStart=${timelineProject.startDate}`);
             }
+        } else {
+            console.log(`WIDTH TOO SMALL: ${newWidthPercent.toFixed(2)}%`);
         }
+        
+    } else if (type === 'right') {
+        const newWidthPercent = originalWidthPercent + deltaPercent;
+        
+        console.log(`RIGHT DRAG: deltaPercent=${deltaPercent.toFixed(2)}, originalWidth=${originalWidthPercent.toFixed(2)}%, newWidth=${newWidthPercent.toFixed(2)}%`);
+        
+        // Only update if width stays positive
+        if (newWidthPercent > 1) {
+            bar.style.width = `${newWidthPercent}%`;
+            console.log(`UPDATING RIGHT EDGE: width=${newWidthPercent.toFixed(2)}%`);
+            
+            // Update actual dates
+            const newEndDate = new Date(originalEndDate);
+            newEndDate.setDate(newEndDate.getDate() + deltaDays);
+            
+            const startDate = new Date(timelineProject.startDate);
+            if (newEndDate >= startDate) {
+                timelineProject.endDate = newEndDate.toISOString().split('T')[0];
+                
+                const project = APP.projects.find(p => p.id === projectId);
+                if (project) {
+                    project.endDate = timelineProject.endDate;
+                }
+                
+                console.log(`RIGHT DATE UPDATED: newEnd=${timelineProject.endDate}`);
+            }
+        } else {
+            console.log(`WIDTH TOO SMALL: ${newWidthPercent.toFixed(2)}%`);
+        }
+    }
+}
+
+// ============================================
+// stopDrag - Ends drag operation and finalizes state
+// ============================================
+function stopDrag() {
+    if (APP.dragState) {
+        const { dragHandler, stopHandler, bar } = APP.dragState;
+        
+        document.removeEventListener('mousemove', dragHandler);
+        document.removeEventListener('mouseup', stopHandler);
+        
+        // Re-render timeline once to finalize and ensure alignment
+        renderTimeline();
+        
+        saveToLocalStorage();
+        APP.dragState = null;
+        
+        // Set isDragging to false AFTER a small delay to prevent modal from opening
+        setTimeout(() => {
+            APP.isDragging = false;
+        }, 100);
     }
 }
 
