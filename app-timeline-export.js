@@ -818,7 +818,6 @@ function startDrag(e, projectId, type) {
     document.addEventListener('mousemove', dragHandler);
     document.addEventListener('mouseup', stopHandler);
 }
-
 // ============================================
 // renderTimeline - Renders the complete timeline with all projects
 // ============================================
@@ -896,6 +895,18 @@ function renderTimeline() {
         let widthPercent = 100;
         let isVisible = true;
         
+        // Check if BOTH dates are outside the displayed range
+        if (startDayOffset >= totalDays && endDayOffset >= totalDays) {
+            // Both dates are after the displayed range
+            isVisible = false;
+        } else if (endDayOffset < 0) {
+            // Both dates are before the displayed range
+            isVisible = false;
+        }
+        
+        if (!isVisible) return;
+        
+        // Calculate visible portion of the bar
         if (startDayOffset >= 0 && startDayOffset < totalDays) {
             leftPercent = (startDayOffset / totalDays) * 100;
             const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
@@ -983,6 +994,7 @@ function renderTimeline() {
         }
     });
 }
+
 // ============================================
 // startDrag - Initiates drag operation
 // ============================================
