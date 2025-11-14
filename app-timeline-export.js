@@ -644,7 +644,7 @@ function addProjectsToTimeline() {
         }
     });
     
-    // Sort by priority then ID after adding
+    // Sort APP.timelineProjects by priority then ID - this maintains the order
     APP.timelineProjects.sort((a, b) => {
         const projectA = APP.projects.find(p => p.id === a.projectId);
         const projectB = APP.projects.find(p => p.id === b.projectId);
@@ -719,7 +719,7 @@ function renderTimeline() {
             maxProjectNameLength = project.title.length;
         }
     });
-    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5 +32);
+    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5);
     
     let html = '<div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">';
     
@@ -754,8 +754,8 @@ function renderTimeline() {
         return a.projectId - b.projectId;
     });
     
-    // Project rows
-    sortedTimelineProjects.forEach((tp, index) => {
+    // Project rows - APP.timelineProjects is already sorted by priority/ID
+    APP.timelineProjects.forEach((tp, index) => {
         const project = APP.projects.find(p => p.id === tp.projectId);
         if (!project) return;
         
@@ -806,7 +806,7 @@ function renderTimeline() {
             <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0 0.5rem;">
                 <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                     ${index > 0 ? `<button onclick="moveTimelineProject(${tp.projectId}, -1)" style="padding: 0.25rem 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); cursor: pointer; font-size: 0.75rem;">▲</button>` : `<div style="padding: 0.25rem 0.5rem; height: 20px;"></div>`}
-                    ${index < sortedTimelineProjects.length - 1 ? `<button onclick="moveTimelineProject(${tp.projectId}, 1)" style="padding: 0.25rem 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); cursor: pointer; font-size: 0.75rem;">▼</button>` : `<div style="padding: 0.25rem 0.5rem; height: 20px;"></div>`}
+                    ${index < APP.timelineProjects.length - 1 ? `<button onclick="moveTimelineProject(${tp.projectId}, 1)" style="padding: 0.25rem 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); cursor: pointer; font-size: 0.75rem;">▼</button>` : `<div style="padding: 0.25rem 0.5rem; height: 20px;"></div>`}
                 </div>
                 <button onclick="openEditModal(${tp.projectId})" style="padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--pastel-blue); cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;" title="Edit project">📋</button>
                 <div class="timeline-label" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; flex: 1;" onclick="if (!APP.isDragging) { openTimelineProjectModal(event, ${tp.projectId}); }">${project.title}</div>
@@ -1267,6 +1267,9 @@ function exportPKD() {
     
     const noteNames = Object.keys(APP.notes);
     const displayNoteNames = {
+        'nymbl': 'Nymbl',
+        'cindy': 'Cindy',
+        'me': 'Personal'
     };
     
     noteNames.forEach(noteKey => {
