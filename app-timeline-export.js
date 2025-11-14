@@ -678,7 +678,7 @@ function renderTimeline() {
             maxProjectNameLength = project.title.length;
         }
     });
-    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5 + 32); // 7.5px per char + 32 for padding, min 200px
+    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5); // 7.5px per char, min 200px
     
     let html = '<div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">';
     
@@ -704,8 +704,11 @@ function renderTimeline() {
         const project = APP.projects.find(p => p.id === tp.projectId);
         if (!project) return;
         
+        // Always use current values from timelineProject and project (freshly updated from drag/modal)
         const startDate = new Date(tp.startDate);
         const endDate = new Date(tp.endDate);
+        
+        if (!tp.startDate || !tp.endDate) return;
         
         // Calculate positioning relative to the displayed month grid
         const firstMonthStart = new Date(months[0]);
