@@ -798,11 +798,11 @@ function startDrag(e, projectId, type) {
         originalStartDate: new Date(timelineProject.startDate),
         originalEndDate: new Date(timelineProject.endDate)
     };
-
+    
     console.log(`Drag start - startDate: ${timelineProject.startDate}, endDate: ${timelineProject.endDate}`);
     
-    document.addEventListener('mousemove', handleDrag);
-    document.addEventListener('mouseup', stopDrag);
+    document.addEventListener('mousemove', (event) => handleDrag(event));
+    document.addEventListener('mouseup', () => stopDrag());
 }
 
 function handleDrag(e) {
@@ -892,8 +892,8 @@ function stopDrag() {
         APP.dragState = null;
     }
     
-    document.removeEventListener('mousemove', handleDrag);
-    document.removeEventListener('mouseup', stopDrag);
+    document.removeEventListener('mousemove', (e) => handleDrag(e));
+    document.removeEventListener('mouseup', () => stopDrag());
 }
 
 // ===========================
