@@ -620,6 +620,9 @@ function closeAddToTimelineModal() {
     if (modal) modal.remove();
 }
 
+// ============================================
+// Updated addProjectsToTimeline - Fix sort order
+// ============================================
 function addProjectsToTimeline() {
     const modal = document.getElementById('addToTimelineModal');
     const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
@@ -644,17 +647,20 @@ function addProjectsToTimeline() {
         }
     });
     
-    // Sort APP.timelineProjects by priority then ID - this maintains the order
+    // Sort APP.timelineProjects by priority first, then ID
     APP.timelineProjects.sort((a, b) => {
         const projectA = APP.projects.find(p => p.id === a.projectId);
         const projectB = APP.projects.find(p => p.id === b.projectId);
         
-        const priorityA = projectA?.priority || 999;
-        const priorityB = projectB?.priority || 999;
+        const priorityA = projectA?.priority ?? 999;
+        const priorityB = projectB?.priority ?? 999;
         
+        // If priorities are different, sort by priority (lower first)
         if (priorityA !== priorityB) {
             return priorityA - priorityB;
         }
+        
+        // If priorities are the same, sort by ID (lower first)
         return a.projectId - b.projectId;
     });
     
@@ -662,6 +668,52 @@ function addProjectsToTimeline() {
     closeAddToTimelineModal();
     renderTimeline();
     showNotification(`Added ${checkboxes.length} project(s) to timeline`, 'success');
+}
+
+// ============================================
+// Add drag handlers for timeline row reordering
+// ============================================
+function startTimelineRowDrag(e, index) {
+    APP.timelineRowDragState = {
+        fromIndex: index,
+        draggedElement: e.currentTarget
+    };
+    e.currentTarget.style.opacity = '0.5';
+}
+
+function handleTimelineRowDragOver(e, index) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    if (APP.timelineRowDragState && APP.timelineRowDragState.fromIndex !== index) {
+        e.currentTarget.style.borderTop = '2px solid var(--pastel-blue)';
+    }
+}
+
+function handleTimelineRowDrop(e, toIndex) {
+    e.preventDefault();
+    e.currentTarget.style.borderTop = 'none';
+    
+    if (APP.timelineRowDragState && APP.timelineRowDragState.fromIndex !== toIndex) {
+        const fromIndex = APP.timelineRowDragState.fromIndex;
+        const projectId = APP.timelineProjects[fromIndex].projectId;
+        
+        // Remove from old position
+        const project = APP.timelineProjects.splice(fromIndex, 1)[0];
+        
+        // Insert at new position (adjust if dragging down)
+        const adjustedToIndex = toIndex > fromIndex ? toIndex - 1 : toIndex;
+        APP.timelineProjects.splice(adjustedToIndex, 0, project);
+        
+        saveToLocalStorage();
+        renderTimeline();
+    }
+}
+
+function endTimelineRowDrag(e) {
+    e.currentTarget.style.opacity = '1';
+    e.currentTarget.style.borderTop = 'none';
+    APP.timelineRowDragState = null;
 }
 
 function shiftTimelineMonth(direction) {
