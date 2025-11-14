@@ -678,7 +678,7 @@ function renderTimeline() {
             maxProjectNameLength = project.title.length;
         }
     });
-    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5); // 7.5px per char, min 200px
+    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5 + 32); // 7.5px per char, min 200px
     
     let html = '<div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">';
     
@@ -731,11 +731,14 @@ function renderTimeline() {
             leftPercent = (startDayOffset / totalDays) * 100;
             const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
             widthPercent = (daysSpanned / totalDays) * 100;
+            console.log(`VISIBLE: Project ${project.id}: startOffset=${startDayOffset}, endOffset=${endDayOffset}, daysSpanned=${daysSpanned}, totalDays=${totalDays}, LEFT=${leftPercent.toFixed(2)}%, WIDTH=${widthPercent.toFixed(2)}%`);
         } else if (startDayOffset < 0 && endDayOffset >= 0) {
             leftPercent = 0;
             widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
+            console.log(`PARTIAL: Project ${project.id}: LEFT=0%, WIDTH=${widthPercent.toFixed(2)}%`);
         } else if (startDayOffset >= totalDays) {
-            isVisible = false;
+            console.log(`OUT OF RANGE: Project ${project.id}: startOffset=${startDayOffset} >= totalDays=${totalDays}`);
+            return;
         }
         
         if (!isVisible) return;
