@@ -828,8 +828,17 @@ function handleDrag(e) {
         const newEndDate = new Date(originalEndDate);
         newEndDate.setDate(newEndDate.getDate() + deltaDays);
         
-        timelineProject.startDate = newStartDate.toISOString().split('T')[0];
-        timelineProject.endDate = newEndDate.toISOString().split('T')[0];
+        const startDateStr = newStartDate.toISOString().split('T')[0];
+        const endDateStr = newEndDate.toISOString().split('T')[0];
+        
+        timelineProject.startDate = startDateStr;
+        timelineProject.endDate = endDateStr;
+        
+        const project = APP.projects.find(p => p.id === projectId);
+        if (project) {
+            project.startDate = startDateStr;
+            project.endDate = endDateStr;
+        }
         
     } else if (type === 'left') {
         const newStartDate = new Date(originalStartDate);
@@ -837,7 +846,13 @@ function handleDrag(e) {
         
         const endDate = new Date(timelineProject.endDate);
         if (newStartDate <= endDate) {
-            timelineProject.startDate = newStartDate.toISOString().split('T')[0];
+            const startDateStr = newStartDate.toISOString().split('T')[0];
+            timelineProject.startDate = startDateStr;
+            
+            const project = APP.projects.find(p => p.id === projectId);
+            if (project) {
+                project.startDate = startDateStr;
+            }
         }
     } else if (type === 'right') {
         const newEndDate = new Date(originalEndDate);
@@ -845,27 +860,17 @@ function handleDrag(e) {
         
         const startDate = new Date(timelineProject.startDate);
         if (newEndDate >= startDate) {
-            timelineProject.endDate = newEndDate.toISOString().split('T')[0];
+            const endDateStr = newEndDate.toISOString().split('T')[0];
+            timelineProject.endDate = endDateStr;
+            
+            const project = APP.projects.find(p => p.id === projectId);
+            if (project) {
+                project.endDate = endDateStr;
+            }
         }
     }
     
-    const project = APP.projects.find(p => p.id === projectId);
-    if (project) {
-        project.startDate = timelineProject.startDate;
-        project.endDate = timelineProject.endDate;
-    }
-    
     renderTimeline();
-}
-
-function stopDrag() {
-    if (APP.dragState) {
-        saveToLocalStorage();
-        APP.dragState = null;
-    }
-    
-    document.removeEventListener('mousemove', handleDrag);
-    document.removeEventListener('mouseup', stopDrag);
 }
 
 // ===========================
@@ -1426,7 +1431,7 @@ function saveTimelineProjectDates(projectId) {
         }
         
         saveToLocalStorage();
-        renderTimeline();
+        renderTimeline();  // ADD THIS LINE
         closeTimelineProjectModal();
         showNotification('Dates updated successfully', 'success');
     }
