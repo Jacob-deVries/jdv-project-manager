@@ -968,6 +968,20 @@ function startDrag(e, projectId, type) {
     const dragHandler = (event) => handleDrag(event);
     const stopHandler = () => stopDrag();
     
+    // Get initial bar dimensions - handle both inline styles and computed values
+    let originalLeftPercent = parseFloat(bar.style.left) || 0;
+    let originalWidthPercent = parseFloat(bar.style.width) || 100;
+    
+    // If still NaN, try to get from computed style
+    if (isNaN(originalLeftPercent)) {
+        const computed = window.getComputedStyle(bar);
+        originalLeftPercent = parseFloat(computed.left) || 0;
+    }
+    if (isNaN(originalWidthPercent)) {
+        const computed = window.getComputedStyle(bar);
+        originalWidthPercent = parseFloat(computed.width) || 100;
+    }
+    
     APP.isDragging = true;
     
     APP.dragState = {
@@ -977,12 +991,14 @@ function startDrag(e, projectId, type) {
         containerWidth: gridRect.width,
         originalStartDate: new Date(timelineProject.startDate),
         originalEndDate: new Date(timelineProject.endDate),
-        originalLeftPercent: parseFloat(bar.style.left),
-        originalWidthPercent: parseFloat(bar.style.width),
+        originalLeftPercent,
+        originalWidthPercent,
         dragHandler,
         stopHandler,
         bar
     };
+    
+    console.log(`START DRAG: type=${type}, originalLeft=${originalLeftPercent.toFixed(2)}%, originalWidth=${originalWidthPercent.toFixed(2)}%`);
     
     document.addEventListener('mousemove', dragHandler);
     document.addEventListener('mouseup', stopHandler);
