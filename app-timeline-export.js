@@ -790,19 +790,25 @@ function startDrag(e, projectId, type) {
     
     const gridRect = gridContainer.getBoundingClientRect();
     
+    // Create bound functions for proper cleanup
+    const dragHandler = (event) => handleDrag(event);
+    const stopHandler = () => stopDrag();
+    
     APP.dragState = {
         projectId,
         type,
         startX: e.clientX,
         containerWidth: gridRect.width,
         originalStartDate: new Date(timelineProject.startDate),
-        originalEndDate: new Date(timelineProject.endDate)
+        originalEndDate: new Date(timelineProject.endDate),
+        dragHandler,
+        stopHandler
     };
     
     console.log(`Drag start - startDate: ${timelineProject.startDate}, endDate: ${timelineProject.endDate}`);
     
-    document.addEventListener('mousemove', (event) => handleDrag(event));
-    document.addEventListener('mouseup', () => stopDrag());
+    document.addEventListener('mousemove', dragHandler);
+    document.addEventListener('mouseup', stopHandler);
 }
 
 function handleDrag(e) {
@@ -888,12 +894,14 @@ function handleDrag(e) {
 
 function stopDrag() {
     if (APP.dragState) {
+        const { dragHandler, stopHandler } = APP.dragState;
+        
+        document.removeEventListener('mousemove', dragHandler);
+        document.removeEventListener('mouseup', stopHandler);
+        
         saveToLocalStorage();
         APP.dragState = null;
     }
-    
-    document.removeEventListener('mousemove', (e) => handleDrag(e));
-    document.removeEventListener('mouseup', () => stopDrag());
 }
 
 // ===========================
