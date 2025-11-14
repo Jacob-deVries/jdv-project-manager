@@ -707,6 +707,7 @@ function renderTimeline() {
         // Always use current values from timelineProject and project (freshly updated from drag/modal)
         const startDate = new Date(tp.startDate);
         const endDate = new Date(tp.endDate);
+        console.log(`Project ${project.id}: ${tp.startDate} to ${tp.endDate}`);
         
         if (!tp.startDate || !tp.endDate) return;
         
