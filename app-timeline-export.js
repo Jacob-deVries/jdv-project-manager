@@ -871,49 +871,58 @@ function handleDrag(e) {
         }
         
     } else if (type === 'left') {
-        // Resize from left - adjust left position and width
-        const newLeftPercent = originalLeftPercent + deltaPercent;
-        const newWidthPercent = originalWidthPercent - deltaPercent;
-        
-        // Only update if width stays positive
-        if (newWidthPercent > 1) {
-            bar.style.left = `${newLeftPercent}%`;
-            bar.style.width = `${newWidthPercent}%`;
+            const newLeftPercent = originalLeftPercent + deltaPercent;
+            const newWidthPercent = originalWidthPercent - deltaPercent;
             
-            // Update actual dates
-            const newStartDate = new Date(originalStartDate);
-            newStartDate.setDate(newStartDate.getDate() + deltaDays);
+            console.log(`LEFT DRAG: deltaPercent=${deltaPercent.toFixed(2)}, newLeft=${newLeftPercent.toFixed(2)}%, newWidth=${newWidthPercent.toFixed(2)}%, originalWidth=${originalWidthPercent.toFixed(2)}%`);
             
-            const endDate = new Date(timelineProject.endDate);
-            if (newStartDate <= endDate) {
-                timelineProject.startDate = newStartDate.toISOString().split('T')[0];
+            // Only update if width stays positive
+            if (newWidthPercent > 1) {
+                bar.style.left = `${newLeftPercent}%`;
+                bar.style.width = `${newWidthPercent}%`;
+                console.log(`UPDATING BAR: left=${newLeftPercent.toFixed(2)}%, width=${newWidthPercent.toFixed(2)}%`);
                 
-                const project = APP.projects.find(p => p.id === projectId);
-                if (project) {
-                    project.startDate = timelineProject.startDate;
+                // Update actual dates
+                const newStartDate = new Date(originalStartDate);
+                newStartDate.setDate(newStartDate.getDate() + deltaDays);
+                
+                const endDate = new Date(timelineProject.endDate);
+                if (newStartDate <= endDate) {
+                    timelineProject.startDate = newStartDate.toISOString().split('T')[0];
+                    
+                    const project = APP.projects.find(p => p.id === projectId);
+                    if (project) {
+                        project.startDate = timelineProject.startDate;
+                    }
                 }
+            } else {
+                console.log(`WIDTH TOO SMALL: ${newWidthPercent.toFixed(2)}%`);
             }
-        }
-    } else if (type === 'right') {
-        // Resize from right - adjust width only
-        const newWidthPercent = originalWidthPercent + deltaPercent;
-        
-        // Only update if width stays positive
-        if (newWidthPercent > 1) {
-            bar.style.width = `${newWidthPercent}%`;
+        } else if (type === 'right') {
+            const newWidthPercent = originalWidthPercent + deltaPercent;
             
-            // Update actual dates
-            const newEndDate = new Date(originalEndDate);
-            newEndDate.setDate(newEndDate.getDate() + deltaDays);
+            console.log(`RIGHT DRAG: deltaPercent=${deltaPercent.toFixed(2)}, newWidth=${newWidthPercent.toFixed(2)}%, originalWidth=${originalWidthPercent.toFixed(2)}%`);
             
-            const startDate = new Date(timelineProject.startDate);
-            if (newEndDate >= startDate) {
-                timelineProject.endDate = newEndDate.toISOString().split('T')[0];
+            // Only update if width stays positive
+            if (newWidthPercent > 1) {
+                bar.style.width = `${newWidthPercent}%`;
+                console.log(`UPDATING BAR: width=${newWidthPercent.toFixed(2)}%`);
                 
-                const project = APP.projects.find(p => p.id === projectId);
-                if (project) {
-                    project.endDate = timelineProject.endDate;
+                // Update actual dates
+                const newEndDate = new Date(originalEndDate);
+                newEndDate.setDate(newEndDate.getDate() + deltaDays);
+                
+                const startDate = new Date(timelineProject.startDate);
+                if (newEndDate >= startDate) {
+                    timelineProject.endDate = newEndDate.toISOString().split('T')[0];
+                    
+                    const project = APP.projects.find(p => p.id === projectId);
+                    if (project) {
+                        project.endDate = timelineProject.endDate;
+                    }
                 }
+            } else {
+                console.log(`WIDTH TOO SMALL: ${newWidthPercent.toFixed(2)}%`);
             }
         }
     }
