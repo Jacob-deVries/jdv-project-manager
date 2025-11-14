@@ -850,7 +850,7 @@ function renderTimeline() {
             maxProjectNameLength = project.title.length;
         }
     });
-    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5 + 32);
+    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5);
     
     let html = '<div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">';
     
@@ -910,7 +910,7 @@ function renderTimeline() {
         if (!isVisible) return;
         
         html += `<div class="timeline-row" style="grid-template-columns: ${projectColumnWidth}px 1fr;">
-            <div class="timeline-label" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${project.title}</div>
+            <div class="timeline-label" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" onclick="if (!APP.isDragging) { openTimelineProjectModal(event, ${tp.projectId}); }">${project.title}</div>
             <div class="timeline-content">
                 <div class="timeline-grid">`;
         
@@ -983,7 +983,6 @@ function renderTimeline() {
         }
     });
 }
-
 // ============================================
 // startDrag - Initiates drag operation
 // ============================================
