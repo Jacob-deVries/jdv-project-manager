@@ -650,6 +650,9 @@ function addProjectsToTimeline() {
     showNotification(`Added ${checkboxes.length} project(s) to timeline`, 'success');
 }
 
+// ============================================
+// renderTimeline - Renders the complete timeline with all projects
+// ============================================
 function renderTimeline() {
     const container = document.getElementById('timelineContainer');
     if (!container) return;
@@ -704,7 +707,7 @@ function renderTimeline() {
         const project = APP.projects.find(p => p.id === tp.projectId);
         if (!project) return;
         
-        // Always use current values from timelineProject and project (freshly updated from drag/modal)
+        // Always use current values from timelineProject (freshly updated from drag/modal)
         const startDate = new Date(tp.startDate);
         const endDate = new Date(tp.endDate);
         
@@ -729,14 +732,11 @@ function renderTimeline() {
             leftPercent = (startDayOffset / totalDays) * 100;
             const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
             widthPercent = (daysSpanned / totalDays) * 100;
-            console.log(`VISIBLE: Project ${project.id}: startOffset=${startDayOffset}, endOffset=${endDayOffset}, daysSpanned=${daysSpanned}, totalDays=${totalDays}, LEFT=${leftPercent.toFixed(2)}%, WIDTH=${widthPercent.toFixed(2)}%`);
         } else if (startDayOffset < 0 && endDayOffset >= 0) {
             leftPercent = 0;
             widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
-            console.log(`PARTIAL: Project ${project.id}: LEFT=0%, WIDTH=${widthPercent.toFixed(2)}%`);
         } else if (startDayOffset >= totalDays) {
-            console.log(`OUT OF RANGE: Project ${project.id}: startOffset=${startDayOffset} >= totalDays=${totalDays}`);
-            return;
+            isVisible = false;
         }
         
         if (!isVisible) return;
@@ -755,7 +755,7 @@ function renderTimeline() {
                      style="left: ${leftPercent}%; width: ${widthPercent}%; max-width: fit-content; cursor: pointer;"
                      data-project-id="${tp.projectId}"
                      onmousedown="event.stopPropagation(); startDrag(event, ${tp.projectId}, 'move')"
-                     onclick="openTimelineProjectModal(event, ${tp.projectId})">
+                     onclick="if(!APP.isDragging) openTimelineProjectModal(event, ${tp.projectId})">
                     <div class="project-bar-handle left" onmousedown="startDrag(event, ${tp.projectId}, 'left')"></div>
                     <span style="flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 0.25rem;">${project.title}</span>
                     <div class="project-bar-handle right" onmousedown="startDrag(event, ${tp.projectId}, 'right')"></div>
@@ -768,6 +768,9 @@ function renderTimeline() {
     container.innerHTML = html;
 }
 
+// ============================================
+// startDrag - Initiates drag operation
+// ============================================
 function startDrag(e, projectId, type) {
     e.stopPropagation();
     e.preventDefault();
@@ -795,6 +798,8 @@ function startDrag(e, projectId, type) {
     const dragHandler = (event) => handleDrag(event);
     const stopHandler = () => stopDrag();
     
+    APP.isDragging = true;
+    
     APP.dragState = {
         projectId,
         type,
@@ -806,10 +811,15 @@ function startDrag(e, projectId, type) {
         stopHandler
     };
     
+    console.log(`Drag start - startDate: ${timelineProject.startDate}, endDate: ${timelineProject.endDate}`);
+    
     document.addEventListener('mousemove', dragHandler);
     document.addEventListener('mouseup', stopHandler);
 }
 
+// ============================================
+// handleDrag - Updates dates during drag
+// ============================================
 function handleDrag(e) {
     if (!APP.dragState) return;
     
@@ -886,47 +896,13 @@ function handleDrag(e) {
         }
     }
     
-    // Instead of re-rendering the entire timeline, just update the bar directly
-    const bar = document.querySelector(`[data-project-id="${projectId}"]`);
-    if (bar) {
-        const now = new Date();
-        const months = [];
-        for (let i = 0; i < 12; i++) {
-            const monthIndex = (APP.timelineStartMonth + i) % 12;
-            const year = now.getFullYear() + Math.floor((APP.timelineStartMonth + i) / 12);
-            months.push(new Date(year, monthIndex, 1));
-        }
-        
-        const firstMonthStart = new Date(months[0]);
-        firstMonthStart.setDate(1);
-        const lastMonthStart = new Date(months[11]);
-        const lastMonthEnd = new Date(lastMonthStart.getFullYear(), lastMonthStart.getMonth() + 1, 0);
-        
-        const totalDays = Math.floor((lastMonthEnd - firstMonthStart) / (1000 * 60 * 60 * 24)) + 1;
-        
-        const startDate = new Date(timelineProject.startDate);
-        const endDate = new Date(timelineProject.endDate);
-        
-        const startDayOffset = Math.floor((startDate - firstMonthStart) / (1000 * 60 * 60 * 24));
-        const endDayOffset = Math.floor((endDate - firstMonthStart) / (1000 * 60 * 60 * 24));
-        
-        let leftPercent = 0;
-        let widthPercent = 100;
-        
-        if (startDayOffset >= 0 && startDayOffset < totalDays) {
-            leftPercent = (startDayOffset / totalDays) * 100;
-            const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
-            widthPercent = (daysSpanned / totalDays) * 100;
-        } else if (startDayOffset < 0 && endDayOffset >= 0) {
-            leftPercent = 0;
-            widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
-        }
-        
-        bar.style.left = `${leftPercent}%`;
-        bar.style.width = `${widthPercent}%`;
-    }
+    console.log(`After drag - projectId: ${projectId}, startDate: ${timelineProject.startDate}, endDate: ${timelineProject.endDate}`);
+    renderTimeline();
 }
 
+// ============================================
+// stopDrag - Ends drag operation
+// ============================================
 function stopDrag() {
     if (APP.dragState) {
         const { dragHandler, stopHandler } = APP.dragState;
@@ -935,6 +911,7 @@ function stopDrag() {
         document.removeEventListener('mouseup', stopHandler);
         
         saveToLocalStorage();
+        APP.isDragging = false;
         APP.dragState = null;
     }
 }
