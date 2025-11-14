@@ -766,6 +766,11 @@ function startDrag(e, projectId, type) {
     e.stopPropagation();
     e.preventDefault();
     
+    // Stop any existing drag
+    if (APP.dragState) {
+        stopDrag();
+    }
+    
     const timelineProject = APP.timelineProjects.find(tp => tp.projectId === projectId);
     if (!timelineProject) return;
     
@@ -775,15 +780,15 @@ function startDrag(e, projectId, type) {
     const container = bar.closest('.timeline-content');
     if (!container) return;
     
-    const containerRect = container.getBoundingClientRect();
     const gridContainer = container.querySelector('.timeline-grid');
+    if (!gridContainer) return;
+    
     const gridRect = gridContainer.getBoundingClientRect();
     
     APP.dragState = {
         projectId,
         type,
         startX: e.clientX,
-        containerLeft: gridRect.left,
         containerWidth: gridRect.width,
         originalStartDate: new Date(timelineProject.startDate),
         originalEndDate: new Date(timelineProject.endDate)
@@ -793,6 +798,15 @@ function startDrag(e, projectId, type) {
     document.addEventListener('mouseup', stopDrag);
 }
 
+function stopDrag() {
+    if (APP.dragState) {
+        saveToLocalStorage();
+        APP.dragState = null;
+    }
+    
+    document.removeEventListener('mousemove', handleDrag);
+    document.removeEventListener('mouseup', stopDrag);
+}
 
 function handleDrag(e) {
     if (!APP.dragState) return;
