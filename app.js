@@ -15,11 +15,8 @@ const APP = {
     currentEditingProject: null,
     currentProjectLinks: [],
     notes: {
-        nymbl: '',
-        cindy: '',
-        me: ''
     },
-    currentNoteName: 'Nymbl',
+    currentNoteName: '',
     PASSWORD_HASH: 2147093827,
     currentView: 'projects',
     timelineProjects: [],
