@@ -889,10 +889,46 @@ function handleDrag(e) {
             }
         }
     }
-    const tp = APP.timelineProjects.find(tp => tp.projectId === projectId);
-    console.log(`After drag - projectId: ${projectId}, startDate: ${tp.startDate}, endDate: ${tp.endDate}`);
-
-    renderTimeline();
+    
+    // Instead of re-rendering the entire timeline, just update the bar directly
+    const bar = document.querySelector(`[data-project-id="${projectId}"]`);
+    if (bar) {
+        const now = new Date();
+        const months = [];
+        for (let i = 0; i < 12; i++) {
+            const monthIndex = (APP.timelineStartMonth + i) % 12;
+            const year = now.getFullYear() + Math.floor((APP.timelineStartMonth + i) / 12);
+            months.push(new Date(year, monthIndex, 1));
+        }
+        
+        const firstMonthStart = new Date(months[0]);
+        firstMonthStart.setDate(1);
+        const lastMonthStart = new Date(months[11]);
+        const lastMonthEnd = new Date(lastMonthStart.getFullYear(), lastMonthStart.getMonth() + 1, 0);
+        
+        const totalDays = Math.floor((lastMonthEnd - firstMonthStart) / (1000 * 60 * 60 * 24)) + 1;
+        
+        const startDate = new Date(timelineProject.startDate);
+        const endDate = new Date(timelineProject.endDate);
+        
+        const startDayOffset = Math.floor((startDate - firstMonthStart) / (1000 * 60 * 60 * 24));
+        const endDayOffset = Math.floor((endDate - firstMonthStart) / (1000 * 60 * 60 * 24));
+        
+        let leftPercent = 0;
+        let widthPercent = 100;
+        
+        if (startDayOffset >= 0 && startDayOffset < totalDays) {
+            leftPercent = (startDayOffset / totalDays) * 100;
+            const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
+            widthPercent = (daysSpanned / totalDays) * 100;
+        } else if (startDayOffset < 0 && endDayOffset >= 0) {
+            leftPercent = 0;
+            widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
+        }
+        
+        bar.style.left = `${leftPercent}%`;
+        bar.style.width = `${widthPercent}%`;
+    }
 }
 
 function stopDrag() {
