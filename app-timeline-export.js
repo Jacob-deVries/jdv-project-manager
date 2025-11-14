@@ -850,7 +850,7 @@ function renderTimeline() {
             maxProjectNameLength = project.title.length;
         }
     });
-    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5);
+    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5 + 32);
     
     let html = '<div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">';
     
@@ -920,10 +920,7 @@ function renderTimeline() {
         
         html += `</div>
                 <div class="project-bar" 
-                     style="left: ${leftPercent}%; width: ${widthPercent}%; max-width: fit-content; cursor: pointer; transition: none;"
                      data-project-id="${tp.projectId}"
-                     data-total-days="${totalDays}"
-                     data-first-month-start="${firstMonthStart.toISOString()}"
                      onmousedown="event.stopPropagation(); startDrag(event, ${tp.projectId}, 'move')"
                      onclick="if (!APP.isDragging) { openTimelineProjectModal(event, ${tp.projectId}); }">
                     <div class="project-bar-handle left" onmousedown="startDrag(event, ${tp.projectId}, 'left')"></div>
@@ -936,6 +933,55 @@ function renderTimeline() {
     
     html += '</div>';
     container.innerHTML = html;
+    
+    // AFTER DOM is rendered, set the bar positions and widths
+    APP.timelineProjects.forEach(tp => {
+        const project = APP.projects.find(p => p.id === tp.projectId);
+        if (!project) return;
+        
+        const startDate = new Date(tp.startDate);
+        const endDate = new Date(tp.endDate);
+        
+        if (!tp.startDate || !tp.endDate) return;
+        
+        const now = new Date();
+        const months = [];
+        for (let i = 0; i < 12; i++) {
+            const monthIndex = (APP.timelineStartMonth + i) % 12;
+            const year = now.getFullYear() + Math.floor((APP.timelineStartMonth + i) / 12);
+            months.push(new Date(year, monthIndex, 1));
+        }
+        
+        const firstMonthStart = new Date(months[0]);
+        firstMonthStart.setDate(1);
+        const lastMonthStart = new Date(months[11]);
+        const lastMonthEnd = new Date(lastMonthStart.getFullYear(), lastMonthStart.getMonth() + 1, 0);
+        
+        const totalDays = Math.floor((lastMonthEnd - firstMonthStart) / (1000 * 60 * 60 * 24)) + 1;
+        
+        const startDayOffset = Math.floor((startDate - firstMonthStart) / (1000 * 60 * 60 * 24));
+        const endDayOffset = Math.floor((endDate - firstMonthStart) / (1000 * 60 * 60 * 24));
+        
+        let leftPercent = 0;
+        let widthPercent = 100;
+        
+        if (startDayOffset >= 0 && startDayOffset < totalDays) {
+            leftPercent = (startDayOffset / totalDays) * 100;
+            const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
+            widthPercent = (daysSpanned / totalDays) * 100;
+        } else if (startDayOffset < 0 && endDayOffset >= 0) {
+            leftPercent = 0;
+            widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
+        } else if (startDayOffset >= totalDays) {
+            return;
+        }
+        
+        const bar = document.querySelector(`[data-project-id="${tp.projectId}"]`);
+        if (bar) {
+            bar.style.left = `${leftPercent}%`;
+            bar.style.width = `${widthPercent}%`;
+        }
+    });
 }
 
 // ============================================
@@ -968,19 +1014,12 @@ function startDrag(e, projectId, type) {
     const dragHandler = (event) => handleDrag(event);
     const stopHandler = () => stopDrag();
     
-    // Get initial bar dimensions - handle both inline styles and computed values
-    let originalLeftPercent = parseFloat(bar.style.left) || 0;
-    let originalWidthPercent = parseFloat(bar.style.width) || 100;
-    
-    // If still NaN, try to get from computed style
-    if (isNaN(originalLeftPercent)) {
-        const computed = window.getComputedStyle(bar);
-        originalLeftPercent = parseFloat(computed.left) || 0;
-    }
-    if (isNaN(originalWidthPercent)) {
-        const computed = window.getComputedStyle(bar);
-        originalWidthPercent = parseFloat(computed.width) || 100;
-    }
+    // Get initial bar dimensions from computed style
+    const barRect = bar.getBoundingClientRect();
+    const containerRect = gridContainer.getBoundingClientRect();
+    const originalLeftPixels = barRect.left - containerRect.left;
+    const originalLeftPercent = (originalLeftPixels / containerRect.width) * 100;
+    const originalWidthPercent = (barRect.width / containerRect.width) * 100;
     
     APP.isDragging = true;
     
@@ -989,6 +1028,7 @@ function startDrag(e, projectId, type) {
         type,
         startX: e.clientX,
         containerWidth: gridRect.width,
+        containerRect,
         originalStartDate: new Date(timelineProject.startDate),
         originalEndDate: new Date(timelineProject.endDate),
         originalLeftPercent,
@@ -1010,7 +1050,7 @@ function startDrag(e, projectId, type) {
 function handleDrag(e) {
     if (!APP.dragState) return;
     
-    const { projectId, type, startX, containerWidth, originalStartDate, originalEndDate, originalLeftPercent, originalWidthPercent, bar } = APP.dragState;
+    const { projectId, type, startX, containerWidth, originalStartDate, originalEndDate, originalLeftPercent, originalWidthPercent, bar, containerRect } = APP.dragState;
     const timelineProject = APP.timelineProjects.find(tp => tp.projectId === projectId);
     if (!timelineProject) return;
     
@@ -1064,10 +1104,10 @@ function handleDrag(e) {
         console.log(`LEFT DRAG: deltaPercent=${deltaPercent.toFixed(2)}, originalLeft=${originalLeftPercent.toFixed(2)}%, originalWidth=${originalWidthPercent.toFixed(2)}%, newLeft=${newLeftPercent.toFixed(2)}%, newWidth=${newWidthPercent.toFixed(2)}%`);
         
         // Only update if width stays positive
-        if (newWidthPercent > 1) {
+        if (newWidthPercent > 2) {
             bar.style.left = `${newLeftPercent}%`;
             bar.style.width = `${newWidthPercent}%`;
-            console.log(`UPDATING LEFT EDGE: left=${newLeftPercent.toFixed(2)}%, width=${newWidthPercent.toFixed(2)}%`);
+            console.log(`UPDATING LEFT EDGE: left=${newLeftPercent.toFixed(2)}%, width=${newWidthPercent.toFixed(2)}%, bar.style.left=${bar.style.left}, bar.style.width=${bar.style.width}`);
             
             // Update actual dates
             const newStartDate = new Date(originalStartDate);
@@ -1094,9 +1134,9 @@ function handleDrag(e) {
         console.log(`RIGHT DRAG: deltaPercent=${deltaPercent.toFixed(2)}, originalWidth=${originalWidthPercent.toFixed(2)}%, newWidth=${newWidthPercent.toFixed(2)}%`);
         
         // Only update if width stays positive
-        if (newWidthPercent > 1) {
+        if (newWidthPercent > 2) {
             bar.style.width = `${newWidthPercent}%`;
-            console.log(`UPDATING RIGHT EDGE: width=${newWidthPercent.toFixed(2)}%`);
+            console.log(`UPDATING RIGHT EDGE: width=${newWidthPercent.toFixed(2)}%, bar.style.width=${bar.style.width}`);
             
             // Update actual dates
             const newEndDate = new Date(originalEndDate);
@@ -1116,29 +1156,6 @@ function handleDrag(e) {
         } else {
             console.log(`WIDTH TOO SMALL: ${newWidthPercent.toFixed(2)}%`);
         }
-    }
-}
-
-// ============================================
-// stopDrag - Ends drag operation and finalizes state
-// ============================================
-function stopDrag() {
-    if (APP.dragState) {
-        const { dragHandler, stopHandler, bar } = APP.dragState;
-        
-        document.removeEventListener('mousemove', dragHandler);
-        document.removeEventListener('mouseup', stopHandler);
-        
-        // Re-render timeline once to finalize and ensure alignment
-        renderTimeline();
-        
-        saveToLocalStorage();
-        APP.dragState = null;
-        
-        // Set isDragging to false AFTER a small delay to prevent modal from opening
-        setTimeout(() => {
-            APP.isDragging = false;
-        }, 100);
     }
 }
 
