@@ -660,21 +660,30 @@ function renderTimeline() {
     }
     
     const now = new Date();
-    const currentYear = now.getFullYear();
     const months = [];
     const startMonth = APP.timelineStartMonth;
     
     // Generate 12 months starting from the startMonth
     for (let i = 0; i < 12; i++) {
         const monthIndex = (startMonth + i) % 12;
-        const year = currentYear + Math.floor((startMonth + i) / 12);
+        const year = now.getFullYear() + Math.floor((startMonth + i) / 12);
         months.push(new Date(year, monthIndex, 1));
     }
+    
+    // Calculate max project name width for better layout
+    let maxProjectNameLength = "Month".length;
+    APP.timelineProjects.forEach(tp => {
+        const project = APP.projects.find(p => p.id === tp.projectId);
+        if (project && project.title.length > maxProjectNameLength) {
+            maxProjectNameLength = project.title.length;
+        }
+    });
+    const projectColumnWidth = Math.max(200, maxProjectNameLength * 7.5); // 7.5px per char, min 200px
     
     let html = '<div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">';
     
     // Month navigation header
-    html += '<div class="timeline-row" style="grid-template-columns: 150px auto 1fr;">';
+    html += `<div class="timeline-row" style="grid-template-columns: ${projectColumnWidth}px auto 1fr;">`;
     html += '<div class="timeline-label timeline-header"></div>';
     html += '<div class="timeline-nav-controls" style="display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 0.5rem; background: var(--bg-secondary); border-right: 1px solid var(--border-color);">';
     html += '<button onclick="shiftTimelineMonth(-1)" style="padding: 0.5rem 1rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 500;">← Prev</button>';
@@ -682,13 +691,15 @@ function renderTimeline() {
     html += '<button onclick="shiftTimelineMonth(1)" style="padding: 0.5rem 1rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); cursor: pointer; font-weight: 500;">Next →</button>';
     html += '</div></div>';
     
-    html += '<div class="timeline-row"><div class="timeline-label timeline-header">Month</div><div class="timeline-content"><div class="timeline-grid">';
+    // Month header row
+    html += `<div class="timeline-row" style="grid-template-columns: ${projectColumnWidth}px 1fr;"><div class="timeline-label timeline-header">Month</div><div class="timeline-content"><div class="timeline-grid">`;
     months.forEach(month => {
         const monthName = month.toLocaleDateString('en-US', { month: 'short' });
         html += `<div class="timeline-cell" style="display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 0.875rem;">${monthName}</div>`;
     });
     html += '</div></div></div>';
     
+    // Project rows
     APP.timelineProjects.forEach(tp => {
         const project = APP.projects.find(p => p.id === tp.projectId);
         if (!project) return;
@@ -721,9 +732,7 @@ function renderTimeline() {
             return;
         }
         
-        const maxTitleWidth = Math.max(120, (widthPercent / 100) * 500);
-        
-        html += `<div class="timeline-row">
+        html += `<div class="timeline-row" style="grid-template-columns: ${projectColumnWidth}px 1fr;">
             <div class="timeline-label" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${project.title}</div>
             <div class="timeline-content">
                 <div class="timeline-grid">`;
@@ -757,22 +766,94 @@ function startDrag(e, projectId, type) {
     const timelineProject = APP.timelineProjects.find(tp => tp.projectId === projectId);
     if (!timelineProject) return;
     
-    const bar = e.currentTarget.closest ? e.currentTarget.closest('.project-bar') : e.currentTarget;
-    const container = bar.parentElement;
+    const bar = e.currentTarget.closest('.project-bar');
+    if (!bar) return;
+    
+    const container = bar.closest('.timeline-content');
+    if (!container) return;
+    
     const containerRect = container.getBoundingClientRect();
+    const gridContainer = container.querySelector('.timeline-grid');
+    const gridRect = gridContainer.getBoundingClientRect();
     
     APP.dragState = {
         projectId,
         type,
         startX: e.clientX,
-        containerLeft: containerRect.left,
-        containerWidth: containerRect.width,
-        originalStartDate: timelineProject.startDate,
-        originalEndDate: timelineProject.endDate
+        containerLeft: gridRect.left,
+        containerWidth: gridRect.width,
+        originalStartDate: new Date(timelineProject.startDate),
+        originalEndDate: new Date(timelineProject.endDate)
     };
     
     document.addEventListener('mousemove', handleDrag);
     document.addEventListener('mouseup', stopDrag);
+}
+
+
+function handleDrag(e) {
+    if (!APP.dragState) return;
+    
+    const { projectId, type, startX, containerWidth, originalStartDate, originalEndDate } = APP.dragState;
+    const timelineProject = APP.timelineProjects.find(tp => tp.projectId === projectId);
+    if (!timelineProject) return;
+    
+    const deltaX = e.clientX - startX;
+    const deltaPercent = (deltaX / containerWidth) * 100;
+    
+    // Calculate total days in the current 12-month window
+    const now = new Date();
+    const months = [];
+    for (let i = 0; i < 12; i++) {
+        const monthIndex = (APP.timelineStartMonth + i) % 12;
+        const year = now.getFullYear() + Math.floor((APP.timelineStartMonth + i) / 12);
+        months.push(new Date(year, monthIndex, 1));
+    }
+    
+    const yearStart = new Date(months[0]);
+    yearStart.setDate(1);
+    const yearEnd = new Date(months[11]);
+    yearEnd.setMonth(yearEnd.getMonth() + 1);
+    yearEnd.setDate(0);
+    
+    const totalDays = Math.floor((yearEnd - yearStart) / (1000 * 60 * 60 * 24)) + 1;
+    const deltaDays = Math.round((deltaPercent / 100) * totalDays);
+    
+    if (type === 'move') {
+        const newStartDate = new Date(originalStartDate);
+        newStartDate.setDate(newStartDate.getDate() + deltaDays);
+        
+        const newEndDate = new Date(originalEndDate);
+        newEndDate.setDate(newEndDate.getDate() + deltaDays);
+        
+        timelineProject.startDate = newStartDate.toISOString().split('T')[0];
+        timelineProject.endDate = newEndDate.toISOString().split('T')[0];
+        
+    } else if (type === 'left') {
+        const newStartDate = new Date(originalStartDate);
+        newStartDate.setDate(newStartDate.getDate() + deltaDays);
+        
+        const endDate = new Date(timelineProject.endDate);
+        if (newStartDate <= endDate) {
+            timelineProject.startDate = newStartDate.toISOString().split('T')[0];
+        }
+    } else if (type === 'right') {
+        const newEndDate = new Date(originalEndDate);
+        newEndDate.setDate(newEndDate.getDate() + deltaDays);
+        
+        const startDate = new Date(timelineProject.startDate);
+        if (newEndDate >= startDate) {
+            timelineProject.endDate = newEndDate.toISOString().split('T')[0];
+        }
+    }
+    
+    const project = APP.projects.find(p => p.id === projectId);
+    if (project) {
+        project.startDate = timelineProject.startDate;
+        project.endDate = timelineProject.endDate;
+    }
+    
+    renderTimeline();
 }
 
 function handleDrag(e) {
