@@ -732,6 +732,7 @@ function renderTimeline() {
             leftPercent = (startDayOffset / totalDays) * 100;
             const daysSpanned = Math.min(endDayOffset - startDayOffset + 1, totalDays - startDayOffset);
             widthPercent = (daysSpanned / totalDays) * 100;
+            console.log(`CALC: Project ${project.id}, startOffset=${startDayOffset}, endOffset=${endDayOffset}, daysSpanned=${daysSpanned}, WIDTH=${widthPercent.toFixed(2)}%`);
         } else if (startDayOffset < 0 && endDayOffset >= 0) {
             leftPercent = 0;
             widthPercent = ((Math.min(endDayOffset, totalDays - 1)) / totalDays) * 100;
@@ -750,6 +751,7 @@ function renderTimeline() {
             html += '<div class="timeline-cell"></div>';
         });
         
+        console.log(`RENDER BAR: Project ${project.id}, left=${leftPercent.toFixed(2)}%, width=${widthPercent.toFixed(2)}%`);
         html += `</div>
                 <div class="project-bar" 
                      style="left: ${leftPercent}%; width: ${widthPercent}%; max-width: fit-content; cursor: pointer;"
