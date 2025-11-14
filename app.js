@@ -23,7 +23,8 @@ const APP = {
     PASSWORD_HASH: 2147093827,
     currentView: 'projects',
     timelineProjects: [],
-    dragState: null
+    dragState: null,
+    timelineStartMonth: 0
 };
 
 function hashCode(str) {
