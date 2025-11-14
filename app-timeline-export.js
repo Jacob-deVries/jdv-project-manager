@@ -855,7 +855,9 @@ function handleDrag(e) {
         newEndDate.setDate(newEndDate.getDate() + deltaDays);
         
         const startDateStr = newStartDate.toISOString().split('T')[0];
+        console.log(`LEFT HANDLE: oldStart=${originalStartDate.toISOString().split('T')[0]}, newStart=${startDateStr}, totalDays changed`);
         const endDateStr = newEndDate.toISOString().split('T')[0];
+        console.log(`RIGHT HANDLE: oldEnd=${originalEndDate.toISOString().split('T')[0]}, newEnd=${endDateStr}, totalDays changed`);
         
         timelineProject.startDate = startDateStr;
         timelineProject.endDate = endDateStr;
