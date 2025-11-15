@@ -76,22 +76,7 @@ function initializeDashboard() {
 }
 
 function saveToLocalStorage() {
-    if (typeof localStorage !== 'undefined') {
-        const data = {
-            projects: APP.projects,
-            categories: APP.categories,
-            statuses: APP.statuses,
-            users: APP.users,
-            lastUpdated: APP.lastUpdated,
-            notes: APP.notes,
-            timelineProjects: APP.timelineProjects
-        };
-        try {
-            localStorage.setItem('pkdDashboardData', JSON.stringify(data));
-        } catch (e) {
-            console.error('Error saving to localStorage:', e);
-        }
-    }
+    // No longer saving to localStorage - data only persists during session
 }
 
 // ===========================
@@ -162,6 +147,7 @@ function updateFilterDropdowns() {
     
     const categoryMenu = document.getElementById('categoryMenu');
     categoryMenu.innerHTML = '';
+    categoryMenu.innerHTML += '<div style="padding: 0.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.5rem;"><button onclick="selectAllCategories()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">All</button><button onclick="deselectAllCategories()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">None</button></div>';
     APP.categories.forEach(cat => {
         const item = document.createElement('div');
         item.className = 'dropdown-item';
@@ -175,6 +161,7 @@ function updateFilterDropdowns() {
 
     const statusMenu = document.getElementById('statusMenu');
     statusMenu.innerHTML = '';
+    statusMenu.innerHTML += '<div style="padding: 0.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.5rem;"><button onclick="selectAllStatuses()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">All</button><button onclick="deselectAllStatuses()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">None</button></div>';
     APP.statuses.forEach(status => {
         const item = document.createElement('div');
         item.className = 'dropdown-item';
@@ -188,6 +175,7 @@ function updateFilterDropdowns() {
 
     const userMenu = document.getElementById('userMenu');
     userMenu.innerHTML = '';
+    userMenu.innerHTML += '<div style="padding: 0.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.5rem;"><button onclick="selectAllUsers()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">All</button><button onclick="deselectAllUsers()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">None</button></div>';
     APP.users.forEach(user => {
         const item = document.createElement('div');
         item.className = 'dropdown-item';
@@ -252,6 +240,42 @@ function toggleCompleted() {
     renderProjects();
 }
 
+function selectAllCategories() {
+    APP.selectedCategories = [...APP.categories];
+    updateFilterCounts();
+    renderProjects();
+}
+
+function deselectAllCategories() {
+    APP.selectedCategories = [];
+    updateFilterCounts();
+    renderProjects();
+}
+
+function selectAllStatuses() {
+    APP.selectedStatuses = [...APP.statuses];
+    updateFilterCounts();
+    renderProjects();
+}
+
+function deselectAllStatuses() {
+    APP.selectedStatuses = [];
+    updateFilterCounts();
+    renderProjects();
+}
+
+function selectAllUsers() {
+    APP.selectedUsers = [...APP.users];
+    updateFilterCounts();
+    renderProjects();
+}
+
+function deselectAllUsers() {
+    APP.selectedUsers = [];
+    updateFilterCounts();
+    renderProjects();
+}
+
 // ===========================
 // TIMELINE FILTERS
 // ===========================
@@ -293,9 +317,9 @@ function renderTimelineFilters() {
 }
 
 function initTimelineFilters() {
-    if (!APP.timelineSelectedCategories) APP.timelineSelectedCategories = [...APP.categories];
-    if (!APP.timelineSelectedStatuses) APP.timelineSelectedStatuses = [...APP.statuses];
-    if (!APP.timelineSelectedUsers) APP.timelineSelectedUsers = [...APP.users];
+    if (!APP.timelineSelectedCategories || APP.timelineSelectedCategories.length === 0) APP.timelineSelectedCategories = [...APP.categories];
+    if (!APP.timelineSelectedStatuses || APP.timelineSelectedStatuses.length === 0) APP.timelineSelectedStatuses = [...APP.statuses];
+    if (!APP.timelineSelectedUsers || APP.timelineSelectedUsers.length === 0) APP.timelineSelectedUsers = [...APP.users];
 }
 
 function updateTimelineFilterDropdowns() {
@@ -582,13 +606,6 @@ function loadNotes() {
     const selector = document.getElementById('notesSelector');
     
     if (!textarea || !selector) return;
-    
-    // Initialize default notes if they don't exist
-    if (!APP.notes.nymbl && !APP.notes.cindy && !APP.notes.me) {
-        APP.notes.nymbl = '';
-        APP.notes.cindy = '';
-        APP.notes.me = '';
-    }
     
     if (!APP.currentNoteName) {
         APP.currentNoteName = 'Nymbl';
