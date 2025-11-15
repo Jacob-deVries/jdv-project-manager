@@ -10,6 +10,9 @@ const APP = {
     selectedCategories: [],
     selectedStatuses: [],
     selectedUsers: [],
+    timelineSelectedCategories: [],
+    timelineSelectedStatuses: [],
+    timelineSelectedUsers: [],
     showCompleted: false,
     lastUpdated: 'Never',
     currentEditingProject: null,
@@ -22,7 +25,8 @@ const APP = {
     timelineProjects: [],
     dragState: null,
     timelineStartMonth: new Date().getMonth(),
-    timelineRowDragState: null
+    timelineRowDragState: null,
+    isDragging: false
 };
 
 function hashCode(str) {
@@ -55,6 +59,12 @@ function checkPassword() {
 }
 
 function initializeDashboard() {
+    // Initialize default notes
+    APP.notes.nymbl = '';
+    APP.notes.cindy = '';
+    APP.notes.me = '';
+    APP.currentNoteName = 'Nymbl';
+    
     updateStats();
     updateFilterDropdowns();
     loadNotes();
@@ -243,6 +253,185 @@ function toggleCompleted() {
 }
 
 // ===========================
+// TIMELINE FILTERS
+// ===========================
+
+function renderTimelineFilters() {
+    const container = document.getElementById('timelineFilterContainer');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="controls" style="margin-bottom: 1rem;">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search timeline projects..." id="timelineSearchInput" oninput="renderTimeline()">
+            </div>
+            
+            <div class="dropdown-filter">
+                <button class="dropdown-button" onclick="toggleDropdown('timelineCategoryMenu')">
+                    Categories <span id="timelineCategoryCount"></span>
+                </button>
+                <div class="dropdown-menu" id="timelineCategoryMenu"></div>
+            </div>
+
+            <div class="dropdown-filter">
+                <button class="dropdown-button" onclick="toggleDropdown('timelineStatusMenu')">
+                    Statuses <span id="timelineStatusCount"></span>
+                </button>
+                <div class="dropdown-menu" id="timelineStatusMenu"></div>
+            </div>
+
+            <div class="dropdown-filter">
+                <button class="dropdown-button" onclick="toggleDropdown('timelineUserMenu')">
+                    Users <span id="timelineUserCount"></span>
+                </button>
+                <div class="dropdown-menu" id="timelineUserMenu"></div>
+            </div>
+        </div>
+    `;
+    
+    updateTimelineFilterDropdowns();
+}
+
+function initTimelineFilters() {
+    if (!APP.timelineSelectedCategories) APP.timelineSelectedCategories = [...APP.categories];
+    if (!APP.timelineSelectedStatuses) APP.timelineSelectedStatuses = [...APP.statuses];
+    if (!APP.timelineSelectedUsers) APP.timelineSelectedUsers = [...APP.users];
+}
+
+function updateTimelineFilterDropdowns() {
+    initTimelineFilters();
+    
+    const categoryMenu = document.getElementById('timelineCategoryMenu');
+    if (categoryMenu) {
+        categoryMenu.innerHTML = '';
+        APP.categories.forEach(cat => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            const isChecked = APP.timelineSelectedCategories.includes(cat) ? 'checked' : '';
+            item.innerHTML = `
+                <input type="checkbox" id="tl-cat-${cat}" onchange="toggleTimelineCategory('${cat}')" ${isChecked}>
+                <label for="tl-cat-${cat}">${cat}</label>
+            `;
+            categoryMenu.appendChild(item);
+        });
+    }
+
+    const statusMenu = document.getElementById('timelineStatusMenu');
+    if (statusMenu) {
+        statusMenu.innerHTML = '';
+        APP.statuses.forEach(status => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            const isChecked = APP.timelineSelectedStatuses.includes(status) ? 'checked' : '';
+            item.innerHTML = `
+                <input type="checkbox" id="tl-status-${status}" onchange="toggleTimelineStatus('${status}')" ${isChecked}>
+                <label for="tl-status-${status}">${status}</label>
+            `;
+            statusMenu.appendChild(item);
+        });
+    }
+
+    const userMenu = document.getElementById('timelineUserMenu');
+    if (userMenu) {
+        userMenu.innerHTML = '';
+        APP.users.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            const isChecked = APP.timelineSelectedUsers.includes(user) ? 'checked' : '';
+            item.innerHTML = `
+                <input type="checkbox" id="tl-user-${user}" onchange="toggleTimelineUser('${user}')" ${isChecked}>
+                <label for="tl-user-${user}">${user}</label>
+            `;
+            userMenu.appendChild(item);
+        });
+    }
+    
+    updateTimelineFilterCounts();
+}
+
+function toggleTimelineCategory(category) {
+    initTimelineFilters();
+    const index = APP.timelineSelectedCategories.indexOf(category);
+    if (index > -1) {
+        APP.timelineSelectedCategories.splice(index, 1);
+    } else {
+        APP.timelineSelectedCategories.push(category);
+    }
+    updateTimelineFilterCounts();
+    renderTimeline();
+}
+
+function toggleTimelineStatus(status) {
+    initTimelineFilters();
+    const index = APP.timelineSelectedStatuses.indexOf(status);
+    if (index > -1) {
+        APP.timelineSelectedStatuses.splice(index, 1);
+    } else {
+        APP.timelineSelectedStatuses.push(status);
+    }
+    updateTimelineFilterCounts();
+    renderTimeline();
+}
+
+function toggleTimelineUser(user) {
+    initTimelineFilters();
+    const index = APP.timelineSelectedUsers.indexOf(user);
+    if (index > -1) {
+        APP.timelineSelectedUsers.splice(index, 1);
+    } else {
+        APP.timelineSelectedUsers.push(user);
+    }
+    updateTimelineFilterCounts();
+    renderTimeline();
+}
+
+function updateTimelineFilterCounts() {
+    initTimelineFilters();
+    document.getElementById('timelineCategoryCount').textContent = APP.timelineSelectedCategories.length > 0 ? `(${APP.timelineSelectedCategories.length})` : '';
+    document.getElementById('timelineStatusCount').textContent = APP.timelineSelectedStatuses.length > 0 ? `(${APP.timelineSelectedStatuses.length})` : '';
+    document.getElementById('timelineUserCount').textContent = APP.timelineSelectedUsers.length > 0 ? `(${APP.timelineSelectedUsers.length})` : '';
+}
+
+function getFilteredTimelineProjects() {
+    initTimelineFilters();
+    const search = document.getElementById('timelineSearchInput')?.value.toLowerCase() || '';
+    
+    return APP.timelineProjects.filter(tp => {
+        const project = APP.projects.find(p => p.id === tp.projectId);
+        if (!project) return false;
+        
+        // Category filter
+        if (APP.timelineSelectedCategories.length > 0) {
+            const hasCategory = project.categories && 
+                project.categories.some(cat => APP.timelineSelectedCategories.includes(cat));
+            if (!hasCategory) return false;
+        }
+        
+        // Status filter
+        if (APP.timelineSelectedStatuses.length > 0) {
+            if (!APP.timelineSelectedStatuses.includes(project.status)) return false;
+        }
+        
+        // User filter
+        if (APP.timelineSelectedUsers.length > 0) {
+            const hasUser = project.users && project.users.length > 0 &&
+                project.users.some(user => APP.timelineSelectedUsers.includes(user));
+            if (!hasUser) return false;
+        }
+        
+        // Search filter
+        if (search) {
+            const searchInProject = 
+                project.title.toLowerCase().includes(search) ||
+                (project.keyDetails && project.keyDetails.toLowerCase().includes(search));
+            if (!searchInProject) return false;
+        }
+        
+        return true;
+    });
+}
+
+// ===========================
 // PROJECTS RENDERING
 // ===========================
 
@@ -393,6 +582,17 @@ function loadNotes() {
     const selector = document.getElementById('notesSelector');
     
     if (!textarea || !selector) return;
+    
+    // Initialize default notes if they don't exist
+    if (!APP.notes.nymbl && !APP.notes.cindy && !APP.notes.me) {
+        APP.notes.nymbl = '';
+        APP.notes.cindy = '';
+        APP.notes.me = '';
+    }
+    
+    if (!APP.currentNoteName) {
+        APP.currentNoteName = 'Nymbl';
+    }
     
     const noteName = APP.currentNoteName;
     const noteKey = noteName.toLowerCase().replace(/\s+/g, '_');
