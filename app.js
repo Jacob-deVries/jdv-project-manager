@@ -147,7 +147,10 @@ function updateFilterDropdowns() {
     
     const categoryMenu = document.getElementById('categoryMenu');
     categoryMenu.innerHTML = '';
-    categoryMenu.innerHTML += '<div style="padding: 0.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.5rem;"><button onclick="selectAllCategories()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">All</button><button onclick="deselectAllCategories()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">None</button></div>';
+    const catAllNone = document.createElement('div');
+    catAllNone.style.cssText = 'padding: 0.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.5rem;';
+    catAllNone.innerHTML = '<button onclick="event.stopPropagation(); selectAllCategories()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">All</button><button onclick="event.stopPropagation(); deselectAllCategories()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">None</button>';
+    categoryMenu.appendChild(catAllNone);
     APP.categories.forEach(cat => {
         const item = document.createElement('div');
         item.className = 'dropdown-item';
@@ -161,7 +164,10 @@ function updateFilterDropdowns() {
 
     const statusMenu = document.getElementById('statusMenu');
     statusMenu.innerHTML = '';
-    statusMenu.innerHTML += '<div style="padding: 0.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.5rem;"><button onclick="selectAllStatuses()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">All</button><button onclick="deselectAllStatuses()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">None</button></div>';
+    const statusAllNone = document.createElement('div');
+    statusAllNone.style.cssText = 'padding: 0.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.5rem;';
+    statusAllNone.innerHTML = '<button onclick="event.stopPropagation(); selectAllStatuses()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">All</button><button onclick="event.stopPropagation(); deselectAllStatuses()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">None</button>';
+    statusMenu.appendChild(statusAllNone);
     APP.statuses.forEach(status => {
         const item = document.createElement('div');
         item.className = 'dropdown-item';
@@ -175,7 +181,10 @@ function updateFilterDropdowns() {
 
     const userMenu = document.getElementById('userMenu');
     userMenu.innerHTML = '';
-    userMenu.innerHTML += '<div style="padding: 0.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.5rem;"><button onclick="selectAllUsers()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">All</button><button onclick="deselectAllUsers()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">None</button></div>';
+    const userAllNone = document.createElement('div');
+    userAllNone.style.cssText = 'padding: 0.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.5rem;';
+    userAllNone.innerHTML = '<button onclick="event.stopPropagation(); selectAllUsers()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-green); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">All</button><button onclick="event.stopPropagation(); deselectAllUsers()" style="flex: 1; padding: 0.25rem 0.5rem; background: var(--pastel-red); color: var(--bg-primary); border: none; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 500;">None</button>';
+    userMenu.appendChild(userAllNone);
     APP.users.forEach(user => {
         const item = document.createElement('div');
         item.className = 'dropdown-item';
