@@ -289,7 +289,6 @@ function saveProject() {
     });
     document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
     
-    saveToLocalStorage();
     updateStats();
     renderProjects();
     closeEditModal();
@@ -455,7 +454,6 @@ function addCategory() {
     }
     
     APP.categories.push(category);
-    saveToLocalStorage();
     updateFilterDropdowns();
     closeManageModal();
     setTimeout(() => openManageModal(), 100);
@@ -470,7 +468,6 @@ function deleteCategory(category) {
                 p.categories = p.categories.filter(c => c !== category);
             }
         });
-        saveToLocalStorage();
         updateFilterDropdowns();
         renderProjects();
         closeManageModal();
@@ -494,7 +491,6 @@ function addStatus() {
     }
     
     APP.statuses.push(status);
-    saveToLocalStorage();
     updateFilterDropdowns();
     closeManageModal();
     setTimeout(() => openManageModal(), 100);
@@ -507,7 +503,6 @@ function deleteStatus(status) {
         APP.projects.forEach(p => {
             if (p.status === status) p.status = 'idea';
         });
-        saveToLocalStorage();
         updateFilterDropdowns();
         renderProjects();
         closeManageModal();
@@ -531,7 +526,6 @@ function addUser() {
     }
     
     APP.users.push(user);
-    saveToLocalStorage();
     updateFilterDropdowns();
     closeManageModal();
     setTimeout(() => openManageModal(), 100);
@@ -546,7 +540,6 @@ function deleteUser(user) {
                 p.users = p.users.filter(u => u !== user);
             }
         });
-        saveToLocalStorage();
         updateFilterDropdowns();
         renderProjects();
         closeManageModal();
@@ -658,7 +651,6 @@ function addProjectsToTimeline() {
         
         return a.projectId - b.projectId;
     });
-    
     saveToLocalStorage();
     closeAddToTimelineModal();
     renderTimeline();
@@ -689,7 +681,6 @@ function moveTimelineProject(projectId, direction) {
     [APP.timelineProjects[actualIndex], APP.timelineProjects[newIndex]] = 
     [APP.timelineProjects[newIndex], APP.timelineProjects[actualIndex]];
     
-    saveToLocalStorage();
     renderTimeline();
 }
 
@@ -1013,7 +1004,6 @@ function stopDrag() {
         document.removeEventListener('mouseup', stopHandler);
         
         renderTimeline();
-        saveToLocalStorage();
         APP.dragState = null;
         
         setTimeout(() => {
@@ -1096,7 +1086,6 @@ function saveTimelineProjectDates(projectId) {
             project.startDate = startDate;
             project.endDate = endDate;
         }
-        
         saveToLocalStorage();
         renderTimeline();
         closeTimelineProjectModal();
@@ -1107,7 +1096,6 @@ function saveTimelineProjectDates(projectId) {
 function removeProjectFromTimeline(projectId) {
     showConfirm(`Remove "${APP.projects.find(p => p.id === projectId)?.title}" from timeline?`, function() {
         APP.timelineProjects = APP.timelineProjects.filter(tp => tp.projectId !== projectId);
-        saveToLocalStorage();
         renderTimeline();
         closeTimelineProjectModal();
         showNotification('Project removed from timeline', 'success');
@@ -1244,7 +1232,6 @@ function exportPKD() {
     
     APP.lastUpdated = dateStr;
     document.getElementById('lastUpdatedText').textContent = `Last Updated: ${APP.lastUpdated}`;
-    saveToLocalStorage();
     showNotification('PKD exported successfully', 'success');
 }
 
