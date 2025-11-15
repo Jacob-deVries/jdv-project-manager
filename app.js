@@ -242,37 +242,37 @@ function toggleCompleted() {
 
 function selectAllCategories() {
     APP.selectedCategories = [...APP.categories];
-    updateFilterCounts();
+    updateFilterDropdowns();
     renderProjects();
 }
 
 function deselectAllCategories() {
     APP.selectedCategories = [];
-    updateFilterCounts();
+    updateFilterDropdowns();
     renderProjects();
 }
 
 function selectAllStatuses() {
     APP.selectedStatuses = [...APP.statuses];
-    updateFilterCounts();
+    updateFilterDropdowns();
     renderProjects();
 }
 
 function deselectAllStatuses() {
     APP.selectedStatuses = [];
-    updateFilterCounts();
+    updateFilterDropdowns();
     renderProjects();
 }
 
 function selectAllUsers() {
     APP.selectedUsers = [...APP.users];
-    updateFilterCounts();
+    updateFilterDropdowns();
     renderProjects();
 }
 
 function deselectAllUsers() {
     APP.selectedUsers = [];
-    updateFilterCounts();
+    updateFilterDropdowns();
     renderProjects();
 }
 
